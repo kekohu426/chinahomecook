@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
       negativePrompt,
       width,
       height,
+      timeoutMs: 20000,
+      retries: 1,
     });
 
     if (!result.success) {

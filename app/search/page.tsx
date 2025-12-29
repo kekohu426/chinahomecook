@@ -57,7 +57,7 @@ async function SearchResults({ query }: { query: string }) {
                   ✨ AI为您生成了新菜谱
                 </h3>
                 <p className="text-sm text-textGray">
-                  我们没有找到"{query}"的现有菜谱，已使用AI为您生成了专属食谱！
+                  我们没有找到&quot;{query}&quot;的现有菜谱，已使用AI为您生成了专属食谱！
                 </p>
               </div>
             </div>

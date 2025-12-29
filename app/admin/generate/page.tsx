@@ -559,7 +559,7 @@ export default function GeneratePage() {
         <ul className="text-sm text-sage-600 space-y-2">
           <li>• 单个生成适合快速创建单个菜谱，3-5秒完成</li>
           <li>• 批量生成适合快速扩充菜谱库，每个菜谱约4-6秒</li>
-          <li>• 生成的菜谱会自动保存到数据库，标记为"未发布"状态</li>
+          <li>• 生成的菜谱会自动保存到数据库，标记为&quot;未发布&quot;状态</li>
           <li>
             • 生成的菜谱符合PRD v1.1.0格式，包含完整的食材、步骤、配图方案等
           </li>

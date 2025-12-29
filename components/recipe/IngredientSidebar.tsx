@@ -24,11 +24,30 @@ export function IngredientSidebar({
   baseServings = 3
 }: IngredientSidebarProps) {
   // 可选份量（基准份量的倍数）
-  const servingOptions = [
-    Math.max(2, Math.floor(baseServings / 1.5)),
-    baseServings,
-    baseServings * 2
-  ];
+  const servingOptions = (() => {
+    const candidates = [
+      Math.max(2, Math.floor(baseServings / 1.5)),
+      baseServings,
+      baseServings * 2
+    ];
+    const unique = Array.from(new Set(candidates));
+    const fallback = [
+      baseServings + 1,
+      baseServings - 1,
+      baseServings + 2,
+      2,
+      1
+    ];
+
+    for (const value of fallback) {
+      if (unique.length >= 3) break;
+      if (value > 0 && !unique.includes(value)) {
+        unique.push(value);
+      }
+    }
+
+    return unique.sort((a, b) => a - b);
+  })();
 
   const [servings, setServings] = useState(baseServings);
 

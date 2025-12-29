@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Edit2, Trash2, MapPin, UtensilsCrossed, Loader2 } from "lucide-react";
+import { Edit2, Trash2, MapPin, UtensilsCrossed, Loader2 } from "lucide-react";
 
 interface Location {
   id: string;
@@ -27,10 +27,34 @@ export default function ConfigPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [cuisines, setCuisines] = useState<Cuisine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formState, setFormState] = useState({
+    name: "",
+    slug: "",
+    description: "",
+    sortOrder: "0",
+    isActive: true,
+  });
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    resetForm();
+  }, [activeTab]);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setFormState({
+      name: "",
+      slug: "",
+      description: "",
+      sortOrder: "0",
+      isActive: true,
+    });
+  };
 
   async function loadData() {
     try {
@@ -81,6 +105,66 @@ export default function ConfigPage() {
       alert("删除失败");
     }
   }
+
+  const handleEdit = (
+    type: "location" | "cuisine",
+    item: Location | Cuisine
+  ) => {
+    setActiveTab(type === "location" ? "locations" : "cuisines");
+    setEditingId(item.id);
+    setFormState({
+      name: item.name,
+      slug: item.slug,
+      description: item.description || "",
+      sortOrder: String(item.sortOrder ?? 0),
+      isActive: item.isActive,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    const payload = {
+      name: formState.name.trim(),
+      slug: formState.slug.trim(),
+      description: formState.description.trim() || null,
+      sortOrder: Number(formState.sortOrder) || 0,
+      isActive: formState.isActive,
+    };
+
+    if (!payload.name || !payload.slug) {
+      alert("名称和 slug 为必填项");
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const isLocation = activeTab === "locations";
+      const base = isLocation ? "/api/config/locations" : "/api/config/cuisines";
+      const endpoint = editingId ? `${base}/${editingId}` : base;
+      const method = editingId ? "PUT" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error("保存失败");
+      }
+
+      alert(editingId ? "更新成功" : "新增成功");
+      resetForm();
+      loadData();
+    } catch (error) {
+      console.error("保存失败:", error);
+      alert("保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   async function handleToggleActive(
     type: "location" | "cuisine",
@@ -169,6 +253,110 @@ export default function ConfigPage() {
         </button>
       </div>
 
+      {/* 新增/编辑表单 */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-lg border border-sage-200 p-6 mb-8"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-medium text-sage-800">
+              {activeTab === "locations" ? "地点" : "菜系"}
+              {editingId ? "编辑" : "新增"}
+            </h2>
+            <p className="text-sm text-sage-500">
+              {editingId ? "修改现有配置" : "新增一条配置"}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="px-4 py-2 text-sm text-sage-600 border border-sage-200 rounded-lg hover:border-sage-400"
+              >
+                取消编辑
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 text-sm bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:opacity-60"
+            >
+              {saving ? "保存中..." : editingId ? "保存更新" : "新增"}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="config-name" className="block text-sm text-sage-600 mb-2">
+              名称
+            </label>
+            <input
+              id="config-name"
+              value={formState.name}
+              onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+              className="w-full px-3 py-2 border border-sage-200 rounded-md"
+              placeholder={activeTab === "locations" ? "例：川渝" : "例：川菜"}
+            />
+          </div>
+          <div>
+            <label htmlFor="config-slug" className="block text-sm text-sage-600 mb-2">
+              Slug
+            </label>
+            <input
+              id="config-slug"
+              value={formState.slug}
+              onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
+              className="w-full px-3 py-2 border border-sage-200 rounded-md"
+              placeholder="例：chuanyu"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label htmlFor="config-description" className="block text-sm text-sage-600 mb-2">
+              描述
+            </label>
+            <textarea
+              id="config-description"
+              value={formState.description}
+              onChange={(e) =>
+                setFormState({ ...formState, description: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-sage-200 rounded-md"
+              rows={2}
+              placeholder="补充说明（可选）"
+            />
+          </div>
+          <div>
+            <label htmlFor="config-sort" className="block text-sm text-sage-600 mb-2">
+              排序
+            </label>
+            <input
+              id="config-sort"
+              type="number"
+              value={formState.sortOrder}
+              onChange={(e) => setFormState({ ...formState, sortOrder: e.target.value })}
+              className="w-full px-3 py-2 border border-sage-200 rounded-md"
+            />
+          </div>
+          <div className="flex items-center gap-3 mt-7">
+            <input
+              id="config-active"
+              type="checkbox"
+              checked={formState.isActive}
+              onChange={(e) =>
+                setFormState({ ...formState, isActive: e.target.checked })
+              }
+              className="w-4 h-4"
+            />
+            <label htmlFor="config-active" className="text-sm text-sage-600">
+              启用该配置
+            </label>
+          </div>
+        </div>
+      </form>
+
       {/* 地点列表 */}
       {activeTab === "locations" && (
         <div>
@@ -226,12 +414,22 @@ export default function ConfigPage() {
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDelete("location", location.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="inline-flex gap-3">
+                        <button
+                          onClick={() => handleEdit("location", location)}
+                          className="text-sage-600 hover:text-sage-800"
+                          aria-label={`编辑地点 ${location.name}`}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete("location", location.id)}
+                          className="text-red-600 hover:text-red-800"
+                          aria-label={`删除地点 ${location.name}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -298,12 +496,22 @@ export default function ConfigPage() {
                       </button>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDelete("cuisine", cuisine.id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="inline-flex gap-3">
+                        <button
+                          onClick={() => handleEdit("cuisine", cuisine)}
+                          className="text-sage-600 hover:text-sage-800"
+                          aria-label={`编辑菜系 ${cuisine.name}`}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete("cuisine", cuisine.id)}
+                          className="text-red-600 hover:text-red-800"
+                          aria-label={`删除菜系 ${cuisine.name}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

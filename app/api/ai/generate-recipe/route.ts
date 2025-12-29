@@ -43,10 +43,12 @@ export async function POST(request: NextRequest) {
 
       // 尝试生成封面图（使用第一个imageShot的prompt）
       let coverImage: string | undefined;
+      let imageError: string | undefined;
       try {
         if (result.data.imageShots && result.data.imageShots.length > 0) {
-          const heroShot = result.data.imageShots.find((shot: any) => shot.key === "hero")
-            || result.data.imageShots[0];
+          const heroShot = result.data.imageShots.find(
+            (shot: any) => shot.key === "hero" || shot.key === "cover"
+          ) || result.data.imageShots[0];
 
           if (heroShot?.imagePrompt) {
             console.log("正在生成封面图...", heroShot.imagePrompt);
@@ -54,18 +56,22 @@ export async function POST(request: NextRequest) {
               prompt: heroShot.imagePrompt,
               width: 1024,
               height: 576, // 16:9比例
+              timeoutMs: 20000,
+              retries: 1,
             });
 
             if (imageResult.success && imageResult.imageUrl) {
               coverImage = imageResult.imageUrl;
               console.log("封面图生成成功:", coverImage);
             } else {
-              console.error("封面图生成失败:", imageResult.error);
+              imageError = imageResult.error || "封面图生成失败";
+              console.error("封面图生成失败:", imageError);
             }
           }
         }
       } catch (imageError) {
         console.error("生成封面图时出错:", imageError);
+        imageError = imageError instanceof Error ? imageError.message : "封面图生成失败";
         // 图片生成失败不影响菜谱保存
       }
 
@@ -94,6 +100,7 @@ export async function POST(request: NextRequest) {
         success: true,
         data: recipe,
         message: `菜谱"${result.data.titleZh}"生成成功并已保存${coverImage ? "，封面图已生成" : "（封面图生成失败，可在编辑页重新生成）"}`,
+        imageError,
       });
     }
 
