@@ -1,0 +1,141 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== 食谱数据模型 ====================
+// 🚨 重要：严格遵循 PRD Schema v1.1.0
+// 参考文档：docs/SCHEMA_VALIDATION.md
+
+model Recipe {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Schema版本（必填）
+  schemaVersion String   @default("1.1.0")
+
+  // 标题（必填）
+  titleZh       String   // 中文标题
+  titleEn       String?  // 英文标题（可选）
+
+  // 摘要信息（JSONB存储，PRD v1.1.0）
+  // { oneLine, healingTone, difficulty, timeTotalMin, timeActiveMin, servings }
+  summary       Json
+
+  // 文化故事（JSONB存储，PRD v1.1.0）
+  // { title, content, tags[] }
+  story         Json
+
+  // 食材清单（JSONB存储，PRD v1.1.0）
+  // [{ section, items: [{ name, iconKey, amount, unit, notes? }] }]
+  ingredients   Json
+
+  // 制作步骤（JSONB存储，PRD v1.1.0）
+  // [{ id, title, action, speechText, timerSec, visualCue, failPoint, photoBrief }]
+  steps         Json
+
+  // 风格指南（JSONB存储，PRD v1.1.0）
+  // { theme, lighting, composition, aesthetic }
+  styleGuide    Json
+
+  // 配图方案（JSONB存储，PRD v1.1.0）
+  // [{ key, imagePrompt, ratio }]
+  imageShots    Json
+
+  // 筛选和搜索字段（扩展字段，不在PRD中）
+  location        String?   // 地点（川渝、江浙、粤港澳等）
+  cuisine         String?   // 菜系（川菜、粤菜、湘菜等）
+  mainIngredients String[]  // 主要食材数组（用于筛选）
+  slug            String    @unique // URL友好标识
+  coverImage      String?   // 封面图URL
+  aiGenerated     Boolean   @default(false) // 是否AI生成
+
+  // 元数据（扩展字段，不在PRD中）
+  author        String?
+  isPublished   Boolean  @default(false)
+  viewCount     Int      @default(0)
+
+  @@index([titleZh])
+  @@index([isPublished])
+  @@index([createdAt])
+  @@index([location])
+  @@index([cuisine])
+  @@index([mainIngredients])
+  @@index([slug])
+  @@index([aiGenerated])
+}
+
+// ==================== 用户模型 ====================
+
+model User {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  email         String   @unique
+  passwordHash  String
+  name          String?
+
+  role          Role     @default(USER)
+
+  @@index([email])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// ==================== AI对话历史 ====================
+
+model AIConversation {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+
+  recipeId      String
+  recipeTitleZh String   // 冗余字段，方便查询
+
+  messages      Json     // [{ role, content, timestamp }]
+
+  @@index([recipeId])
+  @@index([createdAt])
+}
+
+// ==================== 配置表（地点、菜系管理）====================
+
+model Location {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String   @unique // 地点名称（川渝、江浙、粤港澳等）
+  description String?          // 描述
+  slug        String   @unique // URL友好标识
+  isActive    Boolean  @default(true) // 是否启用
+  sortOrder   Int      @default(0)    // 排序
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model Cuisine {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String   @unique // 菜系名称（川菜、粤菜、湘菜等）
+  description String?          // 描述
+  slug        String   @unique // URL友好标识
+  isActive    Boolean  @default(true) // 是否启用
+  sortOrder   Int      @default(0)    // 排序
+
+  @@index([isActive])
+  @@index([sortOrder])
+}

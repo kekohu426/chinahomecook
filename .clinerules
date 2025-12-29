@@ -1,0 +1,30 @@
+# 食谱研习 (Recipe Zen) - AI 协作上下文
+
+## 项目核心信息
+- **定位**：极致治愈 × 极致实用的中国美食指南
+- **技术栈**：Next.js 15 (App Router) + TypeScript + Neon (PostgreSQL) + Cloudflare R2
+- **当前阶段**：MVP 开发中
+
+## 关键技术决策
+1. ✅ Next.js 15 App Router
+2. ✅ Neon (Serverless PostgreSQL) 数据库
+3. ✅ Cloudflare R2 图片存储
+4. ✅ AI 灵活配置（DeepSeek/OpenAI）
+5. ✅ 混合图标方案（Lucide + AI生成）
+6. ✅ 数据格式遵循 PRD Schema v1.1.0
+
+## 🚨 核心约束（绝对不能违反）
+1. ⚠️ **UI样式必须100%还原设计稿**（不能有任何差异）
+2. ⚠️ 数据库Schema不能缺少PRD字段（只能增加）
+3. ⚠️ 所有数据必须通过Zod验证
+
+## 当前任务
+查看 docs/TODO.md
+
+## 重要提醒
+- 严格遵循 Git 提交规范
+- 所有 API 用 Zod 验证
+- 数据库用 JSONB 存储 PRD Schema
+- 每次重大变更更新文档
+
+详见项目文档：docs/
