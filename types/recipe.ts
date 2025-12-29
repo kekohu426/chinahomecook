@@ -121,6 +121,7 @@ export interface ImageShot {
   key: string;             // 图片键（例：cover, step01, final）
   imagePrompt: string;     // AI生图提示词
   ratio: ImageRatio;       // 图片比例（16:9, 4:3, 3:2）
+  imageUrl?: string;       // AI生成的图片URL (扩展字段)
 }
 
 // ==================== UI 相关类型 ====================

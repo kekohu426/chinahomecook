@@ -37,7 +37,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const recipe: Recipe = {
     schemaVersion: recipeData.schemaVersion as "1.1.0",
     titleZh: recipeData.titleZh,
-    titleEn: recipeData.titleEn,
+    titleEn: recipeData.titleEn || undefined,
     summary: recipeData.summary as any,
     story: recipeData.story as any,
     ingredients: recipeData.ingredients as any,
@@ -97,9 +97,17 @@ export default async function RecipePage({ params }: RecipePageProps) {
             </div>
 
             {/* 步骤卡片列表 */}
-            {recipe.steps.map((step, index) => (
-              <StepCard key={step.id} step={step} stepNumber={index + 1} />
-            ))}
+            {recipe.steps.map((step, index) => {
+              const imageShot = recipe.imageShots?.find((shot) => shot.key === step.id);
+              return (
+                <StepCard 
+                  key={step.id} 
+                  step={step} 
+                  stepNumber={index + 1} 
+                  imageUrl={imageShot?.imageUrl}
+                />
+              );
+            })}
 
             {/* AI 智能主厨 */}
             <AIChefCard recipeTitle={recipe.titleZh} />

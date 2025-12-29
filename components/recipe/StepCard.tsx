@@ -65,15 +65,25 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
         STEP {stepNumber.toString().padStart(2, "0")}
       </div>
 
-      {/* 步骤配图占位（待接入真实图片） */}
+      {/* 步骤配图 */}
       <div className="relative w-full h-56 rounded-image overflow-hidden mb-5 bg-lightGray">
-        <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream/70 to-orangeAccent/20" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center px-6">
-            <div className="text-2xl mb-2">📸</div>
-            <p className="text-sm text-textGray">步骤配图（待生成）</p>
-          </div>
-        </div>
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={step.title}
+            className="w-full h-full object-cover transition-transform hover:scale-105 duration-700"
+          />
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream/70 to-orangeAccent/20" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center px-6">
+                <div className="text-2xl mb-2">📸</div>
+                <p className="text-sm text-textGray">步骤配图（待生成）</p>
+              </div>
+            </div>
+          </>
+        )}
         {step.photoBrief && (
           <div className="absolute bottom-3 left-3 right-3 bg-white/80 backdrop-blur-sm rounded-sm px-3 py-2">
             <span className="text-xs font-medium text-textDark">配图提示：</span>

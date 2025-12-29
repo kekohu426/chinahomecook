@@ -835,29 +835,52 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
 
         <div className="space-y-4">
           {imageShots.map((shot, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-              <Input
-                value={shot.key}
-                onChange={(e) => updateImageShot(index, "key", e.target.value)}
-                placeholder="key (hero/step01)"
-              />
-              <Input
-                value={shot.imagePrompt}
-                onChange={(e) => updateImageShot(index, "imagePrompt", e.target.value)}
-                placeholder="AI 提示词"
-              />
-              <select
-                value={shot.ratio}
-                onChange={(e) => updateImageShot(index, "ratio", e.target.value)}
-                className="w-full px-3 py-2 border border-lightGray rounded-sm"
-              >
-                <option value="16:9">16:9</option>
-                <option value="4:3">4:3</option>
-                <option value="3:2">3:2</option>
-              </select>
-              <Button type="button" variant="outline" onClick={() => removeImageShot(index)}>
-                删除
-              </Button>
+            <div key={index} className="border border-lightGray rounded-md p-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center mb-3">
+                <Input
+                  value={shot.key}
+                  onChange={(e) => updateImageShot(index, "key", e.target.value)}
+                  placeholder="key (hero/step01)"
+                />
+                <Input
+                  value={shot.imagePrompt}
+                  onChange={(e) => updateImageShot(index, "imagePrompt", e.target.value)}
+                  placeholder="AI 提示词"
+                />
+                <select
+                  value={shot.ratio}
+                  onChange={(e) => updateImageShot(index, "ratio", e.target.value)}
+                  className="w-full px-3 py-2 border border-lightGray rounded-sm"
+                >
+                  <option value="16:9">16:9</option>
+                  <option value="4:3">4:3</option>
+                  <option value="3:2">3:2</option>
+                </select>
+                <Button type="button" variant="outline" onClick={() => removeImageShot(index)}>
+                  删除
+                </Button>
+              </div>
+              <div>
+                <label className="text-xs text-textGray mb-1 block">图片 URL</label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    value={shot.imageUrl || ""}
+                    onChange={(e) => updateImageShot(index, "imageUrl", e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1"
+                  />
+                  {shot.imageUrl && (
+                    <a 
+                      href={shot.imageUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-brownWarm hover:underline text-sm whitespace-nowrap"
+                    >
+                      预览
+                    </a>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -18,6 +18,9 @@ export default function GeneratePage() {
   const [mode, setMode] = useState<"single" | "batch">("single");
   const [locations, setLocations] = useState<Location[]>([]);
   const [cuisines, setCuisines] = useState<Cuisine[]>([]);
+  const [batchProgress, setBatchProgress] = useState<
+    Array<{ dishName: string; status: "pending" | "generating" | "success" | "failed"; error?: string }>
+  >([]);
 
   // 单个生成表单
   const [singleForm, setSingleForm] = useState({
@@ -138,48 +141,92 @@ export default function GeneratePage() {
 
     setGenerating(true);
     setResult(null);
+    setBatchProgress(
+      dishNames.map((dishName) => ({ dishName, status: "pending" }))
+    );
 
-    try {
-      const res = await fetch("/api/ai/generate-recipes-batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dishNames,
-          location: batchForm.location || undefined,
-          cuisine: batchForm.cuisine || undefined,
-          autoSave: true,
-        }),
-      });
+    let successCount = 0;
+    let failedCount = 0;
+    const results: Array<{ dishName: string; success: boolean; error?: string }> = [];
 
-      const data = await res.json();
+    for (let i = 0; i < dishNames.length; i++) {
+      const dishName = dishNames[i];
+      setBatchProgress((prev) =>
+        prev.map((item) =>
+          item.dishName === dishName
+            ? { ...item, status: "generating" }
+            : item
+        )
+      );
 
-      if (data.success) {
-        setResult({
-          success: true,
-          message: data.message,
-          stats: data.data,
+      try {
+        const res = await fetch("/api/ai/generate-recipe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dishName,
+            location: batchForm.location || undefined,
+            cuisine: batchForm.cuisine || undefined,
+            autoSave: true,
+          }),
         });
-        // 清空表单
-        setBatchForm({
-          dishNames: "",
-          location: "",
-          cuisine: "",
-        });
-      } else {
-        setResult({
-          success: false,
-          error: data.error,
-        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          successCount += 1;
+          results.push({ dishName, success: true });
+          setBatchProgress((prev) =>
+            prev.map((item) =>
+              item.dishName === dishName
+                ? { ...item, status: "success" }
+                : item
+            )
+          );
+        } else {
+          failedCount += 1;
+          results.push({ dishName, success: false, error: data.error });
+          setBatchProgress((prev) =>
+            prev.map((item) =>
+              item.dishName === dishName
+                ? { ...item, status: "failed", error: data.error }
+                : item
+            )
+          );
+        }
+      } catch (error) {
+        failedCount += 1;
+        results.push({ dishName, success: false, error: "生成失败" });
+        setBatchProgress((prev) =>
+          prev.map((item) =>
+            item.dishName === dishName
+              ? { ...item, status: "failed", error: "生成失败" }
+              : item
+          )
+        );
       }
-    } catch (error) {
-      console.error("批量生成失败:", error);
-      setResult({
-        success: false,
-        error: "批量生成失败",
-      });
-    } finally {
-      setGenerating(false);
     }
+
+    setResult({
+      success: failedCount === 0,
+      message:
+        failedCount === 0
+          ? `批量生成完成：成功 ${successCount}/${dishNames.length}`
+          : `批量生成完成：成功 ${successCount}/${dishNames.length}，失败 ${failedCount}`,
+      stats: {
+        total: dishNames.length,
+        generated: successCount,
+        failed: failedCount,
+        results,
+      },
+    });
+
+    setBatchForm({
+      dishNames: "",
+      location: "",
+      cuisine: "",
+    });
+    setGenerating(false);
   }
 
   return (
@@ -428,6 +475,44 @@ export default function GeneratePage() {
               )}
             </button>
           </div>
+
+          {batchProgress.length > 0 && (
+            <div className="bg-white rounded-lg border border-sage-200 p-6">
+              <h3 className="text-sm font-medium text-sage-700 mb-4">
+                生成进度
+              </h3>
+              <div className="space-y-3" data-testid="batch-progress">
+                {batchProgress.map((item) => (
+                  <div
+                    key={item.dishName}
+                    className="flex items-center justify-between border border-sage-100 rounded-lg px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      {item.status === "generating" && (
+                        <Loader2 className="w-4 h-4 animate-spin text-sage-500" />
+                      )}
+                      {item.status === "success" && (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      )}
+                      {item.status === "failed" && (
+                        <XCircle className="w-4 h-4 text-red-600" />
+                      )}
+                      {item.status === "pending" && (
+                        <span className="w-4 h-4 rounded-full border border-sage-300" />
+                      )}
+                      <span className="text-sm text-sage-700">{item.dishName}</span>
+                    </div>
+                    <div className="text-xs text-sage-500">
+                      {item.status === "pending" && "等待中"}
+                      {item.status === "generating" && "生成中"}
+                      {item.status === "success" && "成功"}
+                      {item.status === "failed" && (item.error || "失败")}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </form>
       )}
 

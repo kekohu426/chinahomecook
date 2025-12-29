@@ -41,38 +41,66 @@ export async function POST(request: NextRequest) {
       // 生成slug
       const slug = `${result.data.titleZh.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 
-      // 尝试生成封面图（使用第一个imageShot的prompt）
+      // 尝试生成所有配图
       let coverImage: string | undefined;
       let imageError: string | undefined;
+      
       try {
         if (result.data.imageShots && result.data.imageShots.length > 0) {
-          const heroShot = result.data.imageShots.find(
-            (shot: any) => shot.key === "hero" || shot.key === "cover"
-          ) || result.data.imageShots[0];
+          console.log(`准备生成 ${result.data.imageShots.length} 张配图...`);
+          
+          // 并行生成所有图片
+          await Promise.all(result.data.imageShots.map(async (shot: any) => {
+            try {
+              if (!shot.imagePrompt) return;
 
-          if (heroShot?.imagePrompt) {
-            console.log("正在生成封面图...", heroShot.imagePrompt);
-            const imageResult = await evolinkClient.generateImage({
-              prompt: heroShot.imagePrompt,
-              width: 1024,
-              height: 576, // 16:9比例
-              timeoutMs: 20000,
-              retries: 1,
-            });
+              console.log(`正在生成图片 [${shot.key}]...`);
+              
+              // 根据比例确定尺寸
+              let width = 1024;
+              let height = 1024;
+              if (shot.ratio === "16:9") { height = 576; }
+              else if (shot.ratio === "4:3") { height = 768; }
+              else if (shot.ratio === "3:2") { height = 683; }
 
-            if (imageResult.success && imageResult.imageUrl) {
-              coverImage = imageResult.imageUrl;
-              console.log("封面图生成成功:", coverImage);
-            } else {
-              imageError = imageResult.error || "封面图生成失败";
-              console.error("封面图生成失败:", imageError);
+              const imageResult = await evolinkClient.generateImage({
+                prompt: shot.imagePrompt,
+                width,
+                height,
+                timeoutMs: 40000, // 增加超时时间
+                retries: 1,
+              });
+
+              if (imageResult.success && imageResult.imageUrl) {
+                console.log(`图片 [${shot.key}] 生成成功:`, imageResult.imageUrl);
+                shot.imageUrl = imageResult.imageUrl; // 将 URL 存入 imageShot 对象
+                
+                // 如果是封面图，记录下来
+                if (shot.key === "hero" || shot.key === "cover") {
+                  coverImage = imageResult.imageUrl;
+                }
+              } else {
+                console.error(`图片 [${shot.key}] 生成失败:`, imageResult.error);
+                if (shot.key === "hero" || shot.key === "cover") {
+                  imageError = imageResult.error;
+                }
+              }
+            } catch (err) {
+              console.error(`图片 [${shot.key}] 生成出错:`, err);
             }
+          }));
+
+          // 如果没有明确的 cover/hero，尝试使用第一张成功的图片作为封面
+          if (!coverImage && result.data.imageShots.length > 0) {
+             const firstSuccess = result.data.imageShots.find((s: any) => s.imageUrl);
+             if (firstSuccess) {
+               coverImage = firstSuccess.imageUrl;
+             }
           }
         }
-      } catch (imageError) {
-        console.error("生成封面图时出错:", imageError);
-        imageError = imageError instanceof Error ? imageError.message : "封面图生成失败";
-        // 图片生成失败不影响菜谱保存
+      } catch (err) {
+        console.error("生成配图过程出错:", err);
+        imageError = err instanceof Error ? err.message : "配图生成失败";
       }
 
       const recipe = await prisma.recipe.create({
@@ -80,12 +108,12 @@ export async function POST(request: NextRequest) {
           schemaVersion: result.data.schemaVersion,
           titleZh: result.data.titleZh,
           titleEn: result.data.titleEn,
-          summary: result.data.summary,
-          story: result.data.story,
-          ingredients: result.data.ingredients,
-          steps: result.data.steps,
-          styleGuide: result.data.styleGuide,
-          imageShots: result.data.imageShots,
+          summary: result.data.summary as any,
+          story: result.data.story as any,
+          ingredients: result.data.ingredients as any,
+          steps: result.data.steps as any,
+          styleGuide: result.data.styleGuide as any,
+          imageShots: result.data.imageShots as any,
           location,
           cuisine,
           mainIngredients: mainIngredients || [],
