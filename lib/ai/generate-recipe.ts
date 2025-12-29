@@ -92,17 +92,23 @@ ${location ? `地点：${location}\n` : ""}${cuisine ? `菜系：${cuisine}\n` :
   "imageShots": [
     {
       "key": "hero",
-      "imagePrompt": "英文AI生图提示词（Midjourney/Stable Diffusion风格）",
+      "imagePrompt": "Highest quality food photography, professional Michelin star plating, 8k resolution, cinematic lighting, soft focus background, delicious appetizing [Dish Name]",
       "ratio": "16:9 | 4:3 | 3:2"
     },
     {
       "key": "step01",
-      "imagePrompt": "第一步骤的AI生图提示词",
+      "imagePrompt": "Close-up action shot of cooking step, high quality food photography, bright lighting, sharp details, photorealistic, 4k, [Specific action description]",
       "ratio": "4:3"
     }
   ]
 }
-\`\`\`
+```
+
+**图片提示词特别要求：**
+1. 必须是用英文书写。
+2. 必须包含"food photography", "high resolution", "photorealistic", "cinematic lighting"等高质量关键词。
+3. 步骤图必须详细描述该步骤的具体动作和画面（如"slicing beef thinly", "frying garlic in oil"），不能只写"Step 1"。
+4. 确保`imageShots`中的`key`与`steps`中的`id`完全一致（如都使用"step01", "step02"）。
 
 **现在请为"${dishName}"生成完整的菜谱JSON数据：**
 （请直接输出JSON，不要包含任何markdown代码块标记）`;

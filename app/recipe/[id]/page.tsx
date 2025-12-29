@@ -98,7 +98,17 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
             {/* 步骤卡片列表 */}
             {recipe.steps.map((step, index) => {
-              const imageShot = recipe.imageShots?.find((shot) => shot.key === step.id);
+              // 尝试更灵活地匹配 imageShot
+              const imageShot = recipe.imageShots?.find((shot) => {
+                // 1. 直接匹配 key === id
+                if (shot.key === step.id) return true;
+                // 2. 尝试匹配数字部分 (例如 step01 匹配 step1)
+                const stepNum = step.id.replace(/\D/g, '');
+                const shotNum = shot.key.replace(/\D/g, '');
+                if (stepNum && shotNum && stepNum === shotNum) return true;
+                return false;
+              });
+
               return (
                 <StepCard 
                   key={step.id} 
