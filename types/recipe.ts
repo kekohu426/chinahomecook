@@ -38,7 +38,7 @@ export interface Recipe {
 
   // 标题（必填）
   titleZh: string;        // 中文标题（例：啤酒鸭）
-  titleEn?: string;       // 英文标题（可选，例：Beer Braised Duck）
+  titleEn?: string | null;       // 英文标题（可选，例：Beer Braised Duck）
 
   // 摘要信息（PRD v1.1.0）
   summary: RecipeSummary;
@@ -90,7 +90,7 @@ export interface IngredientItem {
   iconKey: IconKey;        // 图标键（例：meat）
   amount: number;          // 数量（例：750）
   unit: string;            // 单位（例：克）
-  notes?: string;          // 备注（可选，例：半只）
+  notes?: string | null;          // 备注（可选，例：半只）
 }
 
 // ==================== 制作步骤 ====================

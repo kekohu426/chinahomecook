@@ -54,7 +54,7 @@ const IngredientItemSchema = z.object({
   iconKey: IconKeyEnum,
   amount: z.number().positive("数量必须大于0"),
   unit: z.string().min(1, "单位不能为空"),
-  notes: z.string().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 const IngredientSectionSchema = z.object({
@@ -104,7 +104,7 @@ const ImageShotsSchema = z.array(ImageShotSchema);
 export const RecipeSchema = z.object({
   schemaVersion: z.literal("1.1.0"),
   titleZh: z.string().min(1, "中文标题不能为空"),
-  titleEn: z.string().optional(),
+  titleEn: z.string().nullable().optional(),
 
   summary: SummarySchema,
   story: StorySchema,

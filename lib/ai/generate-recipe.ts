@@ -280,11 +280,33 @@ export function normalizeRecipeData(data: any): any {
     }
   }
 
-  // 转换 ingredients 中的 amount 字段
+  // 转换 ingredients 中的 amount 字段，并修复 iconKey 和 notes
   if (data.ingredients && Array.isArray(data.ingredients)) {
+    const validIcons = [
+      "meat", "veg", "fruit", "seafood", "grain", "bean",
+      "dairy", "egg", "spice", "sauce", "oil", "other"
+    ];
+
     data.ingredients.forEach((section: any) => {
       if (section.items && Array.isArray(section.items)) {
         section.items.forEach((item: any) => {
+          // 修复 notes: null -> undefined
+          if (item.notes === null) {
+            item.notes = undefined;
+          }
+
+          // 修复 iconKey: 确保在枚举范围内
+          if (item.iconKey && !validIcons.includes(item.iconKey)) {
+            // 尝试一些简单的映射
+            const key = item.iconKey.toLowerCase();
+            if (key === "tool") item.iconKey = "other";
+            else if (key.includes("vegetable")) item.iconKey = "veg";
+            else {
+              console.warn(`Invalid iconKey: ${item.iconKey}, fallback to 'other'`);
+              item.iconKey = "other";
+            }
+          }
+
           if (typeof item.amount === 'string') {
             const numeric = parseFloat(item.amount);
             if (Number.isNaN(numeric)) {
