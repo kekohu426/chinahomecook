@@ -16,9 +16,10 @@ import { cn } from "@/lib/utils";
 interface StepCardProps {
   step: RecipeStep;
   stepNumber: number; // 显示的步骤编号（从1开始）
+  imageUrl?: string; // 步骤配图 URL
 }
 
-export function StepCard({ step, stepNumber }: StepCardProps) {
+export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(step.timerSec);
 
