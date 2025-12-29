@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateRecipe } from "@/lib/ai/generate-recipe";
 import { prisma } from "@/lib/db/prisma";
 import { evolinkClient } from "@/lib/ai/evolink";
+import { uploadImage, generateSafeFilename } from "@/lib/utils/storage";
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,11 +74,31 @@ export async function POST(request: NextRequest) {
 
               if (imageResult.success && imageResult.imageUrl) {
                 console.log(`图片 [${shot.key}] 生成成功:`, imageResult.imageUrl);
-                shot.imageUrl = imageResult.imageUrl; // 将 URL 存入 imageShot 对象
+                let finalImageUrl = imageResult.imageUrl;
+
+                // 尝试转存到 R2 (如果配置了)
+                if (process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID) {
+                  try {
+                    console.log(`正在转存图片 [${shot.key}] 到 R2...`);
+                    const imageRes = await fetch(imageResult.imageUrl);
+                    if (imageRes.ok) {
+                      const arrayBuffer = await imageRes.arrayBuffer();
+                      const buffer = Buffer.from(arrayBuffer);
+                      const path = generateSafeFilename(`image.png`, `recipes/${slug}`);
+                      
+                      finalImageUrl = await uploadImage(buffer, path);
+                      console.log(`图片 [${shot.key}] 转存成功:`, finalImageUrl);
+                    }
+                  } catch (uploadErr) {
+                    console.error(`图片 [${shot.key}] 转存 R2 失败，保留原链接:`, uploadErr);
+                  }
+                }
+
+                shot.imageUrl = finalImageUrl; // 将最终 URL (R2 或 Evolink) 存入 imageShot 对象
                 
                 // 如果是封面图，记录下来
                 if (shot.key === "hero" || shot.key === "cover") {
-                  coverImage = imageResult.imageUrl;
+                  coverImage = finalImageUrl;
                 }
               } else {
                 console.error(`图片 [${shot.key}] 生成失败:`, imageResult.error);
