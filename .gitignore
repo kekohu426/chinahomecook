@@ -8,3 +8,8 @@ build
 # secrets
 .env.local
 .env.*.local
+
+# secrets
+.env
+.env.local
+.env.*.local
