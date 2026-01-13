@@ -81,20 +81,65 @@ export default async function IngredientPage({
         title: { contains: ingredientName },
       };
 
-  const [recipes, total] = await Promise.all([
-    prisma.recipe.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        cuisine: { select: { id: true, name: true, slug: true } },
-        location: { select: { id: true, name: true, slug: true } },
-        translations: { where: { locale: { in: locales }, isReviewed: true } },
-      },
-    }),
+  // 获取对应的 Collection 以获取置顶食谱
+  const collection = tag
+    ? await prisma.collection.findFirst({
+        where: {
+          type: "ingredient",
+          tagId: tag.id,
+          status: "published",
+        },
+        select: {
+          pinnedRecipeIds: true,
+        },
+      })
+    : null;
+
+  const pinnedIds = collection?.pinnedRecipeIds || [];
+  const hasPinnedRecipes = page === 1 && pinnedIds.length > 0;
+
+  // 获取置顶食谱（仅第一页）
+  const pinnedRecipes = hasPinnedRecipes
+    ? await prisma.recipe.findMany({
+        where: { id: { in: pinnedIds }, status: "published" },
+        include: {
+          cuisine: { select: { id: true, name: true, slug: true } },
+          location: { select: { id: true, name: true, slug: true } },
+          translations: { where: { locale: { in: locales }, isReviewed: true } },
+        },
+      })
+    : [];
+
+  // 按置顶顺序排序
+  const sortedPinnedRecipes = hasPinnedRecipes
+    ? pinnedIds
+        .map((id) => pinnedRecipes.find((r) => r.id === id))
+        .filter((r): r is NonNullable<typeof r> => r !== undefined)
+    : [];
+
+  // 计算主列表需要获取的数量
+  const mainLimit = hasPinnedRecipes ? Math.max(0, limit - sortedPinnedRecipes.length) : limit;
+  const mainWhere = hasPinnedRecipes ? { ...where, id: { notIn: pinnedIds } } : where;
+
+  const [mainRecipesData, total] = await Promise.all([
+    mainLimit > 0
+      ? prisma.recipe.findMany({
+          where: mainWhere,
+          orderBy: { createdAt: "desc" },
+          skip: hasPinnedRecipes ? 0 : (page - 1) * limit,
+          take: mainLimit,
+          include: {
+            cuisine: { select: { id: true, name: true, slug: true } },
+            location: { select: { id: true, name: true, slug: true } },
+            translations: { where: { locale: { in: locales }, isReviewed: true } },
+          },
+        })
+      : Promise.resolve([]),
     prisma.recipe.count({ where }),
   ]);
+
+  // 合并置顶和主列表
+  const recipes = [...sortedPinnedRecipes, ...mainRecipesData];
 
   const totalPages = Math.ceil(total / limit);
   const buildPageUrl = (pageNum: number) =>

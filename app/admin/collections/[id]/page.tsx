@@ -77,6 +77,7 @@ export default function CollectionEditPage() {
   const [publishing, setPublishing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [generatingSeo, setGeneratingSeo] = useState(false);
 
   // 表单状态
   const [formData, setFormData] = useState({
@@ -442,6 +443,53 @@ export default function CollectionEditPage() {
   // 移除封面图片
   const handleRemoveImage = () => {
     setFormData({ ...formData, coverImage: "" });
+  };
+
+  // AI 一键生成所有 SEO 内容
+  const handleGenerateAllSeo = async () => {
+    if (!collection) return;
+
+    setGeneratingSeo(true);
+    try {
+      const response = await fetch(`/api/admin/collections/${id}/ai/seo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        const seo = data.data;
+        // 更新页面描述
+        setFormData({
+          ...formData,
+          description: seo.descriptionZh || formData.description,
+          descriptionEn: seo.descriptionEn || formData.descriptionEn,
+        });
+        // 更新 SEO 数据
+        setSeoData({
+          ...seoData,
+          titleZh: seo.titleZh || seoData.titleZh,
+          titleEn: seo.titleEn || seoData.titleEn,
+          descriptionZh: seo.metaDescriptionZh || seoData.descriptionZh,
+          descriptionEn: seo.metaDescriptionEn || seoData.descriptionEn,
+          keywords: seo.keywords?.length > 0 ? seo.keywords : seoData.keywords,
+          h1Zh: seo.h1Zh || seoData.h1Zh,
+          h1En: seo.h1En || seoData.h1En,
+          subtitleZh: seo.subtitleZh || seoData.subtitleZh,
+          subtitleEn: seo.subtitleEn || seoData.subtitleEn,
+          footerTextZh: seo.footerTextZh || seoData.footerTextZh,
+          footerTextEn: seoData.footerTextEn,
+        });
+        alert("SEO 内容生成成功！请检查并保存。");
+      } else {
+        alert(data.error?.message || "生成失败");
+      }
+    } catch (error) {
+      console.error("生成 SEO 内容失败:", error);
+      alert("生成 SEO 内容失败");
+    } finally {
+      setGeneratingSeo(false);
+    }
   };
 
   if (loading) {
@@ -1035,6 +1083,30 @@ export default function CollectionEditPage() {
           {/* SEO 设置 Tab */}
           {activeTab === "seo" && (
             <div className="space-y-6 max-w-2xl">
+              {/* AI 一键生成按钮 */}
+              <div className="bg-gradient-to-r from-brownWarm/10 to-orangeAccent/10 rounded-lg p-4 border border-brownWarm/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-textDark">AI 一键生成 SEO 内容</h3>
+                    <p className="text-xs text-textGray mt-1">
+                      自动生成页面描述、SEO标题、Meta描述、关键词、H1标题、副标题、底部文案
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleGenerateAllSeo}
+                    disabled={generatingSeo}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-brownWarm hover:bg-brownDark text-white rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {generatingSeo ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {generatingSeo ? "生成中..." : "一键生成"}
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-textDark mb-2">
                   SEO 标题（中文）

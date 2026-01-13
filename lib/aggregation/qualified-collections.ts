@@ -189,7 +189,7 @@ const DEFAULT_BLOCKS: AggregationBlockConfig[] = [
   },
   {
     type: "ingredient",
-    enabled: false,
+    enabled: true,
     order: 6,
     title: "按食材浏览",
     titleEn: "Browse by Ingredient",
@@ -197,7 +197,7 @@ const DEFAULT_BLOCKS: AggregationBlockConfig[] = [
     subtitleEn: "Pork, chicken, tofu...",
     cardCount: 8,
     minThreshold: 0,
-    collapsed: true,
+    collapsed: false,
   },
 ];
 
@@ -205,6 +205,7 @@ const CONFIG_SECTION = "aggregation_blocks_config";
 
 /**
  * 获取一级聚合页区块配置
+ * 合并数据库配置和默认配置，确保所有区块都有配置
  */
 export async function getAggregationBlocksConfig(): Promise<
   AggregationBlockConfig[]
@@ -219,9 +220,32 @@ export async function getAggregationBlocksConfig(): Promise<
     }
 
     const content = (config.content as Record<string, unknown>) || {};
-    const blocks = (content.blocks as AggregationBlockConfig[]) || DEFAULT_BLOCKS;
+    const dbBlocks = (content.blocks as AggregationBlockConfig[]) || [];
 
-    return blocks;
+    // 如果数据库中没有配置，使用默认配置
+    if (dbBlocks.length === 0) {
+      return DEFAULT_BLOCKS;
+    }
+
+    // 合并数据库配置和默认配置
+    // 数据库中有的区块使用数据库配置，没有的使用默认配置
+    const dbBlockTypes = new Set(dbBlocks.map((b) => b.type));
+    const mergedBlocks = [...dbBlocks];
+
+    // 添加数据库中缺失的默认区块
+    for (const defaultBlock of DEFAULT_BLOCKS) {
+      if (!dbBlockTypes.has(defaultBlock.type)) {
+        mergedBlocks.push(defaultBlock);
+      }
+    }
+
+    // 确保 ingredient 区块启用（临时修复，后续可通过后台配置）
+    const ingredientBlock = mergedBlocks.find((b) => b.type === "ingredient");
+    if (ingredientBlock && !ingredientBlock.enabled) {
+      ingredientBlock.enabled = true;
+    }
+
+    return mergedBlocks;
   } catch (error) {
     console.error("获取区块配置失败:", error);
     return DEFAULT_BLOCKS;

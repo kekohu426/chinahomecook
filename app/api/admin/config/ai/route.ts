@@ -79,6 +79,7 @@ export async function PUT(request: NextRequest) {
         recipePrompt: body.recipePrompt ?? body.recipePromptTemplate ?? null,
         recipeSystemPrompt: body.recipeSystemPrompt ?? null,
         transPrompt: body.transPrompt ?? null,
+        seoPrompt: body.seoPrompt ?? null,
       },
       create: {
         id: DEFAULT_CONFIG_ID,
@@ -98,6 +99,7 @@ export async function PUT(request: NextRequest) {
         recipePrompt: body.recipePrompt ?? body.recipePromptTemplate ?? null,
         recipeSystemPrompt: body.recipeSystemPrompt ?? null,
         transPrompt: body.transPrompt ?? null,
+        seoPrompt: body.seoPrompt ?? null,
       },
     });
 

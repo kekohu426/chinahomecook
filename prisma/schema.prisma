@@ -473,6 +473,7 @@ model AIConfig {
   recipePrompt  String?             // 菜谱生成提示词
   recipeSystemPrompt String?        // 菜谱系统提示词
   transPrompt   String?             // 翻译提示词
+  seoPrompt     String?  @db.Text   // SEO内容生成提示词
 }
 
 // 站点配置

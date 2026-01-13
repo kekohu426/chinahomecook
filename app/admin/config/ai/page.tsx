@@ -17,6 +17,7 @@ interface AIConfig {
   recipePromptTemplate: string | null;
   recipeSystemPrompt: string | null;
   chefSystemPrompt: string | null;
+  seoPrompt: string | null;
 }
 
 const DEFAULT_CONFIG: AIConfig = {
@@ -33,6 +34,7 @@ const DEFAULT_CONFIG: AIConfig = {
   recipePromptTemplate: "",
   recipeSystemPrompt: "",
   chefSystemPrompt: "",
+  seoPrompt: "",
 };
 
 export default function AIConfigPage() {
@@ -259,6 +261,22 @@ export default function AIConfigPage() {
             className="w-full px-4 py-2 border border-lightGray rounded-lg min-h-[140px]"
             placeholder="输入系统提示词"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-textDark mb-2">
+            SEO 内容生成提示词
+            <span className="text-xs text-textGray ml-2">（用于聚合页一键生成 SEO 内容）</span>
+          </label>
+          <textarea
+            value={config.seoPrompt || ""}
+            onChange={(e) => setConfig({ ...config, seoPrompt: e.target.value })}
+            className="w-full px-4 py-2 border border-lightGray rounded-lg min-h-[200px]"
+            placeholder="输入 SEO 内容生成提示词模板，支持变量：{name}、{nameEn}、{type}、{recipeCount}"
+          />
+          <p className="text-xs text-textGray mt-1">
+            可用变量：{"{name}"} 聚合页名称、{"{nameEn}"} 英文名称、{"{type}"} 类型、{"{recipeCount}"} 菜谱数量
+          </p>
         </div>
       </div>
     </div>
