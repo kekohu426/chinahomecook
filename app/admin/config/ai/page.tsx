@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Save, Sparkles, Image as ImageIcon, FileText } from "lucide-react";
+import { Loader2, Save, Sparkles, Image as ImageIcon, FileText, Info } from "lucide-react";
 
 interface AIConfig {
   id: string;
@@ -14,9 +14,8 @@ interface AIConfig {
   imageBaseUrl: string | null;
   imageModel: string | null;
   imageNegativePrompt: string | null;
-  recipePromptTemplate: string | null;
+  recipePrompt: string | null;
   recipeSystemPrompt: string | null;
-  chefSystemPrompt: string | null;
   seoPrompt: string | null;
 }
 
@@ -31,11 +30,22 @@ const DEFAULT_CONFIG: AIConfig = {
   imageBaseUrl: "",
   imageModel: "",
   imageNegativePrompt: "",
-  recipePromptTemplate: "",
+  recipePrompt: "",
   recipeSystemPrompt: "",
-  chefSystemPrompt: "",
   seoPrompt: "",
 };
+
+// 默认菜谱生成提示词（简化版，完整版在代码中）
+const DEFAULT_RECIPE_PROMPT_HINT = `你是"Recipe Zen 治愈系菜谱内容生成器"。根据菜名生成完整的菜谱JSON数据。
+
+{constraints}
+【核心要求】
+1. 输出严格UTF-8 JSON，不要markdown代码块
+2. 中文为主，英文名为辅
+3. 步骤必须包含：动作、火候、时间范围、视觉信号、失败点、补救方法
+...（完整提示词包含 JSON Schema 和示例）
+
+支持变量：{dishName}、{constraints}、{location}、{cuisine}、{mainIngredients}`;
 
 export default function AIConfigPage() {
   const [config, setConfig] = useState<AIConfig>(DEFAULT_CONFIG);
@@ -234,13 +244,25 @@ export default function AIConfigPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-textDark mb-2">菜谱生成提示词模板</label>
+          <div className="flex items-center gap-2 mb-2">
+            <label className="block text-sm font-medium text-textDark">菜谱生成提示词</label>
+            <div className="group relative">
+              <Info className="w-4 h-4 text-textGray cursor-help" />
+              <div className="absolute left-0 top-6 w-80 p-3 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                留空则使用系统默认提示词（包含完整 JSON Schema 和示例）。
+                自定义时支持变量替换。
+              </div>
+            </div>
+          </div>
           <textarea
-            value={config.recipePromptTemplate || ""}
-            onChange={(e) => setConfig({ ...config, recipePromptTemplate: e.target.value })}
-            className="w-full px-4 py-2 border border-lightGray rounded-lg min-h-[160px]"
-            placeholder="输入提示词模板"
+            value={config.recipePrompt || ""}
+            onChange={(e) => setConfig({ ...config, recipePrompt: e.target.value })}
+            className="w-full px-4 py-2 border border-lightGray rounded-lg min-h-[200px] font-mono text-sm"
+            placeholder={DEFAULT_RECIPE_PROMPT_HINT}
           />
+          <p className="text-xs text-textGray mt-1">
+            留空使用默认提示词。支持变量：{"{dishName}"}、{"{constraints}"}、{"{location}"}、{"{cuisine}"}、{"{mainIngredients}"}
+          </p>
         </div>
 
         <div>
@@ -249,17 +271,7 @@ export default function AIConfigPage() {
             value={config.recipeSystemPrompt || ""}
             onChange={(e) => setConfig({ ...config, recipeSystemPrompt: e.target.value })}
             className="w-full px-4 py-2 border border-lightGray rounded-lg min-h-[140px]"
-            placeholder="输入系统提示词"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-textDark mb-2">AI 主厨系统提示词</label>
-          <textarea
-            value={config.chefSystemPrompt || ""}
-            onChange={(e) => setConfig({ ...config, chefSystemPrompt: e.target.value })}
-            className="w-full px-4 py-2 border border-lightGray rounded-lg min-h-[140px]"
-            placeholder="输入系统提示词"
+            placeholder="可选：设置 AI 的角色和行为约束"
           />
         </div>
 

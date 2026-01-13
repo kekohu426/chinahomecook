@@ -7,16 +7,60 @@
 import { getTextProvider } from "./provider";
 import { safeValidateRecipe } from "../validators/recipe";
 import type { Recipe } from "@/types/recipe";
+import { prisma } from "@/lib/db/prisma";
+
+/**
+ * 从数据库获取 AI 配置
+ */
+async function getAIConfig() {
+  try {
+    const config = await prisma.aIConfig.findUnique({
+      where: { id: "default" },
+    });
+    return config;
+  } catch (error) {
+    console.error("获取 AI 配置失败:", error);
+    return null;
+  }
+}
+
+/**
+ * 默认的菜谱生成提示词模板
+ */
+const DEFAULT_RECIPE_PROMPT = `你是"Recipe Zen 治愈系菜谱内容生成器"。根据菜名生成完整的菜谱JSON数据。
+
+{constraints}
+【核心要求】
+1. 输出严格UTF-8 JSON，不要markdown代码块
+2. 中文为主，英文名为辅
+3. 步骤必须包含：动作、火候(heat)、时间范围(timeMin/timeMax)、视觉信号(visualCue)、失败点(failurePoints数组)、补救方法(recovery)
+4. 图片提示词(imagePrompt)必须用英文，包含"no text, no watermark"
+5. 成品图3张：cover_main(俯拍)、cover_detail(侧面特写)、cover_inside(内部展示)
+6. 每张图必须有negativePrompt排除AI痕迹
+7. culturalStory写150-250字的文化故事
+8. nutrition包含卡路里、蛋白质、脂肪、碳水、钠
+9. faq至少3个常见问题
+10. 时间、温度、份量要符合实际
+11. JSON结构只使用英文半角标点（: ,）
+
+【JSON Schema v2.0.0】
+{schemaTemplate}
+
+【One-Shot 示例】
+{exampleTemplate}
+
+现在请为菜品【{dishName}】生成完整的菜谱JSON。`;
 
 /**
  * 生成菜谱的提示词模板 - Schema v2.0.0
+ * 优先从数据库读取，如果为空则使用默认值
  */
-function buildRecipePrompt(params: {
+async function buildRecipePrompt(params: {
   dishName: string;
   location?: string;
   cuisine?: string;
   mainIngredients?: string[];
-}): string {
+}): Promise<string> {
   const { dishName, location, cuisine, mainIngredients } = params;
 
   const constraints = [
@@ -25,6 +69,21 @@ function buildRecipePrompt(params: {
     mainIngredients?.length ? `主要食材：${mainIngredients.join("、")}` : null,
   ].filter(Boolean).join("\n");
 
+  // 尝试从数据库获取自定义提示词
+  const config = await getAIConfig();
+  const customPrompt = config?.recipePrompt;
+
+  // 如果数据库有自定义提示词，使用它（支持变量替换）
+  if (customPrompt && customPrompt.trim()) {
+    return customPrompt
+      .replace(/\{dishName\}/g, dishName)
+      .replace(/\{constraints\}/g, constraints ? `【约束条件】\n${constraints}\n` : "")
+      .replace(/\{location\}/g, location || "")
+      .replace(/\{cuisine\}/g, cuisine || "")
+      .replace(/\{mainIngredients\}/g, mainIngredients?.join("、") || "");
+  }
+
+  // 使用默认提示词
   return `你是"Recipe Zen 治愈系菜谱内容生成器"。根据菜名生成完整的菜谱JSON数据。
 
 ${constraints ? `【约束条件】\n${constraints}\n` : ""}
@@ -39,6 +98,7 @@ ${constraints ? `【约束条件】\n${constraints}\n` : ""}
 8. nutrition包含卡路里、蛋白质、脂肪、碳水、钠
 9. faq至少3个常见问题
 10. 时间、温度、份量要符合实际
+11. JSON结构只使用英文半角标点（: ,）
 
 【JSON Schema v2.0.0】
 {
@@ -335,6 +395,64 @@ ${constraints ? `【约束条件】\n${constraints}\n` : ""}
 /**
  * 清理AI返回的JSON字符串
  */
+function normalizeJsonPunctuation(input: string): string {
+  let output = '';
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+
+    if (inString) {
+      if (escaped) {
+        output += char;
+        escaped = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        output += char;
+        escaped = true;
+        continue;
+      }
+
+      if (char === '"') {
+        inString = false;
+        output += char;
+        continue;
+      }
+
+      output += char;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      output += char;
+      continue;
+    }
+
+    if (char === '：') {
+      output += ':';
+      continue;
+    }
+
+    if (char === '，') {
+      output += ',';
+      continue;
+    }
+
+    if (char === '＝') {
+      output += ':';
+      continue;
+    }
+
+    output += char;
+  }
+
+  return output;
+}
+
 export function cleanAIResponse(response: string): string {
   // 移除markdown代码块标记
   let cleaned = response.trim();
@@ -354,6 +472,9 @@ export function cleanAIResponse(response: string): string {
   // 移除可能的注释（// 或 /* */）
   cleaned = cleaned.replace(/\/\/.*$/gm, '');  // 单行注释
   cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, ''); // 多行注释
+
+  // 修复全角标点导致的JSON结构错误
+  cleaned = normalizeJsonPunctuation(cleaned);
 
   // 移除trailing commas（JSON不允许）
   cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
@@ -493,7 +614,7 @@ export async function generateRecipe(params: {
     const provider = getTextProvider();
 
     // 构建提示词
-    const prompt = buildRecipePrompt(params);
+    const prompt = await buildRecipePrompt(params);
 
     // 调用AI生成
     const response = await provider.chat({

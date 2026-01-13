@@ -1,0 +1,404 @@
+/**
+ * 一级聚合页管理
+ *
+ * 路由: /admin/aggregation
+ * 功能: 管理首页展示的聚合区块，按类型分组显示二级聚合页，支持拖拽排序和启用/禁用
+ */
+
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  GripVertical,
+  Eye,
+  EyeOff,
+  Layers,
+  RefreshCw,
+  Save,
+  ChevronDown,
+  ChevronRight,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import type { CollectionListItem } from "@/lib/types/collection-api";
+import { CollectionTypeLabel } from "@/lib/types/collection";
+
+// 类型分组配置
+const TYPE_GROUPS = [
+  { type: "cuisine", label: "菜系", icon: "🍜" },
+  { type: "scene", label: "场景", icon: "🎬" },
+  { type: "method", label: "烹饪方式", icon: "🔥" },
+  { type: "taste", label: "口味", icon: "🌶️" },
+  { type: "crowd", label: "人群", icon: "👨‍👩‍👧‍👦" },
+  { type: "ingredient", label: "食材", icon: "🥬" },
+  { type: "occasion", label: "场合", icon: "🎉" },
+  { type: "theme", label: "主题", icon: "📚" },
+];
+
+interface GroupedCollections {
+  [type: string]: CollectionListItem[];
+}
+
+export default function AggregationManagePage() {
+  const [collections, setCollections] = useState<CollectionListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(TYPE_GROUPS.map(g => g.type)));
+  const [hasChanges, setHasChanges] = useState(false);
+  const [draggedItem, setDraggedItem] = useState<{ type: string; id: string } | null>(null);
+
+  const loadCollections = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/admin/collections?pageSize=500");
+      const data = await response.json();
+      if (data.success) {
+        setCollections(data.data);
+      }
+    } catch (error) {
+      console.error("加载聚合页列表失败:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCollections();
+  }, [loadCollections]);
+
+  // 按类型分组
+  const groupedCollections: GroupedCollections = {};
+  TYPE_GROUPS.forEach(group => {
+    groupedCollections[group.type] = collections
+      .filter(c => c.type === group.type)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  });
+
+  // 切换分组展开/折叠
+  const toggleGroup = (type: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(type)) {
+      newExpanded.delete(type);
+    } else {
+      newExpanded.add(type);
+    }
+    setExpandedGroups(newExpanded);
+  };
+
+  // 切换显示状态
+  const toggleVisibility = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "published" ? "draft" : "published";
+
+    // 乐观更新
+    setCollections(prev => prev.map(c =>
+      c.id === id ? { ...c, status: newStatus } : c
+    ));
+    setHasChanges(true);
+
+    try {
+      const response = await fetch(`/api/admin/collections/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        // 回滚
+        setCollections(prev => prev.map(c =>
+          c.id === id ? { ...c, status: currentStatus } : c
+        ));
+        alert("更新状态失败");
+      }
+    } catch (error) {
+      console.error("更新状态失败:", error);
+      // 回滚
+      setCollections(prev => prev.map(c =>
+        c.id === id ? { ...c, status: currentStatus } : c
+      ));
+    }
+  };
+
+  // 拖拽开始
+  const handleDragStart = (type: string, id: string) => {
+    setDraggedItem({ type, id });
+  };
+
+  // 拖拽结束
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
+  // 拖拽放置
+  const handleDrop = (type: string, targetId: string) => {
+    if (!draggedItem || draggedItem.type !== type || draggedItem.id === targetId) {
+      return;
+    }
+
+    const items = [...groupedCollections[type]];
+    const draggedIndex = items.findIndex(c => c.id === draggedItem.id);
+    const targetIndex = items.findIndex(c => c.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // 重新排序
+    const [removed] = items.splice(draggedIndex, 1);
+    items.splice(targetIndex, 0, removed);
+
+    // 更新 sortOrder
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      sortOrder: index,
+    }));
+
+    // 更新状态
+    setCollections(prev => {
+      const otherItems = prev.filter(c => c.type !== type);
+      return [...otherItems, ...updatedItems];
+    });
+    setHasChanges(true);
+  };
+
+  // 保存排序
+  const saveOrder = async () => {
+    setSaving(true);
+    try {
+      // 按类型分组保存
+      for (const group of TYPE_GROUPS) {
+        const items = groupedCollections[group.type];
+        if (items.length === 0) continue;
+
+        // 批量更新排序
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.sortOrder !== i) {
+            await fetch(`/api/admin/collections/${item.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sortOrder: i }),
+            });
+          }
+        }
+      }
+
+      setHasChanges(false);
+      alert("保存成功");
+    } catch (error) {
+      console.error("保存排序失败:", error);
+      alert("保存失败");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <RefreshCw className="h-6 w-6 animate-spin text-brownWarm" />
+        <span className="ml-2 text-textGray">加载中...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* 面包屑 */}
+      <div className="text-sm text-textGray mb-4">
+        <Link href="/admin" className="hover:text-brownWarm">配置</Link>
+        <span className="mx-2">/</span>
+        <span className="text-textDark">一级聚合页管理</span>
+      </div>
+
+      {/* 页头 */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-serif font-medium text-textDark mb-2">
+            一级聚合页管理
+          </h1>
+          <p className="text-textGray">管理首页展示的聚合区块，拖拽调整排序，控制显示/隐藏</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={loadCollections}
+            disabled={loading}
+            className="p-2 text-textGray hover:text-brownWarm disabled:opacity-50"
+            title="刷新列表"
+          >
+            <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
+          </button>
+          <button
+            onClick={saveOrder}
+            disabled={saving || !hasChanges}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brownWarm hover:bg-brownDark text-white rounded-lg transition-colors disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? "保存中..." : "保存排序"}
+          </button>
+        </div>
+      </div>
+
+      {/* 提示 */}
+      {hasChanges && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-amber-700">
+            您有未保存的更改，请点击"保存排序"按钮保存。
+          </p>
+        </div>
+      )}
+
+      {/* 分组列表 */}
+      <div className="space-y-4">
+        {TYPE_GROUPS.map(group => {
+          const items = groupedCollections[group.type] || [];
+          const publishedCount = items.filter(c => c.status === "published").length;
+          const isExpanded = expandedGroups.has(group.type);
+
+          return (
+            <div key={group.type} className="bg-white rounded-lg shadow-card overflow-hidden">
+              {/* 分组头部 */}
+              <button
+                onClick={() => toggleGroup(group.type)}
+                className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{group.icon}</span>
+                  <div className="text-left">
+                    <h2 className="text-lg font-medium text-textDark">{group.label}</h2>
+                    <p className="text-sm text-textGray">
+                      {items.length} 个聚合页，{publishedCount} 个已发布
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  {publishedCount > 0 ? (
+                    <span className="flex items-center gap-1 text-sm text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      显示中
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-sm text-gray-400">
+                      <AlertCircle className="h-4 w-4" />
+                      未显示
+                    </span>
+                  )}
+                  {isExpanded ? (
+                    <ChevronDown className="h-5 w-5 text-textGray" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-textGray" />
+                  )}
+                </div>
+              </button>
+
+              {/* 分组内容 */}
+              {isExpanded && (
+                <div className="border-t border-cream">
+                  {items.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-textGray">
+                      暂无{group.label}类型的聚合页
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-cream">
+                      {items.map((collection, index) => (
+                        <div
+                          key={collection.id}
+                          draggable
+                          onDragStart={() => handleDragStart(group.type, collection.id)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => handleDrop(group.type, collection.id)}
+                          className={`flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition-colors cursor-move ${
+                            draggedItem?.id === collection.id ? "opacity-50 bg-gray-100" : ""
+                          }`}
+                        >
+                          {/* 拖拽手柄 */}
+                          <GripVertical className="h-5 w-5 text-gray-300 flex-shrink-0" />
+
+                          {/* 排序序号 */}
+                          <span className="w-6 text-center text-sm text-textGray">
+                            {index + 1}
+                          </span>
+
+                          {/* 封面图 */}
+                          {collection.coverImage ? (
+                            <Image
+                              src={collection.coverImage}
+                              alt={collection.name}
+                              width={48}
+                              height={48}
+                              className="w-12 h-12 rounded object-cover flex-shrink-0"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded bg-cream flex items-center justify-center flex-shrink-0">
+                              <Layers className="h-5 w-5 text-textGray" />
+                            </div>
+                          )}
+
+                          {/* 名称和信息 */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-textDark truncate">
+                                {collection.name}
+                              </span>
+                              {collection.nameEn && (
+                                <span className="text-sm text-textGray truncate">
+                                  ({collection.nameEn})
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-textGray">
+                              <span>{collection.path}</span>
+                              <span>·</span>
+                              <span>{collection.cachedPublishedCount} 道菜谱</span>
+                              <span>·</span>
+                              <span>进度 {collection.progress}%</span>
+                            </div>
+                          </div>
+
+                          {/* 显示/隐藏开关 */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleVisibility(collection.id, collection.status);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                              collection.status === "published"
+                                ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                            }`}
+                          >
+                            {collection.status === "published" ? (
+                              <>
+                                <Eye className="h-4 w-4" />
+                                显示
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff className="h-4 w-4" />
+                                隐藏
+                              </>
+                            )}
+                          </button>
+
+                          {/* 编辑链接 */}
+                          <Link
+                            href={`/admin/collections/${collection.id}`}
+                            className="text-sm text-brownWarm hover:text-brownDark"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            编辑
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

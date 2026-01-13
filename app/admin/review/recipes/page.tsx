@@ -482,15 +482,16 @@ export default function ReviewPage() {
         }),
       });
       const data = await response.json();
+      console.log("审核响应:", data); // 添加调试日志
       if (data.success) {
         loadPendingRecipes();
         setPreviewRecipe(null);
       } else {
-        alert(data.error || "操作失败");
+        alert(data.error || data.message || "操作失败");
       }
     } catch (error) {
       console.error("审核失败:", error);
-      alert("审核失败");
+      alert("审核失败: " + (error instanceof Error ? error.message : "未知错误"));
     }
   };
 
