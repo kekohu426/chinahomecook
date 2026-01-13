@@ -7,6 +7,54 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { generateRecipe } from "@/lib/ai/generate-recipe";
+import type { Prisma } from "@prisma/client";
+import { getContentLocales } from "@/lib/i18n/content";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/config";
+
+function resolveLocale(value?: string | null): Locale {
+  if (value && SUPPORTED_LOCALES.includes(value as Locale)) {
+    return value as Locale;
+  }
+  return DEFAULT_LOCALE;
+}
+
+/**
+ * 解析地点参数（支持 slug 和中文名）
+ */
+async function resolveLocationFilter(location: string): Promise<string[]> {
+  const bySlug = await prisma.location.findUnique({
+    where: { slug: location },
+    select: { name: true },
+  });
+  if (bySlug) return [bySlug.name];
+
+  const byName = await prisma.location.findUnique({
+    where: { name: location },
+    select: { name: true },
+  });
+  if (byName) return [byName.name];
+
+  return [location];
+}
+
+/**
+ * 解析菜系参数（支持 slug 和中文名）
+ */
+async function resolveCuisineFilter(cuisine: string): Promise<string[]> {
+  const bySlug = await prisma.cuisine.findUnique({
+    where: { slug: cuisine },
+    select: { name: true },
+  });
+  if (bySlug) return [bySlug.name];
+
+  const byName = await prisma.cuisine.findUnique({
+    where: { name: cuisine },
+    select: { name: true },
+  });
+  if (byName) return [byName.name];
+
+  return [cuisine];
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +62,10 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("q") || "";
     const location = searchParams.get("location");
     const cuisine = searchParams.get("cuisine");
-    const autoGenerate = searchParams.get("autoGenerate") !== "false"; // 默认开启自动生成
+    const locale = resolveLocale(searchParams.get("locale"));
+    const locales = getContentLocales(locale);
+    // 默认开启自动生成；仅当 autoGenerate=false 时关闭
+    const autoGenerate = searchParams.get("autoGenerate") !== "false";
 
     if (!query) {
       return NextResponse.json(
@@ -32,12 +83,16 @@ export async function GET(request: NextRequest) {
       ],
     };
 
+    // 地点筛选（支持 slug 和中文名）
     if (location) {
-      where.location = location;
+      const names = await resolveLocationFilter(location);
+      where.location = { in: names };
     }
 
+    // 菜系筛选（支持 slug 和中文名）
     if (cuisine) {
-      where.cuisine = cuisine;
+      const names = await resolveCuisineFilter(cuisine);
+      where.cuisine = { in: names };
     }
 
     // 搜索数据库
@@ -45,13 +100,33 @@ export async function GET(request: NextRequest) {
       where,
       take: 20,
       orderBy: { createdAt: "desc" },
+      include: {
+        translations: { where: { locale: { in: locales } } },
+      },
     });
 
     // 如果找到结果，直接返回
     if (recipes.length > 0) {
+      const data =
+        locale === DEFAULT_LOCALE
+          ? recipes
+          : recipes.map((recipe) => {
+              const translation =
+                locales
+                  .map((loc) =>
+                    recipe.translations.find((item) => item.locale === loc)
+                  )
+                  .find(Boolean) || null;
+              if (!translation) return recipe;
+              return {
+                ...recipe,
+                titleZh: translation.title,
+                summary: translation.summary,
+              };
+            });
       return NextResponse.json({
         success: true,
-        data: recipes,
+        data,
         source: "database",
         message: `找到 ${recipes.length} 个相关菜谱`,
       });
@@ -72,8 +147,8 @@ export async function GET(request: NextRequest) {
 
     const generateResult = await generateRecipe({
       dishName: query,
-      location,
-      cuisine,
+      location: location ?? undefined,
+      cuisine: cuisine ?? undefined,
     });
 
     if (!generateResult.success) {
@@ -92,21 +167,16 @@ export async function GET(request: NextRequest) {
     // 保存到数据库
     const newRecipe = await prisma.recipe.create({
       data: {
-        schemaVersion: generateResult.data.schemaVersion,
-        titleZh: generateResult.data.titleZh,
-        titleEn: generateResult.data.titleEn,
-        summary: generateResult.data.summary,
-        story: generateResult.data.story,
-        ingredients: generateResult.data.ingredients,
-        steps: generateResult.data.steps,
-        styleGuide: generateResult.data.styleGuide,
-        imageShots: generateResult.data.imageShots,
-        location,
-        cuisine,
-        mainIngredients: [],
+        title: generateResult.data.titleZh,
+        summary: generateResult.data.summary as unknown as Prisma.InputJsonValue,
+        story: generateResult.data.story as unknown as Prisma.InputJsonValue,
+        ingredients: generateResult.data.ingredients as unknown as Prisma.InputJsonValue,
+        steps: generateResult.data.steps as unknown as Prisma.InputJsonValue,
+        styleGuide: generateResult.data.styleGuide as unknown as Prisma.InputJsonValue,
+        imageShots: generateResult.data.imageShots as unknown as Prisma.InputJsonValue,
         slug,
         aiGenerated: true,
-        isPublished: true, // 搜索生成的直接发布，提供无感体验
+        status: "draft",
       },
     });
 
@@ -115,7 +185,8 @@ export async function GET(request: NextRequest) {
       success: true,
       data: [newRecipe],
       source: "ai-generated",
-      message: `未找到"${query}"，已为您生成新菜谱`,
+      draft: true,
+      message: `未找到"${query}"，已生成草稿待审核`,
       generatedRecipeId: newRecipe.id,
     });
   } catch (error) {

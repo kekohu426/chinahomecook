@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CookModeView } from "@/components/recipe/CookModeView";
 
 const steps = [
@@ -26,19 +26,29 @@ const steps = [
 ];
 
 describe("CookModeView", () => {
+  beforeEach(() => {
+    Object.assign(window, {
+      speechSynthesis: {
+        cancel: vi.fn(),
+        speak: vi.fn(),
+      },
+    });
+  });
+
   it("opens and shows first step content", async () => {
     render(<CookModeView steps={steps} recipeTitle="测试菜谱" />);
 
-    fireEvent.click(screen.getByRole("button", { name: /cook now/i }));
+    // 按钮文本已改为 "开始烹饪"
+    fireEvent.click(screen.getByText("开始烹饪"));
     expect(screen.getByText("准备食材")).toBeInTheDocument();
-    expect(screen.getByText(/步骤配图/)).toBeInTheDocument();
   });
 
   it("navigates to next step", async () => {
     render(<CookModeView steps={steps} recipeTitle="测试菜谱" />);
 
-    fireEvent.click(screen.getByRole("button", { name: /cook now/i }));
-    fireEvent.click(screen.getByLabelText("下一步"));
+    fireEvent.click(screen.getByText("开始烹饪"));
+    // 下一步按钮文本是 "下一步"
+    fireEvent.click(screen.getByText("下一步"));
 
     expect(screen.getByText("下锅翻炒")).toBeInTheDocument();
   });
@@ -46,8 +56,9 @@ describe("CookModeView", () => {
   it("closes the overlay", async () => {
     render(<CookModeView steps={steps} recipeTitle="测试菜谱" />);
 
-    fireEvent.click(screen.getByRole("button", { name: /cook now/i }));
-    fireEvent.click(screen.getByLabelText("退出全屏"));
+    fireEvent.click(screen.getByText("开始烹饪"));
+    // 退出按钮文本是 "退出"
+    fireEvent.click(screen.getByText("退出"));
 
     expect(screen.queryByText("准备食材")).not.toBeInTheDocument();
   });

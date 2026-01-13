@@ -5,10 +5,15 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth/guard";
 import { generateRecipesBatch } from "@/lib/ai/generate-recipe";
 import { prisma } from "@/lib/db/prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { dishNames, location, cuisine, autoSave } = body;
@@ -38,21 +43,16 @@ export async function POST(request: NextRequest) {
 
             const recipe = await prisma.recipe.create({
               data: {
-                schemaVersion: result.data.schemaVersion,
-                titleZh: result.data.titleZh,
-                titleEn: result.data.titleEn,
-                summary: result.data.summary,
-                story: result.data.story,
-                ingredients: result.data.ingredients,
-                steps: result.data.steps,
-                styleGuide: result.data.styleGuide,
-                imageShots: result.data.imageShots,
-                location,
-                cuisine,
-                mainIngredients: [], // 批量生成时暂不指定
+                title: result.data.titleZh,
+                summary: result.data.summary as unknown as Prisma.InputJsonValue,
+                story: result.data.story as unknown as Prisma.InputJsonValue,
+                ingredients: result.data.ingredients as unknown as Prisma.InputJsonValue,
+                steps: result.data.steps as unknown as Prisma.InputJsonValue,
+                styleGuide: result.data.styleGuide as unknown as Prisma.InputJsonValue,
+                imageShots: result.data.imageShots as unknown as Prisma.InputJsonValue,
                 slug,
                 aiGenerated: true,
-                isPublished: false,
+                status: "draft",
               },
             });
 

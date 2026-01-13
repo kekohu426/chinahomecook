@@ -5,26 +5,39 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brownWarm/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
+        // 版本3主CTA（温暖棕色，全圆角）
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-brownWarm text-white shadow-lg hover:bg-brownDark rounded-full",
+        // 版本3次要按钮（描边）
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border-2 border-brownWarm text-brownWarm bg-transparent hover:bg-brownWarm hover:text-white rounded-full",
+        // 深色按钮
+        dark:
+          "bg-brownDark text-white shadow-lg hover:bg-brownDark/90 rounded-full",
+        // 幽灵按钮
+        ghost: "hover:bg-brownWarm/10 hover:text-brownWarm rounded-lg",
+        // 链接样式
+        link: "text-brownWarm underline-offset-4 hover:underline",
+        // 次要按钮（浅色背景）
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-cream text-brownDark shadow-sm hover:bg-brownWarm/10 rounded-full",
+        // 危险操作
+        destructive:
+          "bg-red-500 text-white shadow-sm hover:bg-red-600 rounded-full",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        // 版本3标准尺寸
+        default: "h-12 px-6 py-3 text-base",
+        // 小尺寸
+        sm: "h-9 px-4 py-2 text-sm",
+        // 版本3大按钮（56px高度）
+        lg: "h-14 px-8 py-4 text-base font-semibold",
+        // 图标按钮
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {

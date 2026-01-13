@@ -20,9 +20,10 @@ describe("IngredientSidebar", () => {
   it("renders unique serving options when baseServings would duplicate", () => {
     render(<IngredientSidebar ingredients={ingredients as any} baseServings={2} />);
 
-    expect(screen.getByText("2人")).toBeInTheDocument();
-    expect(screen.getByText("3人")).toBeInTheDocument();
-    expect(screen.getByText("4人")).toBeInTheDocument();
+    // 按钮文本格式是 "{size} 人" (有空格)
+    expect(screen.getByText(/2\s*人/)).toBeInTheDocument();
+    expect(screen.getByText(/3\s*人/)).toBeInTheDocument();
+    expect(screen.getByText(/4\s*人/)).toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(3);
   });
 });

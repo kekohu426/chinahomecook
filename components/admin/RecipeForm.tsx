@@ -6,12 +6,13 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { ImageGenerator } from "@/components/admin/ImageGenerator";
+import { TagSelector } from "@/components/admin/TagSelector";
 import type {
   IngredientSection,
   ImageShot,
@@ -23,12 +24,19 @@ import type {
 interface RecipeFormProps {
   initialData?: Partial<Recipe> & {
     id?: string;
+    slug?: string;
     author?: string;
     isPublished?: boolean;
     location?: string | null;
     cuisine?: string | null;
     mainIngredients?: string[];
     coverImage?: string | null;
+    // 标签字段
+    scenes?: string[];
+    cookingMethods?: string[];
+    tastes?: string[];
+    crowds?: string[];
+    occasions?: string[];
   };
   mode: "create" | "edit";
 }
@@ -75,6 +83,7 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
   // 基本信息
   const [titleZh, setTitleZh] = useState(initialData?.titleZh || "");
   const [titleEn, setTitleEn] = useState(initialData?.titleEn || "");
+  const [slug, setSlug] = useState(initialData?.slug || "");
   const [author, setAuthor] = useState(initialData?.author || "");
   const [location, setLocation] = useState(initialData?.location || "");
   const [cuisine, setCuisine] = useState(initialData?.cuisine || "");
@@ -85,10 +94,23 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
     initialData?.isPublished || false
   );
 
+  // 标签
+  const [scenes, setScenes] = useState<string[]>(initialData?.scenes || []);
+  const [cookingMethods, setCookingMethods] = useState<string[]>(
+    initialData?.cookingMethods || []
+  );
+  const [tastes, setTastes] = useState<string[]>(initialData?.tastes || []);
+  const [crowds, setCrowds] = useState<string[]>(initialData?.crowds || []);
+  const [occasions, setOccasions] = useState<string[]>(
+    initialData?.occasions || []
+  );
+
   // 封面图
   const [coverImage, setCoverImage] = useState(
     initialData?.coverImage || ""
   );
+  const [coverModalOpen, setCoverModalOpen] = useState(false);
+  const [coverPreviewOpen, setCoverPreviewOpen] = useState(false);
 
   // 摘要信息
   const [oneLine, setOneLine] = useState(initialData?.summary?.oneLine || "");
@@ -108,16 +130,23 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
     initialData?.summary?.servings?.toString() || "2"
   );
 
-  // 文化故事
-  const [storyTitle, setStoryTitle] = useState(
-    initialData?.story?.title || ""
-  );
-  const [storyContent, setStoryContent] = useState(
-    initialData?.story?.content || ""
-  );
-  const [storyTags, setStoryTags] = useState(
-    initialData?.story?.tags?.join(", ") || ""
-  );
+  // 文化故事 - 支持字符串或对象格式
+  const getStoryData = () => {
+    const story = initialData?.story;
+    if (!story) return { title: "", content: "", tags: "" };
+    if (typeof story === "string") {
+      return { title: "", content: story, tags: "" };
+    }
+    return {
+      title: story.title || "",
+      content: story.content || "",
+      tags: story.tags?.join(", ") || ""
+    };
+  };
+  const storyData = getStoryData();
+  const [storyTitle, setStoryTitle] = useState(storyData.title);
+  const [storyContent, setStoryContent] = useState(storyData.content);
+  const [storyTags, setStoryTags] = useState(storyData.tags);
 
   // 食材
   const [ingredients, setIngredients] = useState<IngredientSection[]>(
@@ -138,6 +167,9 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
   const [imageShots, setImageShots] = useState<ImageShot[]>(
     initialData?.imageShots || []
   );
+  const [imageUploadLoading, setImageUploadLoading] = useState<Record<number, boolean>>({});
+  const [imageGenLoading, setImageGenLoading] = useState<Record<number, boolean>>({});
+  const [exporting, setExporting] = useState(false);
 
   const mainIngredients = useMemo(() => {
     return mainIngredientsInput
@@ -288,6 +320,248 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
     setImageShots(imageShots.filter((_, idx) => idx !== index));
   };
 
+  // 上传图片到当前 shot
+  const handleUploadForShot = async (file: File, index: number) => {
+    const shot = imageShots[index];
+    if (!shot) return;
+
+    setImageUploadLoading((prev) => ({ ...prev, [index]: true }));
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("category", shot.key || "recipe");
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "上传失败");
+      }
+
+      const data = await response.json();
+      updateImageShot(index, "imageUrl", data.url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "上传失败");
+    } finally {
+      setImageUploadLoading((prev) => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // 重新生成图片
+  const handleRegenerateForShot = async (index: number) => {
+    const shot = imageShots[index];
+    if (!shot?.imagePrompt) {
+      alert("请先填写 AI 提示词");
+      return;
+    }
+
+    const mapRatio = (ratio?: string) => {
+      if (ratio === "16:9") return { width: 1024, height: 576 };
+      if (ratio === "4:3") return { width: 1024, height: 768 };
+      return { width: 960, height: 640 };
+    };
+
+    const { width, height } = mapRatio(shot.ratio);
+
+    setImageGenLoading((prev) => ({ ...prev, [index]: true }));
+    try {
+      const response = await fetch("/api/images/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: shot.imagePrompt,
+          width,
+          height,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "生成失败");
+      }
+
+      updateImageShot(index, "imageUrl", data.imageUrl);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "生成失败");
+    } finally {
+      setImageGenLoading((prev) => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // 确保为步骤或插图创建对应的 imageShot
+  const ensureShot = (key: string, promptHint?: string, ratio: ImageShot["ratio"] = "4:3") => {
+    const idx = imageShots.findIndex((s) => s.key === key);
+    if (idx >= 0) return idx;
+    const next = [...imageShots, { key, imagePrompt: promptHint || "", ratio }];
+    setImageShots(next);
+    return next.length - 1;
+  };
+
+  const handleExportLongImage = async () => {
+    if (typeof window === "undefined") return;
+    if (exporting) return;
+    setExporting(true);
+
+    try {
+      const width = 900;
+      const padding = 40;
+      const maxTextWidth = width - padding * 2;
+      const titleText = titleZh || "未命名菜谱";
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        alert("无法生成长图");
+        return;
+      }
+
+      const wrapLines = (text: string, font: string, lineHeight: number) => {
+        ctx.font = font;
+        const lines: string[] = [];
+        const paragraphs = String(text || "").split("\n");
+        for (const paragraph of paragraphs) {
+          let line = "";
+          for (const char of paragraph) {
+            const testLine = line + char;
+            if (ctx.measureText(testLine).width > maxTextWidth) {
+              if (line) lines.push(line);
+              line = char;
+            } else {
+              line = testLine;
+            }
+          }
+          if (line) lines.push(line);
+        }
+        return { lines, height: lines.length * lineHeight };
+      };
+
+      const titleBlock = wrapLines(titleText, "600 36px serif", 46);
+      const summaryBlock = wrapLines(
+        `${oneLine}\n${healingTone}`.trim(),
+        "16px sans-serif",
+        26
+      );
+      const storyBlock = wrapLines(
+        `${storyTitle}\n${storyContent}`.trim(),
+        "15px sans-serif",
+        24
+      );
+
+      const ingredientLines: string[] = [];
+      ingredients.forEach((section) => {
+        ingredientLines.push(`${section.section}`);
+        section.items.forEach((item) => {
+          ingredientLines.push(
+            `• ${item.name}${item.notes ? `(${item.notes})` : ""} ${item.amount}${item.unit}`
+          );
+        });
+      });
+      const ingredientBlock = wrapLines(ingredientLines.join("\n"), "14px sans-serif", 22);
+
+      const stepLines: string[] = [];
+      steps.forEach((step, idx) => {
+        stepLines.push(`STEP ${String(idx + 1).padStart(2, "0")} ${step.title}`);
+        stepLines.push(step.action);
+      });
+      const stepsBlock = wrapLines(stepLines.join("\n"), "14px sans-serif", 22);
+
+      const coverHeight = coverImage ? 360 : 0;
+
+      const totalHeight =
+        padding +
+        coverHeight +
+        (coverHeight ? 24 : 0) +
+        titleBlock.height +
+        16 +
+        summaryBlock.height +
+        20 +
+        storyBlock.height +
+        20 +
+        ingredientBlock.height +
+        20 +
+        stepsBlock.height +
+        padding;
+
+      canvas.width = width;
+      canvas.height = Math.max(800, totalHeight);
+
+      ctx.fillStyle = "#F5F1E8";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let y = padding;
+      const drawImage = (src: string, height: number) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            ctx.drawImage(img, padding, y, width - padding * 2, height);
+            y += height + 24;
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = src;
+        });
+
+      if (coverImage) {
+        await drawImage(coverImage, coverHeight);
+      }
+
+      ctx.fillStyle = "#333333";
+      ctx.font = "600 36px serif";
+      titleBlock.lines.forEach((line, idx) => {
+        ctx.fillText(line, padding, y + idx * 46);
+      });
+      y += titleBlock.height + 16;
+
+      ctx.fillStyle = "#666666";
+      ctx.font = "16px sans-serif";
+      summaryBlock.lines.forEach((line, idx) => {
+        ctx.fillText(line, padding, y + idx * 26);
+      });
+      y += summaryBlock.height + 20;
+
+      ctx.fillStyle = "#333333";
+      ctx.font = "15px sans-serif";
+      storyBlock.lines.forEach((line, idx) => {
+        ctx.fillText(line, padding, y + idx * 24);
+      });
+      y += storyBlock.height + 20;
+
+      ctx.fillStyle = "#333333";
+      ctx.font = "14px sans-serif";
+      ingredientBlock.lines.forEach((line, idx) => {
+        ctx.fillText(line, padding, y + idx * 22);
+      });
+      y += ingredientBlock.height + 20;
+
+      ctx.fillStyle = "#333333";
+      ctx.font = "14px sans-serif";
+      stepsBlock.lines.forEach((line, idx) => {
+        ctx.fillText(line, padding, y + idx * 22);
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          alert("导出失败");
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${titleText}-长图.png`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    } catch (err) {
+      alert("导出失败");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // 提交表单
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -308,6 +582,7 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         schemaVersion: "1.1.0",
         titleZh,
         titleEn,
+        slug: slug || undefined,
         summary: {
           oneLine,
           healingTone,
@@ -321,7 +596,7 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
           content: storyContent,
           tags: storyTags
             .split(",")
-            .map((tag) => tag.trim())
+            .map((tag: string) => tag.trim())
             .filter(Boolean),
         },
         ingredients,
@@ -334,12 +609,18 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         mainIngredients,
         coverImage: coverImage || undefined,
         isPublished: publishValue,
+        // 标签
+        scenes,
+        cookingMethods,
+        tastes,
+        crowds,
+        occasions,
       };
 
       const url =
         mode === "create"
-          ? "/api/recipes"
-          : `/api/recipes/${initialData?.id}`;
+          ? "/api/admin/recipes"
+          : `/api/admin/recipes/${initialData?.id}`;
 
       const method = mode === "create" ? "POST" : "PUT";
 
@@ -366,23 +647,35 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* 顶部操作区 */}
-      <section className="bg-white rounded-md shadow-card p-6 flex flex-wrap items-center justify-between gap-4">
+      <section className="bg-white rounded-[18px] shadow-card p-6 flex flex-wrap items-center justify-between gap-4 border border-cream">
         <div>
-          <h2 className="text-xl font-medium text-textDark">
+          <h2 className="text-xl font-semibold text-textDark">
             {mode === "create" ? "新建食谱" : "编辑食谱"}
           </h2>
           <p className="text-sm text-textGray mt-1">
             当前状态：{isPublished ? "已发布" : "草稿"}
           </p>
+          <p className="text-xs text-textGray mt-1">
+            发布后将立即在前台可见
+          </p>
         </div>
         <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={exporting}
+            onClick={handleExportLongImage}
+            className="rounded-full px-5"
+          >
+            {exporting ? "导出中..." : "导出长图"}
+          </Button>
           <Button
             type="submit"
             disabled={loading}
             onClick={() => {
               setIsPublished(false);
             }}
-            className="bg-lightGray text-textDark hover:bg-cream"
+            className="bg-lightGray text-textDark hover:bg-cream rounded-full px-5"
             data-publish="false"
           >
             {loading ? "保存中..." : "保存草稿"}
@@ -393,10 +686,10 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
             onClick={() => {
               setIsPublished(true);
             }}
-            className="bg-brownWarm hover:bg-brownWarm/90"
+            className="bg-brownWarm hover:bg-brownWarm/90 rounded-full px-6 text-base font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.1)]"
             data-publish="true"
           >
-            {loading ? "发布中..." : "发布"}
+            {loading ? "发布中..." : "发布并返回"}
           </Button>
         </div>
       </section>
@@ -425,6 +718,19 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
               onChange={(e) => setTitleEn(e.target.value)}
               placeholder="例：Beer Duck"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-textDark mb-2">
+              URL 别名 (Slug)
+            </label>
+            <Input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+              placeholder="例：beer-duck（自动生成，可编辑）"
+            />
+            <p className="text-xs text-textGray mt-1">
+              用于 URL 路径，如 /recipe/beer-duck
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-textDark mb-2">
@@ -469,32 +775,146 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         </div>
       </section>
 
+      {/* 标签分类 */}
+      <section className="bg-white rounded-md shadow-card p-6">
+        <h2 className="text-xl font-medium text-textDark mb-4">标签分类</h2>
+        <p className="text-sm text-textGray mb-4">
+          选择适合的标签，帮助用户更好地发现和筛选食谱
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TagSelector
+            type="scenes"
+            label="场景"
+            selected={scenes}
+            onChange={setScenes}
+            maxSelect={3}
+          />
+          <TagSelector
+            type="cooking-methods"
+            label="烹饪方法"
+            selected={cookingMethods}
+            onChange={setCookingMethods}
+            maxSelect={3}
+          />
+          <TagSelector
+            type="tastes"
+            label="口味"
+            selected={tastes}
+            onChange={setTastes}
+            maxSelect={3}
+          />
+          <TagSelector
+            type="crowds"
+            label="适宜人群"
+            selected={crowds}
+            onChange={setCrowds}
+          />
+          <TagSelector
+            type="occasions"
+            label="场合"
+            selected={occasions}
+            onChange={setOccasions}
+          />
+        </div>
+      </section>
+
       {/* 封面图 */}
       <section className="bg-white rounded-md shadow-card p-6">
         <h2 className="text-xl font-medium text-textDark mb-4">封面图</h2>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-textGray">点击图片可查看大图</span>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCoverModalOpen(true)}
+            >
+              更新封面
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCoverPreviewOpen(true)}
+            >
+              预览大图
+            </Button>
+          </div>
+        </div>
         <div className="mb-4">
           {coverImage ? (
             <img
               src={coverImage}
               alt="封面图"
-              className="w-full max-h-80 object-cover rounded-md border border-lightGray"
+              className="w-full h-48 object-cover rounded-md border border-lightGray cursor-pointer"
+              onClick={() => setCoverPreviewOpen(true)}
+              loading="lazy"
             />
           ) : (
-            <div className="w-full h-56 rounded-md border border-dashed border-lightGray flex items-center justify-center text-textGray">
+            <div className="w-full h-32 rounded-md border border-dashed border-lightGray flex items-center justify-center text-textGray text-sm">
               暂无封面图
             </div>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ImageUploader
-            category="recipes/cover"
-            onUploadSuccess={setCoverImage}
-          />
-          <ImageGenerator
-            recipeName={titleZh}
-            onImageGenerated={setCoverImage}
-          />
-        </div>
+
+        {/* 封面图弹窗：上传 / AI 生图 */}
+        {coverModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+            <div className="bg-white rounded-[18px] shadow-card w-full max-w-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-textDark">更新封面</h3>
+                <button
+                  onClick={() => setCoverModalOpen(false)}
+                  className="text-textGray hover:text-textDark"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-lightGray rounded-md p-4">
+                  <p className="text-sm font-medium text-textDark mb-2">上传图片</p>
+                  <ImageUploader
+                    category="recipes/cover"
+                    onUploadSuccess={(url) => {
+                      setCoverImage(url);
+                      setCoverModalOpen(false);
+                    }}
+                  />
+                </div>
+                <div className="border border-lightGray rounded-md p-4">
+                  <p className="text-sm font-medium text-textDark mb-2">AI 生成封面</p>
+                  <ImageGenerator
+                    recipeName={titleZh}
+                    onImageGenerated={(url) => {
+                      setCoverImage(url);
+                      setCoverModalOpen(false);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 封面大图预览 */}
+        {coverPreviewOpen && coverImage && (
+          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6">
+            <div className="relative max-w-5xl w-full">
+              <img
+                src={coverImage}
+                alt="封面大图"
+                className="w-full h-auto rounded-[18px] shadow-card"
+              />
+              <button
+                onClick={() => setCoverPreviewOpen(false)}
+                className="absolute top-4 right-4 bg-white/80 text-textDark rounded-full px-3 py-1 shadow-card"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* 摘要信息 */}
@@ -792,36 +1212,21 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
       {/* 风格指南 */}
       <section className="bg-white rounded-md shadow-card p-6">
         <h2 className="text-xl font-medium text-textDark mb-4">风格指南</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            value={styleGuide.theme}
-            onChange={(e) =>
-              setStyleGuide({ ...styleGuide, theme: e.target.value })
-            }
-            placeholder="主题"
-          />
-          <Input
-            value={styleGuide.lighting}
-            onChange={(e) =>
-              setStyleGuide({ ...styleGuide, lighting: e.target.value })
-            }
-            placeholder="光线"
-          />
-          <Input
-            value={styleGuide.composition}
-            onChange={(e) =>
-              setStyleGuide({ ...styleGuide, composition: e.target.value })
-            }
-            placeholder="构图"
-          />
-          <Input
-            value={styleGuide.aesthetic}
-            onChange={(e) =>
-              setStyleGuide({ ...styleGuide, aesthetic: e.target.value })
-            }
-            placeholder="美学风格"
-          />
-        </div>
+        <textarea
+          value={`${styleGuide.theme || ""}\n${styleGuide.lighting || ""}\n${styleGuide.composition || ""}\n${styleGuide.aesthetic || ""}`.trim()}
+          onChange={(e) => {
+            const lines = e.target.value.split("\n");
+            setStyleGuide({
+              theme: lines[0] || "",
+              lighting: lines[1] || "",
+              composition: lines[2] || "",
+              aesthetic: lines[3] || "",
+            });
+          }}
+          rows={4}
+          className="w-full px-3 py-2 border border-lightGray rounded-sm"
+          placeholder={"主题\n光线\n构图\n美学风格"}
+        />
       </section>
 
       {/* 配图方案 */}
@@ -834,35 +1239,35 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         </div>
 
         <div className="space-y-4">
-          {imageShots.map((shot, index) => (
-            <div key={index} className="border border-lightGray rounded-md p-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center mb-3">
-                <Input
-                  value={shot.key}
-                  onChange={(e) => updateImageShot(index, "key", e.target.value)}
-                  placeholder="key (hero/step01)"
-                />
-                <Input
-                  value={shot.imagePrompt}
-                  onChange={(e) => updateImageShot(index, "imagePrompt", e.target.value)}
-                  placeholder="AI 提示词"
-                />
-                <select
-                  value={shot.ratio}
-                  onChange={(e) => updateImageShot(index, "ratio", e.target.value)}
-                  className="w-full px-3 py-2 border border-lightGray rounded-sm"
-                >
-                  <option value="16:9">16:9</option>
-                  <option value="4:3">4:3</option>
-                  <option value="3:2">3:2</option>
-                </select>
-                <Button type="button" variant="outline" onClick={() => removeImageShot(index)}>
-                  删除
-                </Button>
-              </div>
+      {imageShots.map((shot, index) => (
+        <div key={index} className="border border-lightGray rounded-md p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center mb-3">
+            <Input
+              value={shot.key}
+              onChange={(e) => updateImageShot(index, "key", e.target.value)}
+              placeholder="key (hero/step01)"
+            />
+            <Input
+              value={shot.imagePrompt}
+              onChange={(e) => updateImageShot(index, "imagePrompt", e.target.value)}
+              placeholder="AI 提示词"
+            />
+            <select
+              value={shot.ratio}
+              onChange={(e) => updateImageShot(index, "ratio", e.target.value)}
+              className="w-full px-3 py-2 border border-lightGray rounded-sm"
+            >
+              <option value="16:9">16:9</option>
+              <option value="4:3">4:3</option>
+              <option value="3:2">3:2</option>
+            </select>
+            <Button type="button" variant="outline" onClick={() => removeImageShot(index)}>
+              删除
+            </Button>
+          </div>
               <div>
                 <label className="text-xs text-textGray mb-1 block">图片 URL</label>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Input
                     value={shot.imageUrl || ""}
                     onChange={(e) => updateImageShot(index, "imageUrl", e.target.value)}
@@ -878,6 +1283,44 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                     >
                       预览
                     </a>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!!imageUploadLoading[index]}
+                  >
+                    <label htmlFor={`upload-shot-${index}`} className="cursor-pointer">
+                      {imageUploadLoading[index] ? "上传中..." : "上传图片"}
+                    </label>
+                    <input
+                      id={`upload-shot-${index}`}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadForShot(file, index);
+                      }}
+                    />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!!imageGenLoading[index]}
+                    onClick={() => handleRegenerateForShot(index)}
+                  >
+                    {imageGenLoading[index] ? "生成中..." : "重新生成"}
+                  </Button>
+                  {shot.imageUrl && (
+                    <div className="w-full mt-3">
+                      <img
+                        src={shot.imageUrl}
+                        alt={shot.key}
+                        className="w-full h-40 object-cover rounded-md border border-lightGray"
+                      />
+                    </div>
                   )}
                 </div>
               </div>

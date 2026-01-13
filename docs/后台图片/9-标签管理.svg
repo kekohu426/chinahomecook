@@ -1,0 +1,179 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640">
+  <!-- Background -->
+  <rect width="1200" height="640" fill="transparent"/>
+  
+  <!-- Title -->
+  <text x="600" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#02041A" fill-opacity="0.88" text-anchor="middle">标签管理优化</text>
+  <text x="600" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">/admin/config/tags</text>
+  
+  <!-- Tab Navigation -->
+  <rect x="100" y="80" width="120" height="36" rx="8" fill="#FF9500"/>
+  <text x="160" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">菜系 Cuisine</text>
+  
+  <rect x="230" y="80" width="130" height="36" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="295" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">地域 Location</text>
+  
+  <rect x="370" y="80" width="110" height="36" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="425" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">场景 Scene</text>
+  
+  <rect x="490" y="80" width="145" height="36" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="562" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">烹饪方式 Method</text>
+  
+  <rect x="645" y="80" width="110" height="36" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="700" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">口味 Taste</text>
+  
+  <rect x="765" y="80" width="120" height="36" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="825" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">人群 Crowd</text>
+  
+  <rect x="895" y="80" width="135" height="36" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="962" y="102" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">场合 Occasion</text>
+  
+  <!-- Main Container -->
+  <rect x="80" y="130" width="1040" height="500" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  
+  <!-- Container Header -->
+  <text x="100" y="162" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#02041A" fill-opacity="0.88">菜系标签管理</text>
+  
+  <!-- Action Buttons -->
+  <rect x="100" y="182" width="90" height="32" rx="8" fill="#2997FF"/>
+  <text x="145" y="202" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">+ 新建菜系</text>
+  
+  <rect x="200" y="182" width="80" height="32" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="240" y="202" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">批量导入</text>
+  
+  <rect x="290" y="182" width="110" height="32" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="345" y="202" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">🔄 同步到合集</text>
+  
+  <rect x="410" y="182" width="60" height="32" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="440" y="202" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">导出</text>
+  
+  <!-- Search and Filters -->
+  <rect x="100" y="230" width="200" height="32" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="110" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">🔍 搜索...</text>
+  
+  <text x="320" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">状态:</text>
+  <rect x="360" y="230" width="80" height="32" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="400" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">全部 ▼</text>
+  
+  <text x="460" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">排序:</text>
+  <rect x="500" y="230" width="120" height="32" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="560" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">自定义排序 ▼</text>
+  
+  <!-- Table Header -->
+  <rect x="100" y="280" width="1000" height="40" fill="#02041A" fill-opacity="0.06"/>
+  <text x="120" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">⇅</text>
+  <text x="180" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">名称</text>
+  <text x="280" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">Slug</text>
+  <text x="420" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">关联合集</text>
+  <text x="560" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">翻译</text>
+  <text x="680" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">状态</text>
+  <text x="780" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">菜谱数</text>
+  <text x="900" y="304" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">操作</text>
+  
+  <!-- Table Row 1 -->
+  <line x1="100" y1="320" x2="1100" y2="320" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="120" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">⇅</text>
+  <text x="180" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">川菜</text>
+  <text x="280" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">sichuan</text>
+  <text x="420" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">✅已创建</text>
+  <text x="560" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">🌐完整</text>
+  <text x="680" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">启用</text>
+  <text x="780" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">51道</text>
+  <text x="900" y="344" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#2997FF">[编辑][删除][查看合集]</text>
+  
+  <!-- Table Row 2 -->
+  <line x1="100" y1="360" x2="1100" y2="360" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="120" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">⇅</text>
+  <text x="180" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">粤菜</text>
+  <text x="280" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">cantonese</text>
+  <text x="420" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">✅已创建</text>
+  <text x="560" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">🌐完整</text>
+  <text x="680" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">启用</text>
+  <text x="780" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">36道</text>
+  <text x="900" y="384" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#2997FF">[编辑][删除][查看合集]</text>
+  
+  <!-- Table Row 3 -->
+  <line x1="100" y1="400" x2="1100" y2="400" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="120" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">⇅</text>
+  <text x="180" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">湘菜</text>
+  <text x="280" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">hunan</text>
+  <text x="420" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">✅已创建</text>
+  <text x="560" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#FFCC00">⚠️缺英文</text>
+  <text x="680" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">启用</text>
+  <text x="780" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">28道</text>
+  <text x="900" y="424" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#2997FF">[编辑][删除][查看合集]</text>
+  
+  <!-- Table Row 4 -->
+  <line x1="100" y1="440" x2="1100" y2="440" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="120" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">⇅</text>
+  <text x="180" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">鲁菜</text>
+  <text x="280" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">shandong</text>
+  <text x="420" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#FF9500">⚠️未同步</text>
+  <text x="560" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">🌐完整</text>
+  <text x="680" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">禁用</text>
+  <text x="780" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">5道</text>
+  <text x="900" y="464" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#2997FF">[编辑][删除][同步合集]</text>
+  
+  <!-- Table Row 5 -->
+  <line x1="100" y1="480" x2="1100" y2="480" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="120" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">⇅</text>
+  <text x="180" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">徽菜</text>
+  <text x="280" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">anhui</text>
+  <text x="420" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">✅已创建</text>
+  <text x="560" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">🌐完整</text>
+  <text x="680" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#5DD6CC">启用</text>
+  <text x="780" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">12道</text>
+  <text x="900" y="504" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#2997FF">[编辑][删除][查看合集]</text>
+  
+  <!-- Tips Section -->
+  <rect x="100" y="540" width="1000" height="80" rx="12" fill="#FFCC00" fill-opacity="0.15"/>
+  <text x="120" y="562" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">💡 提示:</text>
+  <text x="120" y="578" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">- 创建/编辑标签时会自动同步到Collection表</text>
+  <text x="120" y="592" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">- "未同步"表示Collection不存在或数据不一致</text>
+  <text x="120" y="606" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">- 点击"同步合集"可手动修复</text>
+  
+  <!-- Edit Modal (Overlay) -->
+  <rect x="680" y="140" width="480" height="420" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="2"/>
+  
+  <!-- Modal Header -->
+  <text x="700" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#02041A" fill-opacity="0.88">编辑菜系: 川菜</text>
+  <text x="1140" y="170" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.4">[✕]</text>
+  <line x1="680" y1="182" x2="1160" y2="182" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  
+  <!-- Basic Info Section -->
+  <text x="700" y="206" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">📋 基本信息</text>
+  <text x="700" y="226" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">中文名称:</text>
+  <rect x="770" y="212" width="360" height="24" rx="6" fill="#02041A" fill-opacity="0.06"/>
+  <text x="780" y="228" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">川菜</text>
+  
+  <text x="700" y="252" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">Slug:</text>
+  <rect x="770" y="238" width="200" height="24" rx="6" fill="#02041A" fill-opacity="0.06"/>
+  <text x="780" y="254" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">sichuan (自动生成,锁定)</text>
+  
+  <!-- Description Section -->
+  <text x="700" y="286" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">📝 描述</text>
+  <text x="700" y="306" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">中文描述:</text>
+  <rect x="700" y="310" width="430" height="36" rx="6" fill="#02041A" fill-opacity="0.06"/>
+  <text x="710" y="326" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" fill-opacity="0.6">以麻辣鲜香著称的中国八大菜系...</text>
+  
+  <!-- Translation Section -->
+  <text x="700" y="366" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">🌐 多语言翻译</text>
+  <text x="700" y="386" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">English - Name:</text>
+  <rect x="820" y="372" width="310" height="24" rx="6" fill="#02041A" fill-opacity="0.06"/>
+  <text x="830" y="388" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">Sichuan Cuisine</text>
+  
+  <!-- Collection Info -->
+  <text x="700" y="426" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#02041A" fill-opacity="0.88">🔗 关联合集信息 (自动同步)</text>
+  <rect x="700" y="434" width="430" height="64" rx="8" fill="#5DD6CC" fill-opacity="0.1" stroke="#5DD6CC" stroke-width="1"/>
+  <text x="710" y="452" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" fill-opacity="0.6">合集名称: 川菜</text>
+  <text x="710" y="468" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" fill-opacity="0.6">路径: /recipe/cuisine/sichuan</text>
+  <text x="710" y="484" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" fill-opacity="0.6">状态: 已发布 | 当前菜谱数: 51/60</text>
+  
+  <!-- Action Buttons -->
+  <rect x="780" y="520" width="70" height="28" rx="8" fill="#2997FF"/>
+  <text x="815" y="538" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">保存</text>
+  
+  <rect x="860" y="520" width="70" height="28" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="895" y="538" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">取消</text>
+</svg>

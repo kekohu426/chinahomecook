@@ -1,0 +1,10 @@
+{
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/admin/collections/[id]/route": "app/api/admin/collections/[id]/route.js",
+  "/[locale]/ai-custom/page": "app/[locale]/ai-custom/page.js",
+  "/admin/collections/page": "app/admin/collections/page.js",
+  "/admin/collections/[id]/page": "app/admin/collections/[id]/page.js",
+  "/admin/collections/[id]/diagnose/page": "app/admin/collections/[id]/diagnose/page.js",
+  "/[locale]/page": "app/[locale]/page.js",
+  "/[locale]/custom-recipes/page": "app/[locale]/custom-recipes/page.js"
+}

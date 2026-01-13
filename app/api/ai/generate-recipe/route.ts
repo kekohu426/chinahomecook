@@ -129,22 +129,17 @@ export async function POST(request: NextRequest) {
 
       const recipe = await prisma.recipe.create({
         data: {
-          schemaVersion: result.data.schemaVersion,
-          titleZh: result.data.titleZh,
-          titleEn: result.data.titleEn,
-          summary: result.data.summary as any,
-          story: result.data.story as any,
-          ingredients: result.data.ingredients as any,
-          steps: result.data.steps as any,
-          styleGuide: result.data.styleGuide as any,
-          imageShots: result.data.imageShots as any,
-          location,
-          cuisine,
-          mainIngredients: mainIngredients || [],
+          title: result.data.titleZh,
+          summary: result.data.summary as object,
+          story: result.data.story as object,
+          ingredients: result.data.ingredients as object,
+          steps: result.data.steps as object,
+          styleGuide: result.data.styleGuide as object,
+          imageShots: result.data.imageShots as object,
           slug,
           coverImage, // 添加生成的封面图
           aiGenerated: true,
-          isPublished: false, // 默认不发布，需要人工审核
+          status: "draft", // 默认草稿，需要人工审核
         },
       });
 

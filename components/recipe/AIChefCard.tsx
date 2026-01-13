@@ -12,12 +12,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface AIChefCardProps {
   recipeTitle: string;
 }
 
 export function AIChefCard({ recipeTitle }: AIChefCardProps) {
+  const locale = useLocale();
+  const isEn = locale === "en";
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
@@ -39,13 +42,19 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
       });
 
       if (!response.ok) {
-        throw new Error("AI 服务暂时不可用");
+        throw new Error(
+          isEn ? "AI service is temporarily unavailable" : "AI 服务暂时不可用"
+        );
       }
 
       const data = await response.json();
       setAnswer(data.answer);
     } catch (error) {
-      setAnswer("抱歉，AI 主厨暂时无法回答，请稍后再试。");
+      setAnswer(
+        isEn
+          ? "Sorry, the AI chef can't respond right now. Please try again later."
+          : "抱歉，AI 主厨暂时无法回答，请稍后再试。"
+      );
     } finally {
       setLoading(false);
     }
@@ -59,16 +68,20 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
   };
 
   return (
-    <div className="bg-brownDark text-white rounded-md shadow-card p-8 mb-6">
+    <div className="bg-brownDark text-white rounded-[18px] shadow-card p-8 mb-6 border border-brownWarm/40">
       {/* 头部 */}
       <div className="flex items-center gap-3 mb-4">
         <span className="text-3xl">🔧</span>
-        <h3 className="text-xl font-serif font-medium">AI 智能主厨</h3>
+        <h3 className="text-xl font-serif font-medium">
+          {isEn ? "AI Chef" : "AI 智能主厨"}
+        </h3>
       </div>
 
       {/* 描述 */}
       <p className="text-cream/90 text-sm leading-relaxed mb-6">
-        我是你的数字主厨。关于这道《{recipeTitle}》，有任何问题，比如没放啤酒可以用什么代替，我都会守在灶台边为你解答。
+        {isEn
+          ? `I'm your digital chef. Ask anything about "${recipeTitle}"—for example, what to substitute if you don't have beer—and I'll guide you step by step.`
+          : `我是你的数字主厨。关于这道《${recipeTitle}》，有任何问题，比如没放啤酒可以用什么代替，我都会守在灶台边为你解答。`}
       </p>
 
       {/* 输入框 */}
@@ -77,16 +90,20 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="例如：没放啤酒可以用白酒代替吗？"
-          className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
+          placeholder={
+            isEn
+              ? "Example: Can I use white wine instead of beer?"
+              : "例如：没放啤酒可以用白酒代替吗？"
+          }
+          className="flex-1 bg-white/12 border-white/25 text-white placeholder:text-white/55 focus:border-white/40 rounded-button"
           disabled={loading}
         />
         <Button
           onClick={handleAskQuestion}
           disabled={loading || !question.trim()}
-          className="bg-orangeAccent hover:bg-orangeAccent/90 text-brownDark font-medium px-6"
+          className="bg-orangeAccent hover:bg-orangeAccent/90 text-brownDark font-medium px-6 rounded-button shadow-card"
         >
-          {loading ? "思考中..." : "咨询主厨"}
+          {loading ? (isEn ? "Thinking..." : "思考中...") : isEn ? "Ask Chef" : "咨询主厨"}
         </Button>
       </div>
 
@@ -96,7 +113,9 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
           <div className="flex items-start gap-3">
             <span className="text-2xl flex-shrink-0">👨‍🍳</span>
             <div>
-              <p className="text-sm font-medium text-orangeAccent mb-2">主厨的建议：</p>
+              <p className="text-sm font-medium text-orangeAccent mb-2">
+                {isEn ? "Chef's advice:" : "主厨的建议："}
+              </p>
               <p className="text-sm text-cream/95 leading-relaxed">{answer}</p>
             </div>
           </div>

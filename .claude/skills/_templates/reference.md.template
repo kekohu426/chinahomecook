@@ -1,0 +1,37 @@
+# {{SKILL_TITLE}} - Reference
+
+## API / Commands
+
+### Command 1: `{{COMMAND_1}}`
+**Description**: {{COMMAND_1_DESC}}
+**Parameters**:
+- `param1`: {{PARAM_1_DESC}}
+- `param2`: {{PARAM_2_DESC}}
+
+**Example**:
+```bash
+{{COMMAND_1_EXAMPLE}}
+```
+
+### Command 2: `{{COMMAND_2}}`
+**Description**: {{COMMAND_2_DESC}}
+
+## Configuration
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `option1` | string | `""` | {{OPTION_1_DESC}} |
+| `option2` | boolean | `false` | {{OPTION_2_DESC}} |
+
+## Error Handling
+
+| Error Code | Cause | Solution |
+|------------|-------|----------|
+| `ERR_001` | {{ERR_1_CAUSE}} | {{ERR_1_SOLUTION}} |
+| `ERR_002` | {{ERR_2_CAUSE}} | {{ERR_2_SOLUTION}} |
+
+## Best Practices
+
+1. {{BEST_PRACTICE_1}}
+2. {{BEST_PRACTICE_2}}
+3. {{BEST_PRACTICE_3}}

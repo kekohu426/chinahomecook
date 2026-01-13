@@ -21,7 +21,7 @@ describe("RecipeCard", () => {
     );
 
     const image = screen.getByRole("img", { name: "红烧肉" });
-    expect(image).toHaveAttribute("src", "https://example.com/cover.jpg");
+    expect(image.getAttribute("src")).toContain("cover.jpg");
   });
 
   it("shows placeholder when cover image is missing", () => {

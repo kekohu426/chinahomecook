@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Edit2, Trash2, MapPin, UtensilsCrossed, Loader2 } from "lucide-react";
+import {
+  Edit2,
+  Trash2,
+  MapPin,
+  UtensilsCrossed,
+  Loader2,
+} from "lucide-react";
 
 interface Location {
   id: string;
@@ -23,7 +29,9 @@ interface Cuisine {
 }
 
 export default function ConfigPage() {
-  const [activeTab, setActiveTab] = useState<"locations" | "cuisines">("locations");
+  const [activeTab, setActiveTab] = useState<
+    "locations" | "cuisines"
+  >("locations");
   const [locations, setLocations] = useState<Location[]>([]);
   const [cuisines, setCuisines] = useState<Cuisine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -288,73 +296,74 @@ export default function ConfigPage() {
           </div>
         </div>
 
+        {/* 地点/菜系表单 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="config-name" className="block text-sm text-sage-600 mb-2">
-              名称
-            </label>
-            <input
-              id="config-name"
-              value={formState.name}
-              onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-              className="w-full px-3 py-2 border border-sage-200 rounded-md"
-              placeholder={activeTab === "locations" ? "例：川渝" : "例：川菜"}
-            />
+            <div>
+              <label htmlFor="config-name" className="block text-sm text-sage-600 mb-2">
+                名称
+              </label>
+              <input
+                id="config-name"
+                value={formState.name}
+                onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                className="w-full px-3 py-2 border border-sage-200 rounded-md"
+                placeholder={activeTab === "locations" ? "例：川渝" : "例：川菜"}
+              />
+            </div>
+            <div>
+              <label htmlFor="config-slug" className="block text-sm text-sage-600 mb-2">
+                Slug
+              </label>
+              <input
+                id="config-slug"
+                value={formState.slug}
+                onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
+                className="w-full px-3 py-2 border border-sage-200 rounded-md"
+                placeholder="例：chuanyu"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="config-description" className="block text-sm text-sage-600 mb-2">
+                描述
+              </label>
+              <textarea
+                id="config-description"
+                value={formState.description}
+                onChange={(e) =>
+                  setFormState({ ...formState, description: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-sage-200 rounded-md"
+                rows={2}
+                placeholder="补充说明（可选）"
+              />
+            </div>
+            <div>
+              <label htmlFor="config-sort" className="block text-sm text-sage-600 mb-2">
+                排序
+              </label>
+              <input
+                id="config-sort"
+                type="number"
+                value={formState.sortOrder}
+                onChange={(e) => setFormState({ ...formState, sortOrder: e.target.value })}
+                className="w-full px-3 py-2 border border-sage-200 rounded-md"
+              />
+            </div>
+            <div className="flex items-center gap-3 mt-7">
+              <input
+                id="config-active"
+                type="checkbox"
+                checked={formState.isActive}
+                onChange={(e) =>
+                  setFormState({ ...formState, isActive: e.target.checked })
+                }
+                className="w-4 h-4"
+              />
+              <label htmlFor="config-active" className="text-sm text-sage-600">
+                启用该配置
+              </label>
+            </div>
           </div>
-          <div>
-            <label htmlFor="config-slug" className="block text-sm text-sage-600 mb-2">
-              Slug
-            </label>
-            <input
-              id="config-slug"
-              value={formState.slug}
-              onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
-              className="w-full px-3 py-2 border border-sage-200 rounded-md"
-              placeholder="例：chuanyu"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label htmlFor="config-description" className="block text-sm text-sage-600 mb-2">
-              描述
-            </label>
-            <textarea
-              id="config-description"
-              value={formState.description}
-              onChange={(e) =>
-                setFormState({ ...formState, description: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-sage-200 rounded-md"
-              rows={2}
-              placeholder="补充说明（可选）"
-            />
-          </div>
-          <div>
-            <label htmlFor="config-sort" className="block text-sm text-sage-600 mb-2">
-              排序
-            </label>
-            <input
-              id="config-sort"
-              type="number"
-              value={formState.sortOrder}
-              onChange={(e) => setFormState({ ...formState, sortOrder: e.target.value })}
-              className="w-full px-3 py-2 border border-sage-200 rounded-md"
-            />
-          </div>
-          <div className="flex items-center gap-3 mt-7">
-            <input
-              id="config-active"
-              type="checkbox"
-              checked={formState.isActive}
-              onChange={(e) =>
-                setFormState({ ...formState, isActive: e.target.checked })
-              }
-              className="w-4 h-4"
-            />
-            <label htmlFor="config-active" className="text-sm text-sage-600">
-              启用该配置
-            </label>
-          </div>
-        </div>
       </form>
 
       {/* 地点列表 */}

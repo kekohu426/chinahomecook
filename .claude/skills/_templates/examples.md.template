@@ -1,0 +1,43 @@
+# {{SKILL_TITLE}} - Examples
+
+## Basic Usage
+
+### Example 1: {{BASIC_EXAMPLE_TITLE}}
+
+**Scenario**: {{BASIC_EXAMPLE_SCENARIO}}
+
+**Input**:
+```
+{{BASIC_EXAMPLE_INPUT}}
+```
+
+**Output**:
+```
+{{BASIC_EXAMPLE_OUTPUT}}
+```
+
+## Advanced Usage
+
+### Example 2: {{ADVANCED_EXAMPLE_TITLE}}
+
+**Scenario**: {{ADVANCED_EXAMPLE_SCENARIO}}
+
+**Steps**:
+1. {{STEP_1}}
+2. {{STEP_2}}
+3. {{STEP_3}}
+
+**Result**:
+```
+{{ADVANCED_EXAMPLE_RESULT}}
+```
+
+## Real-world Scenarios
+
+### Scenario: {{REAL_WORLD_TITLE}}
+
+{{REAL_WORLD_DESCRIPTION}}
+
+```
+{{REAL_WORLD_CODE}}
+```

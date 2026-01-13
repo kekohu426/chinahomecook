@@ -7,6 +7,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { cookies } from "next/headers";
+import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/config";
+import { getContentLocales } from "@/lib/i18n/content";
+import { createCollectionForTag } from "@/lib/collection/sync";
 
 /**
  * GET /api/config/cuisines
@@ -15,15 +19,39 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get("active") === "true";
+    const localeParam = searchParams.get("locale") as Locale | null;
+    const cookieStore = await cookies();
+    const cookieLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value as Locale | undefined;
+    const locale: Locale =
+      (localeParam && SUPPORTED_LOCALES.includes(localeParam)) ? localeParam
+      : (cookieLocale && SUPPORTED_LOCALES.includes(cookieLocale)) ? cookieLocale
+      : DEFAULT_LOCALE;
+    const locales = getContentLocales(locale);
 
     const cuisines = await prisma.cuisine.findMany({
       where: activeOnly ? { isActive: true } : undefined,
       orderBy: { sortOrder: "asc" },
+      include: { translations: { where: { locale: { in: locales } } } },
+    });
+
+    const formatted = cuisines.map((cui) => {
+      const translation = cui.translations.find((t) => locales.includes(t.locale));
+      const displayName = translation?.name || cui.name;
+      const displayDescription = translation?.description || cui.description;
+      return {
+        id: cui.id,
+        slug: cui.slug,
+        name: displayName,
+        originalName: cui.name,
+        description: displayDescription,
+        isActive: cui.isActive,
+        sortOrder: cui.sortOrder,
+      };
     });
 
     return NextResponse.json({
       success: true,
-      data: cuisines,
+      data: formatted,
     });
   } catch (error) {
     console.error("获取菜系列表失败:", error);
@@ -57,6 +85,14 @@ export async function POST(request: NextRequest) {
         isActive: isActive !== undefined ? isActive : true,
         sortOrder: sortOrder !== undefined ? sortOrder : 0,
       },
+    });
+
+    // 自动创建对应的 Collection
+    await createCollectionForTag("cuisine", {
+      id: cuisine.id,
+      name: cuisine.name,
+      slug: cuisine.slug,
+      description: cuisine.description,
     });
 
     return NextResponse.json({

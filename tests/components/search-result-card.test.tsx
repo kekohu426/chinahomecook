@@ -21,7 +21,8 @@ describe("SearchResultCard", () => {
     );
 
     const link = screen.getByRole("link");
-    expect(link).toHaveAttribute("href", "/recipe/recipe-1");
+    // 组件现在使用 i18n 路由
+    expect(link).toHaveAttribute("href", "/zh/recipe/recipe-1");
   });
 
   it("renders AI tag when aiGenerated is true", () => {

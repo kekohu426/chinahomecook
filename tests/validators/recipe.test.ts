@@ -182,15 +182,15 @@ describe('Recipe Schema Validator', () => {
       expect(() => validateSteps([])).toThrow()
     })
 
-    it('应该拒绝缺少必填字段的步骤', () => {
-      const invalid = [{
+    it('应该接受只有必填字段的步骤（v2.0.0 其他字段可选）', () => {
+      const valid = [{
         id: 'step01',
         title: '步骤标题',
         action: '详细描述'
-        // 缺少 5 个字段
+        // v2.0.0: timerSec, speechText, visualCue, failPoint, photoBrief 都是可选的
       }]
 
-      expect(() => validateSteps(invalid)).toThrow()
+      expect(() => validateSteps(valid)).not.toThrow()
     })
 
     it('应该拒绝负数的 timerSec', () => {
@@ -342,7 +342,11 @@ describe('Recipe Schema Validator', () => {
       expect(result.schemaVersion).toBe('1.1.0')
       expect(result.titleZh).toBe('啤酒鸭')
       expect(result.summary.oneLine).toBeDefined()
-      expect(result.story.tags).toHaveLength(3)
+      // story can be string or object, check properly
+      expect(result.story).toBeDefined()
+      if (typeof result.story === 'object' && result.story !== null) {
+        expect(result.story.tags).toHaveLength(3)
+      }
     })
 
     it('safeValidateRecipe 应该返回结果而非抛出异常', () => {

@@ -1,0 +1,1185 @@
+/**
+ * 新首页
+ *
+ * 路由：/
+ * 包含：Hero、价值闭环、定制精选、快捷浏览、精选食谱、图片库、工具展示、博客、品牌与Footer
+ */
+
+import { prisma } from "@/lib/db/prisma";
+import { getContentLocales } from "@/lib/i18n/content";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { HeroSection } from "@/components/home/HeroSection";
+import { CustomRecipesSection } from "@/components/home/CustomRecipesSection";
+import { CoreFeaturesSection } from "@/components/home/CoreFeaturesSection";
+import { QuickBrowseTabs } from "@/components/home/QuickBrowseTabs";
+import { ToolsShowcaseSection } from "@/components/home/ToolsShowcaseSection";
+import { BrandStorySection } from "@/components/home/BrandStorySection";
+import { HotRecipesSection } from "@/components/home/HotRecipesSection";
+import { GalleryPreviewSection } from "@/components/home/GalleryPreviewSection";
+import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
+import { getScenesForHome, getSceneCountsFromDB } from "@/lib/aggregation/utils";
+
+export const revalidate = 300;
+
+const FALLBACK_LOCATIONS_ZH = [
+  { id: "loc-sichuan", name: "川渝", filterName: "川渝", matchKey: "川渝", slug: "chuanyu", description: "麻辣鲜香，经典川味" },
+  { id: "loc-guangdong", name: "粤港澳", filterName: "粤港澳", matchKey: "粤港澳", slug: "yuegangao", description: "清淡鲜美，原汁原味" },
+  { id: "loc-jiangzhe", name: "江浙", filterName: "江浙", matchKey: "江浙", slug: "jiangzhe", description: "甜润细腻，精致讲究" },
+  { id: "loc-dongbei", name: "东北", filterName: "东北", matchKey: "东北", slug: "dongbei", description: "豪爽厚重，实惠下饭" },
+  { id: "loc-hunan", name: "湖南", filterName: "湖南", matchKey: "湖南", slug: "hunan", description: "酸辣浓郁，重口开胃" },
+  { id: "loc-yungui", name: "云贵", filterName: "云贵", matchKey: "云贵", slug: "yungui", description: "酸辣鲜香，民族风味" },
+];
+
+const FALLBACK_LOCATIONS_EN = [
+  { id: "loc-sichuan", name: "Sichuan & Chongqing", filterName: "川渝", matchKey: "川渝", slug: "chuanyu", description: "Bold, spicy, classic Sichuan flavors" },
+  { id: "loc-guangdong", name: "Cantonese & Greater Bay", filterName: "粤港澳", matchKey: "粤港澳", slug: "yuegangao", description: "Light, fresh, and true to the ingredient" },
+  { id: "loc-jiangzhe", name: "Jiangsu & Zhejiang", filterName: "江浙", matchKey: "江浙", slug: "jiangzhe", description: "Soft, delicate, and refined" },
+  { id: "loc-dongbei", name: "Northeast", filterName: "东北", matchKey: "东北", slug: "dongbei", description: "Hearty, comforting, and filling" },
+  { id: "loc-hunan", name: "Hunan", filterName: "湖南", matchKey: "湖南", slug: "hunan", description: "Hot, tangy, and bold" },
+  { id: "loc-yungui", name: "Yunnan & Guizhou", filterName: "云贵", matchKey: "云贵", slug: "yungui", description: "Sour-spicy, aromatic, ethnic flair" },
+];
+
+const FALLBACK_CUISINES_ZH = [
+  { id: "cui-sichuan", name: "川菜", filterName: "川菜", matchKey: "川菜", slug: "chuancai", description: "麻辣鲜香，百菜百味" },
+  { id: "cui-canton", name: "粤菜", filterName: "粤菜", matchKey: "粤菜", slug: "yuecai", description: "清淡鲜美，突出原味" },
+  { id: "cui-jiangzhe", name: "江浙菜", filterName: "江浙菜", matchKey: "江浙菜", slug: "jiangzhecai", description: "清雅鲜甜，刀工细腻" },
+  { id: "cui-shandong", name: "鲁菜", filterName: "鲁菜", matchKey: "鲁菜", slug: "lucai", description: "咸鲜醇厚，讲究火候" },
+  { id: "cui-hunan", name: "湘菜", filterName: "湘菜", matchKey: "湘菜", slug: "xiangcai", description: "香辣浓郁，重口开胃" },
+  { id: "cui-northwest", name: "西北菜", filterName: "西北菜", matchKey: "西北菜", slug: "xibeicai", description: "面食为主，香料独特" },
+];
+
+const FALLBACK_CUISINES_EN = [
+  { id: "cui-sichuan", name: "Sichuan", filterName: "川菜", matchKey: "川菜", slug: "chuancai", description: "Spicy, bold, and deeply savory" },
+  { id: "cui-canton", name: "Cantonese", filterName: "粤菜", matchKey: "粤菜", slug: "yuecai", description: "Light, fresh, and ingredient-forward" },
+  { id: "cui-jiangzhe", name: "Jiangsu & Zhejiang", filterName: "江浙菜", matchKey: "江浙菜", slug: "jiangzhecai", description: "Clean, sweet, and delicate" },
+  { id: "cui-shandong", name: "Shandong", filterName: "鲁菜", matchKey: "鲁菜", slug: "lucai", description: "Savory, rich, and technique-driven" },
+  { id: "cui-hunan", name: "Hunan", filterName: "湘菜", matchKey: "湘菜", slug: "xiangcai", description: "Spicy, aromatic, and hearty" },
+  { id: "cui-northwest", name: "Northwest", filterName: "西北菜", matchKey: "西北菜", slug: "xibeicai", description: "Noodle-centered with bold spices" },
+];
+
+const FALLBACK_INGREDIENTS_ZH = [
+  { id: "ing-chicken", name: "鸡肉", filterName: "鸡肉", description: "高蛋白家常做法" },
+  { id: "ing-pork", name: "猪肉", filterName: "猪肉", description: "经典家常味，百吃不腻" },
+  { id: "ing-beef", name: "牛肉", filterName: "牛肉", description: "耐嚼有滋味，补充能量" },
+  { id: "ing-fish", name: "鱼", filterName: "鱼", description: "鲜嫩少刺，清爽好入口" },
+  { id: "ing-shrimp", name: "虾", filterName: "虾", description: "鲜甜弹牙，宴客好选择" },
+  { id: "ing-tofu", name: "豆腐", filterName: "豆腐", description: "百搭素食，营养均衡" },
+  { id: "ing-egg", name: "鸡蛋", filterName: "鸡蛋", description: "家常必备，百变做法" },
+  { id: "ing-tomato", name: "番茄", filterName: "番茄", description: "酸甜开胃，色泽诱人" },
+  { id: "ing-potato", name: "土豆", filterName: "土豆", description: "软糯饱腹，孩子最爱" },
+  { id: "ing-mushroom", name: "菌菇", filterName: "菌菇", description: "鲜香浓郁，提升层次" },
+  { id: "ing-pepper", name: "辣椒", filterName: "辣椒", description: "微辣开胃，香气更足" },
+  { id: "ing-greens", name: "青菜", filterName: "青菜", description: "清爽解腻，搭配更均衡" },
+];
+
+const FALLBACK_INGREDIENTS_EN = [
+  { id: "ing-chicken", name: "Chicken", filterName: "鸡肉", description: "High-protein, everyday classics" },
+  { id: "ing-pork", name: "Pork", filterName: "猪肉", description: "Comforting, family-style staples" },
+  { id: "ing-beef", name: "Beef", filterName: "牛肉", description: "Rich, hearty, and satisfying" },
+  { id: "ing-fish", name: "Fish", filterName: "鱼", description: "Light, tender, and fresh" },
+  { id: "ing-shrimp", name: "Shrimp", filterName: "虾", description: "Sweet, springy, and festive" },
+  { id: "ing-tofu", name: "Tofu", filterName: "豆腐", description: "Versatile, light, and balanced" },
+  { id: "ing-egg", name: "Eggs", filterName: "鸡蛋", description: "Simple, flexible, and fast" },
+  { id: "ing-tomato", name: "Tomato", filterName: "番茄", description: "Bright, tangy, and appetizing" },
+  { id: "ing-potato", name: "Potato", filterName: "土豆", description: "Soft, filling, and kid-friendly" },
+  { id: "ing-mushroom", name: "Mushrooms", filterName: "菌菇", description: "Umami-rich and fragrant" },
+  { id: "ing-pepper", name: "Chili Pepper", filterName: "辣椒", description: "Gentle heat, big aroma" },
+  { id: "ing-greens", name: "Greens", filterName: "青菜", description: "Fresh, light, and balanced" },
+];
+
+
+const LOCATION_LABELS_EN = Object.fromEntries(
+  FALLBACK_LOCATIONS_EN.map((item) => [item.filterName, item.name])
+);
+const CUISINE_LABELS_EN = Object.fromEntries(
+  FALLBACK_CUISINES_EN.map((item) => [item.filterName, item.name])
+);
+const INGREDIENT_LABELS_EN = Object.fromEntries(
+  FALLBACK_INGREDIENTS_EN.map((item) => [item.filterName, item.name])
+);
+
+const LOCATION_DESCRIPTIONS = Object.fromEntries(
+  FALLBACK_LOCATIONS_ZH.map((item) => [item.filterName, item.description])
+);
+const LOCATION_DESCRIPTIONS_EN = Object.fromEntries(
+  FALLBACK_LOCATIONS_EN.map((item) => [item.filterName, item.description])
+);
+const CUISINE_DESCRIPTIONS = Object.fromEntries(
+  FALLBACK_CUISINES_ZH.map((item) => [item.filterName, item.description])
+);
+const CUISINE_DESCRIPTIONS_EN = Object.fromEntries(
+  FALLBACK_CUISINES_EN.map((item) => [item.filterName, item.description])
+);
+const INGREDIENT_DESCRIPTIONS = Object.fromEntries(
+  FALLBACK_INGREDIENTS_ZH.map((item) => [item.filterName, item.description])
+);
+const INGREDIENT_DESCRIPTIONS_EN = Object.fromEntries(
+  FALLBACK_INGREDIENTS_EN.map((item) => [item.filterName, item.description])
+);
+
+// 获取首页配置
+async function getHomeConfig(locale: Locale) {
+  try {
+    const locales = getContentLocales(locale);
+    const configs = await prisma.homeConfig.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      include: {
+        translations: {
+          where: { locale: { in: locales } },
+        },
+      },
+    });
+
+    const result: Record<string, any> = {};
+    for (const config of configs) {
+      // 获取翻译内容
+      const translation = config.translations.find(t => locales.includes(t.locale));
+
+      // 合并内容
+      const content = translation?.content || config.content;
+      const title = translation?.title || config.title;
+      const subtitle = translation?.subtitle || config.subtitle;
+
+      result[config.section] = {
+        title,
+        subtitle,
+        content,
+        recipeIds: config.recipeIds,
+        collectionIds: config.collectionIds,
+        backgroundImage: config.backgroundImage,
+      };
+    }
+    return result;
+  } catch (error) {
+    console.error("获取首页配置失败:", error);
+    return {};
+  }
+}
+
+type BrowseType = "REGION" | "CUISINE" | "INGREDIENT" | "SCENE";
+
+// 获取快捷浏览 - HomeBrowseItem 模型已移除，返回空数据使用 fallback
+async function getHomeBrowseItemsByType(
+  _locale: Locale,
+  _types: BrowseType[],
+  _limit = 12
+) {
+  // HomeBrowseItem 模型不存在，返回空数据，使用 fallback locations/cuisines
+  return {
+    REGION: [] as Array<{ id: string; name: string; description: string; imageUrl: string | null; href: string | null }>,
+    CUISINE: [] as Array<{ id: string; name: string; description: string; imageUrl: string | null; href: string | null }>,
+    INGREDIENT: [] as Array<{ id: string; name: string; description: string; imageUrl: string | null; href: string | null }>,
+    SCENE: [] as Array<{ id: string; name: string; description: string; imageUrl: string | null; href: string | null }>,
+  };
+}
+
+// 获取地域（按地域浏览）
+async function getLocations(locale: Locale, limit = 6) {
+  try {
+    const locales = getContentLocales(locale);
+    const items = await prisma.location.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        translations: {
+          where: { locale: { in: locales } },
+          select: { locale: true, name: true, description: true },
+        },
+      },
+    });
+    return items.map((item) => {
+      const translation = pickTranslation(item.translations, locales);
+      return {
+        id: item.id,
+        name: translation?.name || item.name,
+        description: translation?.description || item.description,
+        slug: item.slug,
+        filterName: item.slug,
+        matchKey: item.name,
+      };
+    });
+  } catch (error) {
+    console.error("获取地点失败:", error);
+    return [];
+  }
+}
+
+// 获取菜系
+async function getCuisines(locale: Locale, limit = 6) {
+  try {
+    const locales = getContentLocales(locale);
+    const items = await prisma.cuisine.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: "asc" },
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        translations: {
+          where: { locale: { in: locales } },
+          select: { locale: true, name: true, description: true },
+        },
+      },
+    });
+    return items.map((item) => {
+      const translation = pickTranslation(item.translations, locales);
+      return {
+        id: item.id,
+        name: translation?.name || item.name,
+        description: translation?.description || item.description,
+        slug: item.slug,
+        filterName: item.slug,
+        matchKey: item.name,
+      };
+    });
+  } catch (error) {
+    console.error("获取菜系失败:", error);
+    return [];
+  }
+}
+
+// 获取常见食材 - 从 ingredients JSON 字段提取
+async function getPopularIngredients(limit = 12) {
+  try {
+    const recipes = await prisma.recipe.findMany({
+      where: { status: "published" },
+      select: { ingredients: true },
+      orderBy: { createdAt: "desc" },
+      take: 120,
+    });
+
+    const counts = new Map<string, number>();
+    for (const recipe of recipes) {
+      // ingredients 是 JSON 格式: [{ section, items: [{ name, ... }] }]
+      const ingredientData = recipe.ingredients as any;
+      if (!ingredientData || !Array.isArray(ingredientData)) continue;
+
+      for (const section of ingredientData) {
+        if (!section.items || !Array.isArray(section.items)) continue;
+        for (const item of section.items) {
+          const name = item.name;
+          if (!name) continue;
+          counts.set(name, (counts.get(name) || 0) + 1);
+        }
+      }
+    }
+
+    const ranked = Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([name, count], index) => ({
+        id: `ing-${index}`,
+        name,
+        filterName: name,
+        count,
+      }));
+
+    return ranked;
+  } catch (error) {
+    console.error("获取食材失败:", error);
+    return [];
+  }
+}
+
+// 获取热门食谱（优先使用推荐位配置）
+async function getHotRecipes(locale: Locale, limit = 12, featuredConfig?: { recipeIds?: string[]; autoFill?: boolean }) {
+  try {
+    const locales = getContentLocales(locale);
+    const recipeSelect = {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      coverImage: true,
+      cuisine: { select: { id: true, name: true, slug: true } },
+      location: { select: { id: true, name: true, slug: true } },
+      aiGenerated: true,
+      translations: {
+        where: { locale: { in: locales }, isReviewed: true },
+        select: { locale: true, title: true, summary: true },
+      },
+    };
+
+    let featuredRecipes: any[] = [];
+    const featuredIds = featuredConfig?.recipeIds || [];
+    const autoFill = featuredConfig?.autoFill ?? true;
+
+    // 如果有配置的推荐食谱ID，先获取这些
+    if (featuredIds.length > 0) {
+      const recipes = await prisma.recipe.findMany({
+        where: { id: { in: featuredIds }, status: "published" },
+        select: recipeSelect,
+      });
+      // 按照配置的顺序排列
+      const recipeMap = new Map(recipes.map(r => [r.id, r]));
+      featuredRecipes = featuredIds
+        .map(id => recipeMap.get(id))
+        .filter(Boolean);
+    }
+
+    // 如果需要自动填充或没有配置
+    let autoRecipes: any[] = [];
+    if (autoFill && featuredRecipes.length < limit) {
+      const excludeIds = featuredRecipes.map(r => r.id);
+      autoRecipes = await prisma.recipe.findMany({
+        where: {
+          status: "published",
+          id: { notIn: excludeIds },
+        },
+        orderBy: [{ viewCount: "desc" }, { createdAt: "desc" }],
+        take: limit - featuredRecipes.length,
+        select: recipeSelect,
+      });
+    }
+
+    const allRecipes = [...featuredRecipes, ...autoRecipes];
+    return allRecipes.map((recipe) => {
+      const translation = pickTranslation(recipe.translations, locales) as { locale: string; title: string; summary: any } | null;
+      // 使用翻译或原始标题
+      const displayTitle = translation?.title || recipe.title;
+      const displaySummary = translation?.summary || recipe.summary;
+      return {
+        id: recipe.id,
+        slug: recipe.slug,
+        titleZh: displayTitle,
+        titleEn: translation?.title || null,
+        summary: displaySummary,
+        coverImage: recipe.coverImage,
+        cuisine: recipe.cuisine?.name || null,
+        location: recipe.location?.name || null,
+        aiGenerated: recipe.aiGenerated,
+      };
+    });
+  } catch (error) {
+    console.error("获取热门食谱失败:", error);
+    return [];
+  }
+}
+
+// 获取定制食谱精选（优先使用推荐位配置）
+async function getCustomRecipes(locale: Locale, limit = 8, featuredConfig?: { recipeIds?: string[] }) {
+  try {
+    const locales = getContentLocales(locale);
+    const recipeSelect = {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      coverImage: true,
+      cuisine: { select: { id: true, name: true, slug: true } },
+      location: { select: { id: true, name: true, slug: true } },
+      aiGenerated: true,
+      translations: {
+        where: { locale: { in: locales }, isReviewed: true },
+        select: { locale: true, title: true, summary: true },
+      },
+    };
+
+    let featuredRecipes: any[] = [];
+    const featuredIds = featuredConfig?.recipeIds || [];
+
+    // 如果有配置的推荐食谱ID，先获取这些
+    if (featuredIds.length > 0) {
+      const recipes = await prisma.recipe.findMany({
+        where: { id: { in: featuredIds }, status: "published" },
+        select: recipeSelect,
+      });
+      // 按照配置的顺序排列
+      const recipeMap = new Map(recipes.map(r => [r.id, r]));
+      featuredRecipes = featuredIds
+        .map(id => recipeMap.get(id))
+        .filter(Boolean);
+    }
+
+    // 自动填充剩余位置
+    let autoRecipes: any[] = [];
+    if (featuredRecipes.length < limit) {
+      const excludeIds = featuredRecipes.map(r => r.id);
+      autoRecipes = await prisma.recipe.findMany({
+        where: {
+          status: "published",
+          aiGenerated: true,
+          slug: { startsWith: "custom-" },
+          id: { notIn: excludeIds },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit - featuredRecipes.length,
+        select: recipeSelect,
+      });
+    }
+
+    const allRecipes = [...featuredRecipes, ...autoRecipes];
+    return allRecipes.map((recipe) => {
+      const translation = pickTranslation(recipe.translations, locales) as { locale: string; title: string; summary: any } | null;
+      const displayTitle = translation?.title || recipe.title;
+      const displaySummary = translation?.summary || recipe.summary;
+      return {
+        id: recipe.id,
+        slug: recipe.slug,
+        titleZh: displayTitle,
+        titleEn: translation?.title || null,
+        summary: displaySummary,
+        coverImage: recipe.coverImage,
+        cuisine: recipe.cuisine?.name || null,
+        location: recipe.location?.name || null,
+        aiGenerated: recipe.aiGenerated,
+      };
+    });
+  } catch (error) {
+    console.error("获取定制食谱失败:", error);
+    return [];
+  }
+}
+
+// 获取图片精选（优先使用推荐位配置）
+async function getGalleryImages(locale: Locale, limit = 16, featuredConfig?: { recipeIds?: string[] }) {
+  try {
+    const locales = getContentLocales(locale);
+    const recipeSelect = {
+      id: true,
+      slug: true,
+      title: true,
+      coverImage: true,
+      cuisine: { select: { id: true, name: true, slug: true } },
+      translations: {
+        where: { locale: { in: locales }, isReviewed: true },
+        select: { locale: true, title: true },
+      },
+    };
+
+    let featuredRecipes: any[] = [];
+    const featuredIds = featuredConfig?.recipeIds || [];
+
+    // 如果有配置的推荐食谱ID，先获取这些
+    if (featuredIds.length > 0) {
+      const recipes = await prisma.recipe.findMany({
+        where: { id: { in: featuredIds }, status: "published", coverImage: { not: null } },
+        select: recipeSelect,
+      });
+      // 按照配置的顺序排列
+      const recipeMap = new Map(recipes.map(r => [r.id, r]));
+      featuredRecipes = featuredIds
+        .map(id => recipeMap.get(id))
+        .filter(Boolean);
+    }
+
+    // 自动填充剩余位置
+    let autoRecipes: any[] = [];
+    if (featuredRecipes.length < limit) {
+      const excludeIds = featuredRecipes.map(r => r.id);
+      autoRecipes = await prisma.recipe.findMany({
+        where: {
+          status: "published",
+          coverImage: { not: null },
+          id: { notIn: excludeIds },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit - featuredRecipes.length,
+        select: recipeSelect,
+      });
+    }
+
+    const allRecipes = [...featuredRecipes, ...autoRecipes];
+    return allRecipes
+      .filter((r) => r.coverImage)
+      .map((recipe) => {
+        const translation = pickTranslation(recipe.translations, locales) as { locale: string; title: string } | null;
+        return {
+          id: recipe.id,
+          slug: recipe.slug,
+          coverImage: recipe.coverImage,
+          title: translation?.title || recipe.title,
+          titleZh: translation?.title || recipe.title,
+          cuisine: recipe.cuisine?.name || null,
+        };
+      });
+  } catch (error) {
+    console.error("获取图片失败:", error);
+    return [];
+  }
+}
+
+// 获取带封面图的食谱（用于首页卡片）
+async function getCoverRecipes(limit = 200) {
+  try {
+    const recipes = await prisma.recipe.findMany({
+      where: {
+        status: "published",
+        coverImage: { not: null },
+      },
+      select: {
+        coverImage: true,
+        location: { select: { name: true, slug: true } },
+        cuisine: { select: { name: true, slug: true } },
+        ingredients: true,
+        story: true,
+        // 通过 tags 关联获取场景
+        tags: {
+          select: {
+            tag: {
+              select: { slug: true, type: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: Math.min(limit, 120),
+    });
+
+    // 转换数据结构，提取 mainIngredients 以兼容旧逻辑
+    return recipes.map((recipe) => {
+      // 从 ingredients JSON 提取主要食材名称
+      const ingredientData = recipe.ingredients as any;
+      const mainIngredients: string[] = [];
+      if (ingredientData && Array.isArray(ingredientData)) {
+        for (const section of ingredientData) {
+          if (!section.items || !Array.isArray(section.items)) continue;
+          for (const item of section.items) {
+            if (item.name) mainIngredients.push(item.name);
+          }
+        }
+      }
+
+      // 提取场景 slug 列表
+      const scenes = recipe.tags
+        .filter((rt) => rt.tag.type === "scene")
+        .map((rt) => rt.tag.slug);
+
+      return {
+        coverImage: recipe.coverImage,
+        location: recipe.location?.name || recipe.location?.slug || null,
+        cuisine: recipe.cuisine?.name || recipe.cuisine?.slug || null,
+        mainIngredients,
+        story: recipe.story,
+        scenes,
+      };
+    });
+  } catch (error) {
+    console.error("获取封面食谱失败:", error);
+    return [];
+  }
+}
+
+async function getRecipeCountsByCuisine() {
+  try {
+    const rows = await prisma.recipe.groupBy({
+      by: ["cuisineId"],
+      where: { status: "published", cuisineId: { not: null } },
+      _count: { _all: true },
+    });
+
+    // 获取菜系名称
+    const cuisineIds = rows.map((r) => r.cuisineId).filter((id): id is string => id !== null);
+    const cuisines = await prisma.cuisine.findMany({
+      where: { id: { in: cuisineIds } },
+      select: { id: true, name: true, slug: true },
+    });
+    const cuisineMap = new Map(cuisines.map((c) => [c.id, c]));
+
+    const counts: Record<string, number> = {};
+    for (const row of rows) {
+      if (!row.cuisineId) continue;
+      const cuisine = cuisineMap.get(row.cuisineId);
+      if (!cuisine) continue;
+      // 用 name 和 slug 都存一份，方便匹配
+      counts[cuisine.name] = row._count._all;
+      if (cuisine.slug) counts[cuisine.slug] = row._count._all;
+    }
+    return counts;
+  } catch (error) {
+    console.error("获取菜系统计失败:", error);
+    return {};
+  }
+}
+
+async function getRecipeCountsByLocation() {
+  try {
+    const rows = await prisma.recipe.groupBy({
+      by: ["locationId"],
+      where: { status: "published", locationId: { not: null } },
+      _count: { _all: true },
+    });
+
+    // 获取地点名称
+    const locationIds = rows.map((r) => r.locationId).filter((id): id is string => id !== null);
+    const locations = await prisma.location.findMany({
+      where: { id: { in: locationIds } },
+      select: { id: true, name: true, slug: true },
+    });
+    const locationMap = new Map(locations.map((l) => [l.id, l]));
+
+    const counts: Record<string, number> = {};
+    for (const row of rows) {
+      if (!row.locationId) continue;
+      const location = locationMap.get(row.locationId);
+      if (!location) continue;
+      // 用 name 和 slug 都存一份，方便匹配
+      counts[location.name] = row._count._all;
+      if (location.slug) counts[location.slug] = row._count._all;
+    }
+    return counts;
+  } catch (error) {
+    console.error("获取地域统计失败:", error);
+    return {};
+  }
+}
+
+
+// 获取实时统计数据
+async function getRealStats() {
+  try {
+    const [
+      totalRecipes,
+      publishedRecipes,
+      aiGeneratedRecipes,
+      totalViews,
+    ] = await Promise.all([
+      prisma.recipe.count(),
+      prisma.recipe.count({ where: { status: "published" } }),
+      prisma.recipe.count({ where: { aiGenerated: true } }),
+      prisma.recipe.aggregate({ _sum: { viewCount: true } }),
+    ]);
+
+    return {
+      recipesGenerated: aiGeneratedRecipes,
+      recipesCollected: publishedRecipes,
+      totalDownloads: totalViews._sum.viewCount || 0,
+    };
+  } catch (error) {
+    console.error("获取统计数据失败:", error);
+    return {
+      recipesGenerated: 0,
+      recipesCollected: 0,
+      totalDownloads: 0,
+    };
+  }
+}
+
+// HomeTestimonial 模型已移除，返回空数据使用 fallback
+async function getHomeTestimonials(_locale: Locale, _limit = 6) {
+  // TODO: 如果需要用户证言功能，可以从 HomeConfig 的 testimonials section 读取
+  // 或者创建新的 Testimonial 模型
+  return [] as Array<{
+    id: string;
+    avatarUrl?: string | null;
+    name: string;
+    role: string;
+    city: string;
+    content: string;
+    meta: string;
+  }>;
+}
+
+interface HomePageProps {
+  params: Promise<{ locale: Locale }>;
+}
+
+export async function generateMetadata({
+  params,
+}: HomePageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const isEn = locale === "en";
+  return {
+    title: isEn ? "Recipe Zen - AI Cooking Companion" : "Recipe Zen - 食谱研习",
+    description: isEn
+      ? "AI-powered recipes reviewed by experts, with voice guidance and smart timers."
+      : "极致治愈 × 极致实用的中国美食指南",
+  };
+}
+
+function pickTranslation<T extends { locale: string }>(
+  translations: T[],
+  locales: string[]
+) {
+  return (
+    locales
+      .map((loc) => translations.find((item) => item.locale === loc))
+      .find(Boolean) || null
+  );
+}
+
+export default async function HomePage({ params }: HomePageProps) {
+  const { locale } = await params;
+  const isEn = locale === "en";
+  const getCachedHomeConfig = unstable_cache(getHomeConfig, ["home-config"], { revalidate: 900 });
+  const getCachedLocations = unstable_cache(getLocations, ["home-locations"], { revalidate: 900 });
+  const getCachedCuisines = unstable_cache(getCuisines, ["home-cuisines"], { revalidate: 900 });
+  const getCachedIngredients = unstable_cache(getPopularIngredients, ["home-ingredients"], { revalidate: 600 });
+  const getCachedCoverRecipes = unstable_cache(getCoverRecipes, ["home-cover-recipes"], { revalidate: 900 });
+  const getCachedBrowseItems = unstable_cache(
+    (loc: Locale) => getHomeBrowseItemsByType(loc, ["REGION", "CUISINE", "INGREDIENT", "SCENE"], 12),
+    ["home-browse-items"],
+    { revalidate: 900 }
+  );
+  const getCachedTestimonials = unstable_cache(getHomeTestimonials, ["home-testimonials"], { revalidate: 900 });
+  const getCachedRealStats = unstable_cache(getRealStats, ["home-stats"], { revalidate: 600 });
+  const getCachedCuisineCounts = unstable_cache(getRecipeCountsByCuisine, ["home-cuisine-counts"], { revalidate: 900 });
+  const getCachedLocationCounts = unstable_cache(getRecipeCountsByLocation, ["home-location-counts"], { revalidate: 900 });
+  const getCachedSceneCounts = unstable_cache(getSceneCountsFromDB, ["home-scene-counts"], { revalidate: 900 });
+  const getCachedScenesForHome = unstable_cache(getScenesForHome, ["home-scenes-for-home"], { revalidate: 900 });
+
+  // 第一阶段：获取基础配置和分类数据
+  const [
+    homeConfig,
+    locations,
+    cuisines,
+    ingredients,
+    coverRecipes,
+    browseItems,
+    testimonials,
+    realStats,
+    cuisineCounts,
+    locationCounts,
+    sceneCounts,
+    dbScenes,
+  ] = await Promise.all([
+    getCachedHomeConfig(locale),
+    getCachedLocations(locale),
+    getCachedCuisines(locale),
+    getCachedIngredients(),
+    getCachedCoverRecipes(),
+    getCachedBrowseItems(locale),
+    getCachedTestimonials(locale, 6),
+    getCachedRealStats(),
+    getCachedCuisineCounts(),
+    getCachedLocationCounts(),
+    getCachedSceneCounts(),
+    getCachedScenesForHome(locale),
+  ]);
+
+  // 第二阶段：使用推荐位配置获取食谱（带配置的无法缓存，直接调用）
+  const featuredHotConfig = homeConfig.homeFeaturedHot as { recipeIds?: string[]; autoFill?: boolean } | undefined;
+  const featuredCustomConfig = homeConfig.homeFeaturedCustom as { recipeIds?: string[] } | undefined;
+  const featuredGalleryConfig = homeConfig.homeFeaturedGallery as { recipeIds?: string[] } | undefined;
+
+  const [hotRecipes, customRecipes, galleryImages] = await Promise.all([
+    getHotRecipes(locale, 12, featuredHotConfig),
+    getCustomRecipes(locale, 8, featuredCustomConfig),
+    getGalleryImages(locale, 16, featuredGalleryConfig),
+  ]);
+
+  const toCountMap = (counts: Record<string, number>) =>
+    new Map(Object.entries(counts || {}));
+  const cuisineCountMap = toCountMap(cuisineCounts);
+  const locationCountMap = toCountMap(locationCounts);
+  const sceneCountMap = toCountMap(sceneCounts);
+
+  // 默认配置（根据设计规范更新）
+  const defaultHeroConfig = isEn
+    ? {
+        title: "Cooking can be simpler",
+        displayTitle: "Cooking can be simpler",
+        seoTitle: "Recipe Zen | AI Cooking Companion",
+        subtitle: "Expert-reviewed + smart tools, every home dish made easy.",
+        placeholder:
+          "What to cook, how to cook, and what you need—Recipe Zen prepares it all.",
+        chips: ["Expert reviewed", "Smart recommendations", "Free to use"],
+      }
+    : {
+        title: "做饭，可以更简单",
+        displayTitle: "做饭，可以更简单",
+        seoTitle: "Recipe Zen | AI Cooking Companion",
+        subtitle: "专业审校 + 智能工具，让每道家常菜都能轻松上手。",
+        placeholder: "从查找食谱到完成烹饪，我们把步骤与工具都准备好",
+        chips: ["团队审核把关", "智能推荐菜谱", "免费好用"],
+      };
+  const heroConfig = { ...defaultHeroConfig, ...(homeConfig.hero || {}) };
+
+  // 优先使用实时统计，回退到配置或默认值
+  const statsConfig = {
+    recipesGenerated: realStats.recipesGenerated || homeConfig.stats?.recipesGenerated || 0,
+    recipesCollected: realStats.recipesCollected || homeConfig.stats?.recipesCollected || 0,
+    totalDownloads: realStats.totalDownloads || homeConfig.stats?.totalDownloads || 0,
+  };
+
+  const heroImage =
+    galleryImages[0]?.coverImage ||
+    hotRecipes[0]?.coverImage ||
+    null;
+  const fallbackLocations = isEn ? FALLBACK_LOCATIONS_EN : FALLBACK_LOCATIONS_ZH;
+  const fallbackCuisines = isEn ? FALLBACK_CUISINES_EN : FALLBACK_CUISINES_ZH;
+  const fallbackIngredients = isEn
+    ? FALLBACK_INGREDIENTS_EN
+    : FALLBACK_INGREDIENTS_ZH;
+  // 使用数据库场景作为 fallback（已包含计数）
+  const fallbackScenes = dbScenes;
+
+  const minMatureCount = 10;
+  const allowAllCuisines = cuisineCountMap.size === 0;
+  const allowAllLocations = locationCountMap.size === 0;
+  const allowAllScenes = sceneCountMap.size === 0;
+
+  const quickBrowseLocations = (locations.length > 0
+    ? locations
+    : fallbackLocations
+  )
+    .filter((loc) => {
+      if (allowAllLocations) return true;
+      const count = locationCountMap.get(loc.name) ?? locationCountMap.get(loc.slug || "");
+      return (count ?? 0) >= minMatureCount;
+    })
+    .slice(0, 6);
+
+  const quickBrowseCuisines = (cuisines.length > 0
+    ? cuisines
+    : fallbackCuisines
+  )
+    .filter((cui) => {
+      if (allowAllCuisines) return true;
+      const count = cuisineCountMap.get(cui.name) ?? cuisineCountMap.get(cui.slug || "");
+      return (count ?? 0) >= minMatureCount;
+    })
+    .slice(0, 8);
+
+  const quickBrowseIngredients = (ingredients.length > 0
+    ? ingredients
+    : fallbackIngredients
+  )
+    .filter((ingredient) => {
+      const count = (ingredient as { count?: number }).count;
+      if (!count) return true;
+      return count >= minMatureCount;
+    })
+    .slice(0, 8);
+
+  const quickBrowseScenes = fallbackScenes
+    .filter((scene) => {
+      if (allowAllScenes) return true;
+      // dbScenes 已包含 count 字段
+      return (scene.count ?? 0) >= minMatureCount;
+    })
+    .slice(0, 8);
+
+  const fallbackCovers = [
+    heroImage,
+    ...galleryImages.map((item) => item.coverImage),
+    ...hotRecipes.map((item) => item.coverImage),
+  ].filter(Boolean) as string[];
+
+  const pickFallbackCover = (index: number): string => {
+    if (fallbackCovers.length === 0) return "";
+    return fallbackCovers[index % fallbackCovers.length];
+  };
+
+  const getStoryTags = (story: any) => {
+    const tags = story?.tags;
+    return Array.isArray(tags) ? tags : [];
+  };
+
+  const findCover = (predicate: (recipe: any) => boolean, index: number) => {
+    const match = coverRecipes.find((recipe) => {
+      if (!recipe.coverImage) return false;
+      return predicate(recipe);
+    });
+    return match?.coverImage || pickFallbackCover(index);
+  };
+
+  // Build regionCards - use function to ensure proper typing
+  const buildBrowseCards = (
+    data: Array<{ id: string; name: string; description: string | null; imageUrl: string | null; href: string | null }>,
+    fallback: (i: number) => string,
+    offset = 0
+  ) =>
+    data.map((item, index) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description || "",
+      imageUrl: item.imageUrl || fallback(index + offset),
+      href: item.href || "/recipe",
+    }));
+
+  const normalizeCuisineHref = (href: string | null) => {
+    if (!href) return null;
+    if (href.startsWith("/recipe?cuisine=")) {
+      const query = href.split("?", 2)[1];
+      const params = new URLSearchParams(query);
+      const slug = params.get("cuisine");
+      if (slug) {
+        return `/recipe/cuisine/${encodeURIComponent(slug)}`;
+      }
+    }
+    return href;
+  };
+
+  const normalizeRegionHref = (href: string | null) => {
+    if (!href) return null;
+    if (href.startsWith("/recipe?location=")) {
+      const query = href.split("?", 2)[1];
+      const params = new URLSearchParams(query);
+      const slug = params.get("location");
+      if (slug) {
+        return `/recipe/region/${encodeURIComponent(slug)}`;
+      }
+    }
+    return href;
+  };
+
+  const normalizeIngredientHref = (href: string | null) => {
+    if (!href) return null;
+    if (href.startsWith("/recipe?ingredient=")) {
+      const query = href.split("?", 2)[1];
+      const params = new URLSearchParams(query);
+      const slug = params.get("ingredient");
+      if (slug) {
+        return `/recipe/ingredient/${encodeURIComponent(slug)}`;
+      }
+    }
+    return href;
+  };
+
+  // dbScenes 的 tag 就是 slug
+  const sceneSlugByTag = new Map(fallbackScenes.map((scene) => [scene.tag, scene.slug]));
+  const normalizeSceneHref = (href: string | null) => {
+    if (!href) return null;
+    if (href.startsWith("/recipe?tag=")) {
+      const query = href.split("?", 2)[1];
+      const params = new URLSearchParams(query);
+      const tag = params.get("tag");
+      if (tag) {
+        const slug = sceneSlugByTag.get(tag);
+        return slug ? `/recipe/scene/${encodeURIComponent(slug)}` : "/recipe";
+      }
+    }
+    return href;
+  };
+
+  const regionCards =
+    browseItems.REGION.length > 0
+      ? buildBrowseCards(
+          browseItems.REGION.map((item) => ({
+            ...item,
+            href: normalizeRegionHref(item.href),
+          })),
+          pickFallbackCover
+        )
+      : quickBrowseLocations.map((loc, index) => {
+          const filterName = loc.filterName || loc.name;
+          const matchKey = loc.matchKey || loc.name;
+          const displayName = isEn
+            ? LOCATION_LABELS_EN[filterName] || loc.name
+            : loc.name;
+          const description = isEn
+            ? LOCATION_DESCRIPTIONS_EN[filterName] ||
+              loc.description ||
+              LOCATION_DESCRIPTIONS[filterName]
+            : loc.description || LOCATION_DESCRIPTIONS[filterName];
+          return {
+            id: loc.id,
+            name: displayName,
+            description,
+            imageUrl: findCover(
+              (recipe) =>
+                recipe.location === filterName || recipe.location === matchKey,
+              index
+            ),
+            href: `/recipe/region/${encodeURIComponent(loc.slug || filterName)}`,
+          };
+        });
+
+  const cuisineCards =
+    browseItems.CUISINE.length > 0
+      ? buildBrowseCards(
+          browseItems.CUISINE.map((item) => ({
+            ...item,
+            href: normalizeCuisineHref(item.href),
+          })),
+          pickFallbackCover,
+          6
+        )
+      : quickBrowseCuisines.map((cuisine, index) => {
+          const filterName = cuisine.filterName || cuisine.name;
+          const matchKey = cuisine.matchKey || cuisine.name;
+          const displayName = isEn
+            ? CUISINE_LABELS_EN[filterName] || cuisine.name
+            : cuisine.name;
+          const description = isEn
+            ? CUISINE_DESCRIPTIONS_EN[filterName] ||
+              cuisine.description ||
+              CUISINE_DESCRIPTIONS[filterName]
+            : cuisine.description || CUISINE_DESCRIPTIONS[filterName];
+          return {
+            id: cuisine.id,
+            name: displayName,
+            description,
+            imageUrl: findCover(
+              (recipe) =>
+                recipe.cuisine === filterName || recipe.cuisine === matchKey,
+              index + 6
+            ),
+            href: `/recipe/cuisine/${encodeURIComponent(filterName)}`,
+          };
+        });
+
+  const ingredientCards =
+    browseItems.INGREDIENT.length > 0
+      ? buildBrowseCards(
+          browseItems.INGREDIENT.map((item) => ({
+            ...item,
+            href: normalizeIngredientHref(item.href),
+          })),
+          pickFallbackCover,
+          12
+        )
+      : quickBrowseIngredients.map((ingredient, index) => {
+          const filterName = ingredient.filterName || ingredient.name;
+          const displayName = isEn
+            ? INGREDIENT_LABELS_EN[filterName] || ingredient.name
+            : ingredient.name;
+          const description = isEn
+            ? INGREDIENT_DESCRIPTIONS_EN[filterName] ||
+              INGREDIENT_DESCRIPTIONS[filterName] ||
+              `${displayName} recipes`
+            : INGREDIENT_DESCRIPTIONS[filterName] || `${displayName}家常做法`;
+          return {
+            id: ingredient.id,
+            name: displayName,
+            description,
+            imageUrl: findCover(
+              (recipe) => recipe.mainIngredients?.includes(filterName),
+              index + 12
+            ),
+            href: `/recipe/ingredient/${encodeURIComponent(filterName)}`,
+          };
+        });
+
+  const sceneCards =
+    browseItems.SCENE.length > 0
+      ? buildBrowseCards(
+          browseItems.SCENE.map((item) => ({
+            ...item,
+            href: normalizeSceneHref(item.href),
+          })),
+          pickFallbackCover,
+          18
+        )
+      : quickBrowseScenes.map((scene, index) => ({
+          id: scene.id,
+          name: scene.name,
+          description: "", // Tag model doesn't have description
+          imageUrl: findCover(
+            (recipe) => {
+              // 优先使用 scenes[] 数组字段匹配
+              if (recipe.scenes?.includes(scene.slug)) {
+                return true;
+              }
+              // 兼容旧数据：匹配 story.tags
+              return getStoryTags(recipe.story).includes(scene.tag);
+            },
+            index + 18
+          ),
+          href: `/recipe/scene/${encodeURIComponent(scene.slug)}`,
+        }));
+
+  return (
+    <div className="min-h-screen bg-cream">
+      {/* A. Header */}
+      <Header />
+
+      {/* 模块2: Hero 主视觉区 */}
+      <HeroSection
+        config={heroConfig}
+        imageUrl={heroImage}
+        primaryCta={heroConfig.primaryCta}
+        secondaryCta={heroConfig.secondaryCta}
+        stats={statsConfig}
+        locale={locale}
+      />
+
+      {/* 模块3: 按菜系/地域/食材/场景找菜谱 */}
+      <QuickBrowseTabs
+        regions={regionCards}
+        cuisines={cuisineCards}
+        ingredients={ingredientCards}
+        scenes={sceneCards}
+      />
+
+      {/* 模块4: 本周精选家常菜 */}
+      {hotRecipes.length > 0 && (
+        <HotRecipesSection recipes={hotRecipes} locale={locale} />
+      )}
+
+      {/* 模块5: AI定制精选 - 看看别人都定制了什么 */}
+      <CustomRecipesSection recipes={customRecipes} locale={locale} />
+
+      {/* 模块6: 核心优势 - 为什么选择 Recipe Zen */}
+      <CoreFeaturesSection
+        locale={locale}
+        title={homeConfig.sectionTitles?.coreFeatures?.title}
+        features={homeConfig.coreFeatures}
+      />
+
+      {/* 模块7: 智能工具 - 让做饭更轻松 */}
+      <ToolsShowcaseSection
+        locale={locale}
+        title={homeConfig.sectionTitles?.tools?.title}
+        subtitle={homeConfig.sectionTitles?.tools?.subtitle}
+        cookMode={homeConfig.tools?.cookMode}
+        toolkit={homeConfig.tools?.toolkit}
+      />
+
+      {/* 模块8: 用户证言 */}
+      <TestimonialsSection items={testimonials} locale={locale} />
+
+      {/* 模块9: 我们的初心 */}
+      <BrandStorySection
+        locale={locale}
+        title={homeConfig.sectionTitles?.brandStory?.title}
+        values={homeConfig.brandStory?.values}
+        ctaLabel={homeConfig.brandStory?.ctaLabel}
+        ctaHref={homeConfig.brandStory?.ctaHref}
+      />
+
+      {/* 模块10: 转化收口区 */}
+      <section className="py-20 bg-[#FFF8F0]">
+        <div className="max-w-3xl mx-auto px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-serif font-medium text-textDark mb-4">
+            {homeConfig.conversionCta?.title ||
+              (locale === "en" ? "Start Your Simple Kitchen Journey" : "开始你的简单厨房之旅")}
+          </h2>
+          <p className="text-lg text-textGray mb-8">
+            {homeConfig.conversionCta?.subtitle ||
+              (locale === "en"
+                ? "No registration, no fees. Browse 1000+ curated home recipes now."
+                : "无需注册，无需付费，立即浏览 1000+ 精选家常菜。")}
+          </p>
+          <div className="flex flex-wrap justify-center gap-6">
+            <a
+              href={`/${locale}${homeConfig.conversionCta?.primaryCta?.href || "/recipe"}`}
+              className="px-8 py-4 bg-brownWarm text-white rounded-lg font-medium shadow-lg hover:bg-brownDark transition-colors"
+            >
+              {homeConfig.conversionCta?.primaryCta?.label ||
+                (locale === "en" ? "Start Exploring Recipes →" : "开始探索食谱 →")}
+            </a>
+            <a
+              href={`/${locale}${homeConfig.conversionCta?.secondaryCta?.href || "/ai-custom"}`}
+              className="px-8 py-4 border-2 border-brownWarm text-brownWarm rounded-lg font-medium hover:bg-brownWarm hover:text-white transition-colors"
+            >
+              {homeConfig.conversionCta?.secondaryCta?.label ||
+                (locale === "en" ? "Or Try AI Custom →" : "或尝试AI定制 →")}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 美食成品图精选区（可选，暂时隐藏） */}
+      {false && galleryImages.length > 0 && (
+        <GalleryPreviewSection images={galleryImages} locale={locale} />
+      )}
+
+      {/* H. Footer */}
+      <Footer />
+    </div>
+  );
+}

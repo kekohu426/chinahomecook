@@ -1,0 +1,185 @@
+
+<svg viewBox="0 0 1200 1260" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <!-- 全局背景 -->
+  <rect width="1200" height="1260" fill="#F5F7FA"/>
+
+  <!-- 顶部标题 -->
+  <text x="600" y="48" font-size="24" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="middle">基础配置 (/admin/config)</text>
+  
+  <!-- 侧边栏导航 (高度调整以匹配主内容，添加背景色) -->
+  <g id="sidebar">
+    <rect x="24" y="88" width="200" height="520" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+    <text x="124" y="120" font-size="16" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="middle">侧边栏导航</text>
+    
+    <rect x="40" y="144" width="168" height="44" rx="8" fill="#FF9500"/>
+    <text x="56" y="171" font-size="14" font-weight="500" fill="#FFFFFF" text-anchor="start">🏷️ 标签管理</text>
+    
+    <rect x="40" y="200" width="168" height="44" rx="8" fill="#FFFFFF"/>
+    <text x="56" y="227" font-size="14" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">🔧 站点配置</text>
+    
+    <rect x="40" y="256" width="168" height="44" rx="8" fill="#FFFFFF"/>
+    <text x="56" y="283" font-size="14" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">🏠 首页配置</text>
+    
+    <rect x="40" y="312" width="168" height="44" rx="8" fill="#FFFFFF"/>
+    <text x="56" y="339" font-size="14" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">👥 关于页配置</text>
+  </g>
+  
+  <!-- 主内容区 (添加背景色) -->
+  <g id="main-content">
+    <rect x="248" y="88" width="928" height="520" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+    
+    <text x="268" y="120" font-size="16" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">标签管理</text>
+    
+    <!-- Tab导航 -->
+    <g id="tabs">
+      <rect x="268" y="144" width="64" height="32" rx="6" fill="#FF9500"/>
+      <text x="300" y="166" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">菜系</text>
+      
+      <text x="356" y="166" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">地域</text>
+      <text x="412" y="166" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">场景</text>
+      <text x="488" y="166" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">烹饪方式</text>
+      <text x="556" y="166" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">口味</text>
+      <text x="612" y="166" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">人群</text>
+      <text x="668" y="166" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">场合</text>
+    </g>
+    
+    <text x="268" y="204" font-size="14" font-weight="500" fill="#02041A" opacity="0.88" text-anchor="start">当前: 菜系管理</text>
+    
+    <rect x="268" y="220" width="88" height="32" rx="6" fill="#2997FF"/>
+    <text x="312" y="241" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">+ 新建菜系</text>
+    
+    <rect x="368" y="220" width="80" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="408" y="241" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">批量导入</text>
+    
+    <g id="table">
+      <rect x="268" y="268" width="888" height="36" fill="#02041A" fill-opacity="0.04"/>
+      <text x="298" y="291" font-size="13" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">排序</text>
+      <text x="378" y="291" font-size="13" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">名称</text>
+      <text x="508" y="291" font-size="13" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">Slug</text>
+      <text x="668" y="291" font-size="13" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">关联合集</text>
+      <text x="828" y="291" font-size="13" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">状态</text>
+      <text x="948" y="291" font-size="13" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">操作</text>
+      
+      <line x1="268" y1="304" x2="1156" y2="304" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+      
+      <text x="298" y="333" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">⇅ 1</text>
+      <text x="378" y="333" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">川菜</text>
+      <text x="508" y="333" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">sichuan</text>
+      <text x="668" y="333" font-size="13" font-weight="400" fill="#5DD6CC" opacity="1" text-anchor="start">✅已创建</text>
+      <text x="828" y="333" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">启用</text>
+      <text x="948" y="333" font-size="12" font-weight="400" fill="#2997FF" text-anchor="start">[编辑]</text>
+      <text x="1008" y="333" font-size="12" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="start">[删除]</text>
+      <line x1="268" y1="348" x2="1156" y2="348" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+      
+      <text x="298" y="377" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">⇅ 2</text>
+      <text x="378" y="377" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">粤菜</text>
+      <text x="508" y="377" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">cantonese</text>
+      <text x="668" y="377" font-size="13" font-weight="400" fill="#5DD6CC" opacity="1" text-anchor="start">✅已创建</text>
+      <text x="828" y="377" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">启用</text>
+      <text x="948" y="377" font-size="12" font-weight="400" fill="#2997FF" text-anchor="start">[编辑]</text>
+      <text x="1008" y="377" font-size="12" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="start">[删除]</text>
+      <line x1="268" y1="392" x2="1156" y2="392" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+      
+      <text x="298" y="421" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">⇅ 3</text>
+      <text x="378" y="421" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">湘菜</text>
+      <text x="508" y="421" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">hunan</text>
+      <text x="668" y="421" font-size="13" font-weight="400" fill="#5DD6CC" opacity="1" text-anchor="start">✅已创建</text>
+      <text x="828" y="421" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">启用</text>
+      <text x="948" y="421" font-size="12" font-weight="400" fill="#2997FF" text-anchor="start">[编辑]</text>
+      <text x="1008" y="421" font-size="12" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="start">[删除]</text>
+      <line x1="268" y1="436" x2="1156" y2="436" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+      
+      <text x="298" y="465" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">⇅ 4</text>
+      <text x="378" y="465" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">鲁菜</text>
+      <text x="508" y="465" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">shandong</text>
+      <text x="668" y="465" font-size="13" font-weight="400" fill="#5DD6CC" opacity="1" text-anchor="start">✅已创建</text>
+      <text x="828" y="465" font-size="13" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="start">禁用</text>
+      <text x="948" y="465" font-size="12" font-weight="400" fill="#2997FF" text-anchor="start">[编辑]</text>
+      <text x="1008" y="465" font-size="12" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="start">[删除]</text>
+    </g>
+    
+    <rect x="268" y="500" width="888" height="88" rx="8" fill="#FFCC00" fill-opacity="0.15"/>
+    <text x="288" y="538" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">💡 提示: 创建或修改标签时,系统会自动同步到合集表</text>
+  </g>
+  
+  <!-- 站点配置示例 (高度增加以适应内容，添加背景色) -->
+  <g id="site-config">
+    <rect x="24" y="640" width="752" height="580" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+    
+    <text x="44" y="672" font-size="16" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">站点配置</text>
+    
+    <text x="44" y="708" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">网站名称:</text>
+    <rect x="44" y="716" width="712" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="56" y="738" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">Recipe Zen</text>
+    
+    <text x="44" y="772" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">网站描述:</text>
+    <rect x="44" y="780" width="712" height="48" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="56" y="802" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">探索中国美食的治愈力量...</text>
+    
+    <text x="44" y="852" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">网站Logo:</text>
+    <rect x="44" y="860" width="80" height="32" rx="6" fill="#2997FF"/>
+    <text x="84" y="881" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">上传</text>
+    <rect x="136" y="860" width="80" height="32" rx="6" fill="#02041A" fill-opacity="0.06"/>
+    <text x="176" y="881" font-size="12" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="middle">当前Logo</text>
+    
+    <text x="44" y="924" font-size="13" font-weight="500" fill="#02041A" opacity="0.88" text-anchor="start">SEO默认配置:</text>
+    <text x="44" y="952" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">默认标题后缀:</text>
+    <rect x="44" y="960" width="300" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="56" y="982" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">| Recipe Zen</text>
+    
+    <text x="44" y="1024" font-size="13" font-weight="500" fill="#02041A" opacity="0.88" text-anchor="start">多语言支持:</text>
+    <text x="44" y="1052" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">☑ 中文(简体)  ☑ English</text>
+    <text x="44" y="1080" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">默认语言:</text>
+    <rect x="44" y="1088" width="120" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="56" y="1110" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">中文 ▼</text>
+    
+    <rect x="44" y="1152" width="712" height="1" fill="#02041A" fill-opacity="0.06"/>
+    <rect x="44" y="1168" width="88" height="36" rx="8" fill="#2997FF"/>
+    <text x="88" y="1191" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">保存配置</text>
+  </g>
+  
+  <!-- 编辑弹窗 (高度增加以适应内容，添加背景色) -->
+  <g id="edit-modal">
+    <rect x="800" y="640" width="376" height="580" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+    
+    <text x="820" y="672" font-size="16" font-weight="700" fill="#02041A" opacity="0.88" text-anchor="start">编辑菜系: 川菜</text>
+    <text x="1156" y="672" font-size="16" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="middle">✕</text>
+    
+    <line x1="820" y1="688" x2="1156" y2="688" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+    
+    <text x="820" y="716" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">中文名称:</text>
+    <rect x="820" y="724" width="336" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="832" y="746" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">川菜</text>
+    
+    <text x="820" y="780" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">英文名称:</text>
+    <rect x="820" y="788" width="336" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="832" y="810" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">Sichuan Cuisine</text>
+    
+    <text x="820" y="844" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">Slug:</text>
+    <rect x="820" y="852" width="336" height="32" rx="6" fill="#02041A" fill-opacity="0.06"/>
+    <text x="832" y="874" font-size="13" font-weight="400" fill="#02041A" opacity="0.4" text-anchor="start">sichuan (自动生成)</text>
+    
+    <text x="820" y="908" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">描述:</text>
+    <rect x="820" y="916" width="336" height="48" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="832" y="938" font-size="12" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">以麻辣鲜香著称的中国...</text>
+    
+    <text x="820" y="988" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">排序:</text>
+    <rect x="820" y="996" width="80" height="32" rx="6" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="832" y="1018" font-size="13" font-weight="400" fill="#02041A" opacity="0.88" text-anchor="start">1</text>
+    
+    <text x="920" y="1018" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">状态: ☑ 启用</text>
+    
+    <text x="820" y="1052" font-size="13" font-weight="500" fill="#02041A" opacity="0.88" text-anchor="start">🔗 关联合集:</text>
+    <rect x="820" y="1060" width="336" height="88" rx="8" fill="#02041A" fill-opacity="0.03"/>
+    <text x="836" y="1082" font-size="12" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">合集名称: 川菜</text>
+    <text x="836" y="1102" font-size="12" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">路径: /recipe/cuisine/sichuan</text>
+    <text x="836" y="1122" font-size="12" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="start">状态: 已发布 | 菜谱数: 51</text>
+    <text x="836" y="1138" font-size="12" font-weight="400" fill="#2997FF" text-anchor="start">[查看合集详情]</text>
+    
+    <rect x="820" y="1168" width="88" height="36" rx="8" fill="#2997FF"/>
+    <text x="864" y="1191" font-size="13" font-weight="500" fill="#FFFFFF" text-anchor="middle">保存</text>
+    
+    <rect x="928" y="1168" width="88" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+    <text x="972" y="1191" font-size="13" font-weight="400" fill="#02041A" opacity="0.6" text-anchor="middle">取消</text>
+  </g>
+</svg>

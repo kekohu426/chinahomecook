@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { syncCollectionForTag, handleCollectionOnTagDelete } from "@/lib/collection/sync";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -64,6 +65,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       },
     });
 
+    // 同步 Collection 信息
+    if (body.name !== undefined || body.slug !== undefined) {
+      await syncCollectionForTag("cuisine", id, { name: body.name, slug: body.slug });
+    }
+
     return NextResponse.json({
       success: true,
       data: cuisine,
@@ -83,6 +89,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
+
+    // 处理关联的 Collection
+    await handleCollectionOnTagDelete("cuisine", id);
 
     await prisma.cuisine.delete({
       where: { id },

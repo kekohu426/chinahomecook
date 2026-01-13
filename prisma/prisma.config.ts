@@ -1,17 +1,12 @@
 /**
  * Prisma 7 配置文件
- * 用于数据库迁移时的连接配置
  */
 
-import { defineConfig } from "@prisma/cli";
-import { loadEnvFile } from "node:process";
-import { join } from "node:path";
-
-// 加载 .env.local 文件
-loadEnvFile(join(process.cwd(), ".env.local"));
-
-export default defineConfig({
+export default {
   datasource: {
-    url: process.env.DIRECT_URL || process.env.DATABASE_URL || "",
+    db: {
+      // Prisma 7: datasource URL moved这里。优先 DIRECT_URL，其次 DATABASE_URL。
+      url: process.env.DIRECT_URL || process.env.DATABASE_URL || "",
+    },
   },
-});
+};

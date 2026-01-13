@@ -1,0 +1,166 @@
+
+<svg viewBox="0 0 1000 1150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="500" y="36" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#02041A" opacity="0.88" text-anchor="middle">AI生成中心 (/admin/generate)</text>
+  
+  <!-- Top Selection Area -->
+  <rect x="24" y="56" width="952" height="130" rx="16" fill="#02041A" opacity="0.06"/>
+  <text x="40" y="86" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">选择目标合集:</text>
+  
+  <!-- Collection Options Row 1 -->
+  <circle cx="56" cy="112" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="76" y="117" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">川菜 (51/60)</text>
+  <text x="170" y="117" font-family="system-ui, sans-serif" font-size="13">🟡</text>
+  
+  <circle cx="256" cy="112" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="276" y="117" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">粤菜 (36/60)</text>
+  <text x="370" y="117" font-family="system-ui, sans-serif" font-size="13">🔴</text>
+  
+  <!-- Collection Options Row 2 -->
+  <circle cx="56" cy="142" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="76" y="147" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">早餐 (48/60)</text>
+  <text x="170" y="147" font-family="system-ui, sans-serif" font-size="13">🟢</text>
+  
+  <circle cx="256" cy="142" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="276" y="147" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">宴客菜 (18/60)</text>
+  <text x="380" y="147" font-family="system-ui, sans-serif" font-size="13">🔴</text>
+  
+  <!-- Custom Option -->
+  <circle cx="56" cy="172" r="6" fill="#2997FF"/>
+  <circle cx="56" cy="172" r="3" fill="#FFFFFF"/>
+  <text x="76" y="177" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">自定义(不关联合集)</text>
+  
+  <!-- Main Configuration Title -->
+  <text x="40" y="216" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">主配置区 (3列布局)</text>
+  
+  <!-- Column 1: Tag Lock -->
+  <rect x="24" y="236" width="308" height="270" rx="16" fill="#02041A" opacity="0.06"/>
+  <text x="40" y="266" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#02041A" opacity="0.88">1️⃣ 标签锁定</text>
+  
+  <text x="40" y="296" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.6">必须包含:</text>
+  <rect x="40" y="306" width="12" height="12" rx="2" fill="#2997FF"/>
+  <path d="M 43 312 L 46 315 L 50 309" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  <text x="60" y="317" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">菜系: 川菜</text>
+  
+  <rect x="40" y="336" width="12" height="12" rx="2" fill="#2997FF"/>
+  <path d="M 43 342 L 46 345 L 50 339" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  <text x="60" y="347" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">地域: 川渝</text>
+  
+  <text x="40" y="386" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.6">可选:</text>
+  <rect x="40" y="396" width="12" height="12" rx="2" fill="none" stroke="#02041A" stroke-width="1" opacity="0.4"/>
+  <text x="60" y="407" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">场景: 早餐</text>
+  
+  <rect x="40" y="426" width="12" height="12" rx="2" fill="none" stroke="#02041A" stroke-width="1" opacity="0.4"/>
+  <text x="60" y="437" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">口味: 麻辣</text>
+  
+  <!-- Column 2: Recipe Name -->
+  <rect x="346" y="236" width="308" height="270" rx="16" fill="#02041A" opacity="0.06"/>
+  <text x="362" y="266" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#02041A" opacity="0.88">2️⃣ 菜谱名称</text>
+  
+  <circle cx="378" cy="296" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="398" y="301" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">AI智能推荐</text>
+  <rect x="488" y="284" width="80" height="26" rx="8" fill="#2997FF"/>
+  <text x="528" y="302" font-family="system-ui, sans-serif" font-size="12" fill="#FFFFFF" text-anchor="middle">获取推荐</text>
+  
+  <circle cx="378" cy="336" r="6" fill="#2997FF"/>
+  <circle cx="378" cy="336" r="3" fill="#FFFFFF"/>
+  <text x="398" y="341" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">手动输入</text>
+  
+  <rect x="362" y="356" width="276" height="135" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="376" y="380" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">宫保鸡丁</text>
+  <text x="376" y="405" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">鱼香肉丝</text>
+  <text x="376" y="430" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">水煮鱼</text>
+  <text x="376" y="460" font-family="system-ui, sans-serif" font-size="11" fill="#02041A" opacity="0.4">(每行一个)</text>
+  
+  <!-- Column 3: Generation Settings -->
+  <rect x="668" y="236" width="308" height="270" rx="16" fill="#02041A" opacity="0.06"/>
+  <text x="684" y="266" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#02041A" opacity="0.88">3️⃣ 生成设置</text>
+  
+  <text x="684" y="296" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.6">生成数量:</text>
+  <rect x="750" y="280" width="60" height="26" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="780" y="298" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88" text-anchor="middle">10</text>
+  <text x="818" y="298" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">道</text>
+  
+  <text x="684" y="346" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.6">质量门槛:</text>
+  <circle cx="700" cy="370" r="6" fill="#2997FF"/>
+  <circle cx="700" cy="370" r="3" fill="#FFFFFF"/>
+  <text x="720" y="375" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">高</text>
+  
+  <circle cx="766" cy="370" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="786" y="375" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">中</text>
+  
+  <circle cx="832" cy="370" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="852" y="375" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">低</text>
+  
+  <text x="684" y="416" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.6">审核模式:</text>
+  <circle cx="700" cy="440" r="6" fill="#2997FF"/>
+  <circle cx="700" cy="440" r="3" fill="#FFFFFF"/>
+  <text x="720" y="445" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">AI+人工</text>
+  
+  <circle cx="800" cy="440" r="6" fill="none" stroke="#02041A" stroke-width="1.5" opacity="0.4"/>
+  <text x="820" y="445" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">仅人工</text>
+  
+  <!-- AI Recommendation Results -->
+  <text x="40" y="546" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">AI推荐结果 (当选择"AI智能推荐"时显示)</text>
+  
+  <rect x="24" y="566" width="952" height="200" rx="16" fill="#02041A" opacity="0.06"/>
+  <text x="40" y="596" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">💡 AI为"川菜"合集推荐以下菜谱:</text>
+  
+  <rect x="40" y="616" width="12" height="12" rx="2" fill="#2997FF"/>
+  <path d="M 43 622 L 46 625 L 50 619" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  <text x="60" y="627" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">宫保鸡丁 (置信度 0.95) - 经典川菜,搜索量高</text>
+  
+  <rect x="40" y="641" width="12" height="12" rx="2" fill="#2997FF"/>
+  <path d="M 43 647 L 46 650 L 50 644" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  <text x="60" y="652" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">麻婆豆腐 (置信度 0.93) - 国际知名度高</text>
+  
+  <rect x="40" y="666" width="12" height="12" rx="2" fill="#2997FF"/>
+  <path d="M 43 672 L 46 675 L 50 669" stroke="#FFFFFF" stroke-width="1.5" fill="none"/>
+  <text x="60" y="677" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">回锅肉 (置信度 0.91) - 家常热门</text>
+  
+  <rect x="40" y="691" width="12" height="12" rx="2" fill="none" stroke="#02041A" stroke-width="1" opacity="0.4"/>
+  <text x="60" y="702" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">鱼香肉丝 (置信度 0.89) - 已有类似菜谱</text>
+  
+  <!-- Action Buttons in Recommendation -->
+  <rect x="40" y="726" width="60" height="26" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="70" y="744" font-family="system-ui, sans-serif" font-size="12" fill="#02041A" opacity="0.88" text-anchor="middle">全选</text>
+  
+  <rect x="110" y="726" width="60" height="26" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="140" y="744" font-family="system-ui, sans-serif" font-size="12" fill="#02041A" opacity="0.88" text-anchor="middle">反选</text>
+  
+  <rect x="180" y="726" width="110" height="26" rx="8" fill="#2997FF"/>
+  <text x="235" y="744" font-family="system-ui, sans-serif" font-size="12" fill="#FFFFFF" text-anchor="middle">接受选中(3道)</text>
+  
+  <!-- Bottom Actions -->
+  <text x="40" y="806" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">底部操作</text>
+  
+  <rect x="24" y="826" width="100" height="36" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="74" y="849" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88" text-anchor="middle">预览配置</text>
+  
+  <rect x="138" y="826" width="100" height="36" rx="8" fill="#FF9500"/>
+  <text x="188" y="849" font-family="system-ui, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle">开始生成</text>
+  
+  <!-- Real-time Progress -->
+  <text x="40" y="896" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">实时进度 (生成中)</text>
+  
+  <rect x="24" y="916" width="952" height="210" rx="16" fill="#02041A" opacity="0.06"/>
+  <text x="40" y="946" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">正在生成... 进度 6/10</text>
+  
+  <!-- Progress Bar -->
+  <rect x="40" y="956" width="920" height="24" rx="12" fill="#02041A" opacity="0.06"/>
+  <rect x="40" y="956" width="552" height="24" rx="12" fill="#5DD6CC"/>
+  <text x="500" y="973" font-family="system-ui, sans-serif" font-size="12" fill="#FFFFFF" text-anchor="middle">60%</text>
+  
+  <!-- Progress Items -->
+  <text x="40" y="1006" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">✅ 宫保鸡丁 - 生成成功 (AI质量分: 0.92)</text>
+  <text x="40" y="1031" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">✅ 麻婆豆腐 - 生成成功 (AI质量分: 0.88)</text>
+  <text x="40" y="1056" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">✅ 回锅肉 - 生成成功 (AI质量分: 0.95)</text>
+  <text x="40" y="1081" font-family="system-ui, sans-serif" font-size="13" fill="#02041A" opacity="0.88">⏳ 鱼香肉丝 - 生成中...</text>
+  
+  <!-- Progress Action Buttons -->
+  <rect x="40" y="1096" width="60" height="26" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="70" y="1114" font-family="system-ui, sans-serif" font-size="12" fill="#02041A" opacity="0.88" text-anchor="middle">暂停</text>
+  
+  <rect x="110" y="1096" width="60" height="26" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-width="1" opacity="0.2"/>
+  <text x="140" y="1114" font-family="system-ui, sans-serif" font-size="12" fill="#02041A" opacity="0.88" text-anchor="middle">取消</text>
+</svg>

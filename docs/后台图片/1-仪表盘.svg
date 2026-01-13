@@ -1,0 +1,90 @@
+
+<svg viewBox="0 0 1200 960" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="960" fill="#FFFFFF"/>
+  <text x="600" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#02041A" opacity="0.88" text-anchor="middle">仪表盘 (/admin/dashboard)</text>
+  <rect x="80" y="88" width="240" height="100" rx="16" fill="#2997FF"/>
+  <text x="200" y="120" font-family="system-ui" font-size="13" fill="#FFFFFF" text-anchor="middle" opacity="0.9">今日生成</text>
+  <text x="200" y="158" font-family="system-ui" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">23</text>
+  <rect x="344" y="88" width="240" height="100" rx="16" fill="#FF9500"/>
+  <text x="464" y="120" font-family="system-ui" font-size="13" fill="#FFFFFF" text-anchor="middle" opacity="0.9">待审核</text>
+  <text x="464" y="158" font-family="system-ui" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">12</text>
+  <rect x="608" y="88" width="240" height="100" rx="16" fill="#5DD6CC"/>
+  <text x="728" y="120" font-family="system-ui" font-size="13" fill="#FFFFFF" text-anchor="middle" opacity="0.9">已发布总数</text>
+  <text x="728" y="158" font-family="system-ui" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">856</text>
+  <rect x="872" y="88" width="240" height="100" rx="16" fill="#5DD6CC"/>
+  <text x="992" y="120" font-family="system-ui" font-size="13" fill="#FFFFFF" text-anchor="middle" opacity="0.9">系统状态</text>
+  <text x="992" y="158" font-family="system-ui" font-size="24" font-weight="bold" fill="#FFFFFF" text-anchor="middle">正常</text>
+  <text x="80" y="240" font-family="system-ui" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">各合集生产进度</text>
+  <text x="80" y="280" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">川菜</text>
+  <rect x="140" y="266" width="300" height="20" rx="10" fill="#02041A" opacity="0.06"/>
+  <rect x="140" y="266" width="255" height="20" rx="10" fill="#2997FF"/>
+  <text x="460" y="280" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">85% (51/60)</text>
+  <text x="80" y="320" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">粤菜</text>
+  <rect x="140" y="306" width="300" height="20" rx="10" fill="#02041A" opacity="0.06"/>
+  <rect x="140" y="306" width="180" height="20" rx="10" fill="#5DD6CC"/>
+  <text x="460" y="320" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">60% (36/60)</text>
+  <text x="80" y="360" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">家常菜</text>
+  <rect x="140" y="346" width="300" height="20" rx="10" fill="#02041A" opacity="0.06"/>
+  <rect x="140" y="346" width="135" height="20" rx="10" fill="#FFCC00"/>
+  <text x="460" y="360" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">45% (27/60)</text>
+  <text x="80" y="400" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">早餐</text>
+  <rect x="140" y="386" width="300" height="20" rx="10" fill="#02041A" opacity="0.06"/>
+  <rect x="140" y="386" width="240" height="20" rx="10" fill="#2997FF"/>
+  <text x="460" y="400" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">80% (48/60)</text>
+  <text x="80" y="440" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">宴客菜</text>
+  <rect x="140" y="426" width="300" height="20" rx="10" fill="#02041A" opacity="0.06"/>
+  <rect x="140" y="426" width="90" height="20" rx="10" fill="#FF9500"/>
+  <text x="460" y="440" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">30% (18/60)</text>
+  <text x="620" y="240" font-family="system-ui" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">待处理任务</text>
+  <rect x="620" y="260" width="500" height="60" rx="16" fill="#02041A" opacity="0.06"/>
+  <circle cx="645" cy="290" r="8" fill="#2997FF"/>
+  <text x="665" y="278" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.88">[运行中] 生成川菜任务</text>
+  <text x="665" y="298" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.6">进度 8/10 - 3分钟前</text>
+  <rect x="620" y="336" width="500" height="60" rx="16" fill="#02041A" opacity="0.06"/>
+  <circle cx="645" cy="366" r="8" fill="#FFCC00"/>
+  <text x="665" y="354" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.88">[队列中] 生成粤菜任务</text>
+  <text x="665" y="374" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.6">待开始 - 5分钟前</text>
+  <rect x="620" y="412" width="500" height="60" rx="16" fill="#02041A" opacity="0.06"/>
+  <circle cx="645" cy="442" r="8" fill="#5DD6CC"/>
+  <text x="665" y="430" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.88">[已完成] 生成家常菜任务</text>
+  <text x="665" y="450" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.6">10/10 - 1小时前</text>
+  <text x="80" y="532" font-family="system-ui" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">最近生成的菜谱</text>
+  <rect x="80" y="552" width="1040" height="40" rx="8" fill="#02041A" opacity="0.06"/>
+  <text x="120" y="577" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.6">缩略图</text>
+  <text x="240" y="577" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.6">菜名</text>
+  <text x="420" y="577" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.6">合集</text>
+  <text x="570" y="577" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.6">AI质量分</text>
+  <text x="740" y="577" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.6">状态</text>
+  <text x="920" y="577" font-family="system-ui" font-size="13" font-weight="bold" fill="#02041A" opacity="0.6">操作</text>
+  <rect x="80" y="608" width="1040" height="80" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+  <rect x="100" y="628" width="60" height="40" rx="6" fill="#02041A" opacity="0.06"/>
+  <text x="130" y="653" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.4" text-anchor="middle">图</text>
+  <text x="240" y="653" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.88">宫保鸡丁</text>
+  <text x="420" y="653" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">川菜</text>
+  <text x="570" y="653" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.88">0.92</text>
+  <rect x="720" y="638" width="60" height="24" rx="12" fill="#FF9500" opacity="0.2"/>
+  <text x="750" y="655" font-family="system-ui" font-size="12" fill="#FF9500" text-anchor="middle">待审核</text>
+  <rect x="900" y="638" width="60" height="24" rx="12" fill="#FF9500"/>
+  <text x="930" y="655" font-family="system-ui" font-size="12" fill="#FFFFFF" text-anchor="middle">审核</text>
+  <rect x="80" y="704" width="1040" height="80" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+  <rect x="100" y="724" width="60" height="40" rx="6" fill="#02041A" opacity="0.06"/>
+  <text x="130" y="749" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.4" text-anchor="middle">图</text>
+  <text x="240" y="749" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.88">白切鸡</text>
+  <text x="420" y="749" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">粤菜</text>
+  <text x="570" y="749" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.88">0.88</text>
+  <rect x="720" y="734" width="60" height="24" rx="12" fill="#FF9500" opacity="0.2"/>
+  <text x="750" y="751" font-family="system-ui" font-size="12" fill="#FF9500" text-anchor="middle">待审核</text>
+  <rect x="900" y="734" width="60" height="24" rx="12" fill="#FF9500"/>
+  <text x="930" y="751" font-family="system-ui" font-size="12" fill="#FFFFFF" text-anchor="middle">审核</text>
+  <rect x="80" y="800" width="1040" height="80" rx="8" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.06" stroke-width="1"/>
+  <rect x="100" y="820" width="60" height="40" rx="6" fill="#02041A" opacity="0.06"/>
+  <text x="130" y="845" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.4" text-anchor="middle">图</text>
+  <text x="240" y="845" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.88">番茄炒蛋</text>
+  <text x="420" y="845" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.6">家常菜</text>
+  <text x="570" y="845" font-family="system-ui" font-size="13" fill="#02041A" opacity="0.88">0.95</text>
+  <rect x="720" y="830" width="60" height="24" rx="12" fill="#5DD6CC" opacity="0.2"/>
+  <text x="750" y="847" font-family="system-ui" font-size="12" fill="#5DD6CC" text-anchor="middle">已通过</text>
+  <rect x="900" y="830" width="60" height="24" rx="12" fill="#02041A" opacity="0.06"/>
+  <text x="930" y="847" font-family="system-ui" font-size="12" fill="#02041A" opacity="0.6" text-anchor="middle">查看</text>
+  <text x="600" y="920" font-family="system-ui" font-size="13" fill="#2997FF" text-anchor="middle">查看全部待审核 →</text>
+</svg>

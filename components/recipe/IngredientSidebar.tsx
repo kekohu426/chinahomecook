@@ -11,8 +11,10 @@
 
 import { useState } from "react";
 import type { Recipe } from "@/types/recipe";
-import { ICON_KEY_TO_EMOJI, ICON_KEY_TO_BG_COLOR } from "@/types/recipe";
 import { cn } from "@/lib/utils";
+import { useIngredientIcons } from "@/hooks/use-ingredient-icons";
+import { matchIngredientIcon } from "@/lib/ingredient-icons";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface IngredientSidebarProps {
   ingredients: Recipe["ingredients"];
@@ -21,8 +23,10 @@ interface IngredientSidebarProps {
 
 export function IngredientSidebar({
   ingredients,
-  baseServings = 3
+  baseServings = 3,
 }: IngredientSidebarProps) {
+  const locale = useLocale();
+  const isEn = locale === "en";
   // 可选份量（基准份量的倍数）
   const servingOptions = (() => {
     const candidates = [
@@ -51,36 +55,47 @@ export function IngredientSidebar({
 
   const [servings, setServings] = useState(baseServings);
 
+  // 获取食材图标库
+  const { icons } = useIngredientIcons();
+
   // 计算食材数量（根据份量）
   const calculateAmount = (baseAmount: number): number => {
     const ratio = servings / baseServings;
     return Math.round(baseAmount * ratio * 10) / 10; // 保留一位小数
   };
 
+  const isMainSection = (section: string) =>
+    section.includes("主料") || section.toLowerCase().includes("main");
+
   return (
-    <aside className="w-[300px] bg-white rounded-md shadow-card p-6 sticky top-6 h-fit">
+    <aside className="w-[300px] bg-white rounded-[18px] shadow-card p-6 sticky top-6 h-fit border border-cream">
       {/* 头部 */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-serif font-medium text-textDark">食材清单</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-xl font-serif font-medium text-textDark">
+          {isEn ? "Ingredients" : "食材清单"}
+        </h3>
         <span className="text-xs text-textGray bg-lightGray px-3 py-1 rounded-button">
-          INGREDIENTS
+          {isEn ? "INGREDIENTS" : "食材"}
         </span>
       </div>
+      <p className="text-xs text-textGray mb-4">
+        {isEn ? "Mode: Everyday" : "模式：生活化"}
+      </p>
 
       {/* 份量切换（胶囊式按钮组）*/}
-      <div className="flex gap-2 mb-6 bg-lightGray rounded-button p-1">
+      <div className="flex gap-2 mb-6 bg-lightGray rounded-full p-1">
         {servingOptions.map((size) => (
           <button
             key={size}
             onClick={() => setServings(size)}
             className={cn(
-              "flex-1 py-2 px-3 rounded-sm text-sm font-medium transition-all",
+              "flex-1 py-2 px-3 rounded-full text-sm font-medium transition-all",
               servings === size
                 ? "bg-brownDark text-white shadow-sm"
                 : "text-textGray hover:text-textDark"
             )}
           >
-            {size}人
+            {size} {isEn ? "servings" : "人"}
           </button>
         ))}
       </div>
@@ -88,29 +103,38 @@ export function IngredientSidebar({
       {/* 食材分组列表 */}
       {ingredients.map((section, sectionIndex) => (
         <div key={sectionIndex} className={sectionIndex > 0 ? "mt-6" : ""}>
+          {(() => {
+            const isMain = isMainSection(section.section);
+            return (
           <h4 className="text-sm font-medium text-textDark mb-3">
             {section.section}{" "}
             <span className="text-xs text-textGray ml-2 uppercase">
-              {section.section === "主料" ? "MAIN" : "SPICES"}
+              {isMain ? (isEn ? "MAIN" : "主料") : (isEn ? "EXTRAS" : "辅料")}
             </span>
           </h4>
+            );
+          })()}
           <ul className="space-y-3">
             {section.items.map((item, itemIndex) => {
               const calculatedAmount = calculateAmount(item.amount);
-              const emoji = ICON_KEY_TO_EMOJI[item.iconKey];
-              const bgColor = ICON_KEY_TO_BG_COLOR[item.iconKey];
+
+              // 从图标库匹配（无则返回 null）
+              const iconUrl = matchIngredientIcon(item.name, icons);
 
               return (
                 <li key={itemIndex} className="flex items-center gap-3">
-                  {/* 食材图标（彩色圆形背景 + emoji）*/}
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-lg",
-                      bgColor
-                    )}
-                  >
-                    {emoji}
-                  </div>
+                  {/* 食材图标（仅使用图标库，无则显示空占位符）*/}
+                  {iconUrl ? (
+                    <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden bg-lightGray border border-cream">
+                      <img
+                        src={iconUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full flex-shrink-0 bg-sage-100 border border-sage-200" />
+                  )}
 
                   <div className="flex-1 min-w-0">
                     <span className="text-sm text-textDark">

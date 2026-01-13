@@ -1,0 +1,141 @@
+<svg viewBox="0 0 1400 1560" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="1560" fill="#FFFFFF"/>
+  <text x="700" y="60" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#02041A" opacity="0.88" text-anchor="middle">图片管理 - 新增页面</text>
+  <rect x="300" y="100" width="200" height="48" rx="16" fill="#FF9500"/>
+  <text x="400" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📸 菜谱成品图</text>
+  <rect x="520" y="100" width="180" height="48" rx="16" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="610" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" opacity="0.6" text-anchor="middle">👨‍🍳 步骤图</text>
+  <rect x="720" y="100" width="180" height="48" rx="16" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="810" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" opacity="0.6" text-anchor="middle">🥘 食材图标</text>
+  <rect x="920" y="100" width="180" height="48" rx="16" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="1010" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" opacity="0.6" text-anchor="middle">🎨 通用素材</text>
+  <rect x="150" y="180" width="1100" height="540" rx="16" fill="none" stroke="#02041A" stroke-opacity="0.12" stroke-width="2"/>
+  <text x="170" y="220" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">菜谱成品图管理</text>
+  <rect x="170" y="250" width="140" height="36" rx="8" fill="#2997FF"/>
+  <text x="240" y="273" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="middle">🤖 AI批量生成</text>
+  <rect x="330" y="250" width="120" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="390" y="273" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6" text-anchor="middle">📤 批量上传</text>
+  <rect x="470" y="250" width="120" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="530" y="273" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6" text-anchor="middle">🗂️ 批量整理</text>
+  <rect x="170" y="310" width="200" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="180" y="333" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.4">🔍 搜索图片...</text>
+  <text x="400" y="333" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">筛选:</text>
+  <rect x="450" y="310" width="120" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="510" y="333" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6" text-anchor="middle">全部来源▼</text>
+  <rect x="590" y="310" width="120" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="650" y="333" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6" text-anchor="middle">全部状态▼</text>
+  <text x="740" y="333" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">排序:</text>
+  <rect x="785" y="310" width="120" height="36" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="845" y="333" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6" text-anchor="middle">上传时间▼</text>
+  <text x="170" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">视图:</text>
+  <circle cx="220" cy="373" r="6" fill="#FF9500"/>
+  <text x="235" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88">网格</text>
+  <circle cx="280" cy="373" r="6" fill="none" stroke="#02041A" stroke-opacity="0.3" stroke-width="1.5"/>
+  <text x="295" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">列表</text>
+  <rect x="170" y="420" width="160" height="210" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <rect x="180" y="430" width="140" height="105" rx="8" fill="#02041A" opacity="0.06"/>
+  <text x="250" y="488" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#02041A" opacity="0.4" text-anchor="middle">[图片]</text>
+  <text x="250" y="555" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88" text-anchor="middle">宫保鸡丁</text>
+  <text x="250" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">AI生成</text>
+  <text x="250" y="600" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">128次</text>
+  <text x="230" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">✏️</text>
+  <text x="270" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">🗑️</text>
+  <rect x="360" y="420" width="160" height="210" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <rect x="370" y="430" width="140" height="105" rx="8" fill="#02041A" opacity="0.06"/>
+  <text x="440" y="488" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#02041A" opacity="0.4" text-anchor="middle">[图片]</text>
+  <text x="440" y="555" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88" text-anchor="middle">麻婆豆腐</text>
+  <text x="440" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">AI生成</text>
+  <text x="440" y="600" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">95次</text>
+  <text x="420" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">✏️</text>
+  <text x="460" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">🗑️</text>
+  <rect x="550" y="420" width="160" height="210" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <rect x="560" y="430" width="140" height="105" rx="8" fill="#02041A" opacity="0.06"/>
+  <text x="630" y="488" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#02041A" opacity="0.4" text-anchor="middle">[图片]</text>
+  <text x="630" y="555" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88" text-anchor="middle">回锅肉</text>
+  <text x="630" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">手动</text>
+  <text x="630" y="600" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">256次</text>
+  <text x="610" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">✏️</text>
+  <text x="650" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">🗑️</text>
+  <rect x="740" y="420" width="160" height="210" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <rect x="750" y="430" width="140" height="105" rx="8" fill="#02041A" opacity="0.06"/>
+  <text x="820" y="488" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#02041A" opacity="0.4" text-anchor="middle">[图片]</text>
+  <text x="820" y="555" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88" text-anchor="middle">鱼香肉丝</text>
+  <text x="820" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">AI生成</text>
+  <text x="820" y="600" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">85次</text>
+  <text x="800" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">✏️</text>
+  <text x="840" y="620" font-family="system-ui, -apple-system, sans-serif" font-size="14" text-anchor="middle">🗑️</text>
+  <text x="450" y="690" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">[显示更多...]</text>
+  <text x="600" y="690" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">共 856 张图片</text>
+  <rect x="230" y="760" width="450" height="580" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="2"/>
+  <text x="250" y="800" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">AI批量生成成品图</text>
+  <text x="650" y="800" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#02041A" opacity="0.6">✕</text>
+  <line x1="250" y1="815" x2="660" y2="815" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="250" y="850" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88">选择菜谱:</text>
+  <rect x="250" y="865" width="16" height="16" rx="4" fill="#2997FF"/>
+  <text x="255" y="876" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">✓</text>
+  <text x="275" y="878" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88">宫保鸡丁 (无图)</text>
+  <rect x="250" y="895" width="16" height="16" rx="4" fill="#2997FF"/>
+  <text x="255" y="906" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">✓</text>
+  <text x="275" y="908" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88">鱼香肉丝 (无图)</text>
+  <rect x="250" y="925" width="16" height="16" rx="4" fill="#2997FF"/>
+  <text x="255" y="936" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">✓</text>
+  <text x="275" y="938" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88">水煮鱼 (无图)</text>
+  <rect x="250" y="955" width="16" height="16" rx="4" fill="none" stroke="#02041A" stroke-opacity="0.3" stroke-width="1.5"/>
+  <text x="275" y="968" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">麻婆豆腐 (已有图)</text>
+  <rect x="250" y="990" width="110" height="28" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="305" y="1009" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">✓ 全选无图菜谱</text>
+  <rect x="380" y="990" width="70" height="28" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="415" y="1009" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">✓ 全选</text>
+  <text x="250" y="1050" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.88">风格设置:</text>
+  <circle cx="258" cy="1070" r="6" fill="none" stroke="#02041A" stroke-opacity="0.3" stroke-width="1.5"/>
+  <text x="275" y="1076" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">使用默认风格 (站点配置)</text>
+  <circle cx="258" cy="1100" r="6" fill="#FF9500"/>
+  <text x="275" y="1106" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.88">自定义风格</text>
+  <rect x="250" y="1120" width="400" height="60" rx="8" fill="#02041A" opacity="0.04"/>
+  <text x="260" y="1140" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6">真实感、顶部俯视角度、暖色调...</text>
+  <text x="250" y="1210" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">图片比例:</text>
+  <rect x="320" y="1194" width="80" height="28" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="360" y="1213" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6" text-anchor="middle">4:3 ▼</text>
+  <text x="250" y="1250" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">质量:</text>
+  <circle cx="300" cy="1243" r="6" fill="#FF9500"/>
+  <text x="315" y="1250" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.88">高</text>
+  <circle cx="360" cy="1243" r="6" fill="none" stroke="#02041A" stroke-opacity="0.3" stroke-width="1.5"/>
+  <text x="375" y="1250" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">中</text>
+  <circle cx="420" cy="1243" r="6" fill="none" stroke="#02041A" stroke-opacity="0.3" stroke-width="1.5"/>
+  <text x="435" y="1250" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">低</text>
+  <rect x="310" y="1290" width="160" height="40" rx="12" fill="#2997FF"/>
+  <text x="390" y="1316" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">开始生成(3张图)</text>
+  <rect x="720" y="760" width="450" height="720" rx="16" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="2"/>
+  <text x="740" y="800" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="bold" fill="#02041A" opacity="0.88">图片详情: 宫保鸡丁成品图</text>
+  <text x="1140" y="800" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#02041A" opacity="0.6">✕</text>
+  <line x1="740" y1="815" x2="1150" y2="815" stroke="#02041A" stroke-opacity="0.12" stroke-width="1"/>
+  <rect x="760" y="840" width="370" height="180" rx="12" fill="#02041A" opacity="0.06"/>
+  <text x="945" y="935" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.4" text-anchor="middle">[大图预览]</text>
+  <rect x="740" y="1040" width="110" height="32" rx="8" fill="#2997FF"/>
+  <text x="795" y="1061" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">🔄 重新生成</text>
+  <rect x="870" y="1040" width="160" height="32" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="950" y="1061" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">✏️ 编辑提示词再生成</text>
+  <rect x="1050" y="1040" width="90" height="32" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="1095" y="1061" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">📥 下载原图</text>
+  <text x="740" y="1100" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#02041A" opacity="0.88">📋 基本信息</text>
+  <text x="740" y="1125" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">文件名: kungpao-chicken.jpg</text>
+  <text x="740" y="1145" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">尺寸: 1200x900 (4:3)</text>
+  <text x="740" y="1165" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">大小: 256KB</text>
+  <text x="740" y="1185" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">格式: JPEG</text>
+  <text x="740" y="1205" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">URL: https://cdn.gooo.ai/...</text>
+  <rect x="740" y="1215" width="90" height="28" rx="8" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="785" y="1235" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#02041A" opacity="0.6" text-anchor="middle">📋 复制URL</text>
+  <text x="740" y="1260" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#02041A" opacity="0.88">🔗 关联菜谱</text>
+  <text x="740" y="1285" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">菜谱: 宫保鸡丁 [查看]</text>
+  <text x="740" y="1305" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">使用次数: 128次浏览</text>
+  <text x="740" y="1340" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold" fill="#02041A" opacity="0.88">🤖 生成信息</text>
+  <text x="740" y="1365" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">来源: AI生成</text>
+  <text x="740" y="1385" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">生成时间: 2026-01-05 14:30</text>
+  <text x="740" y="1405" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.6">提示词: [展开查看]</text>
+  <rect x="740" y="1430" width="60" height="28" rx="8" fill="none" stroke="#FF4D4D" stroke-width="1"/>
+  <text x="770" y="1449" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#FF4D4D" text-anchor="middle">🗑️ 删除</text>
+  <rect x="940" y="1430" width="80" height="32" rx="8" fill="#02041A" opacity="0.06"/>
+  <text x="980" y="1451" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" opacity="0.88" text-anchor="middle">关闭</text>
+  <text x="230" y="1520" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#FFCC00" opacity="0.9">💡 提示: </text>
+  <text x="285" y="1520" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" opacity="0.6">定期清理未被使用的图片可节省存储空间</text>
+</svg>

@@ -1,0 +1,196 @@
+
+<svg viewBox="0 0 1400 1900" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1400" height="1900" fill="#FFFFFF"/>
+  
+  <!-- Title -->
+  <text x="700" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#02041A" fill-opacity="0.88" text-anchor="middle">基础配置重构 (/admin/config)</text>
+  
+  <!-- Left Navigation Bar -->
+  <rect x="40" y="100" width="280" height="560" rx="16" fill="#02041A" fill-opacity="0.06"/>
+  
+  <!-- Navigation Items -->
+  <!-- AI配置 - Active -->
+  <rect x="50" y="110" width="260" height="56" rx="12" fill="#FF9500"/>
+  <text x="70" y="143" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#FFFFFF">🤖 AI配置</text>
+  <text x="250" y="143" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#FFFFFF" fill-opacity="0.8">← 新增</text>
+  
+  <!-- 标签管理 -->
+  <text x="70" y="199" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.6">🏷️ 标签管理</text>
+  <text x="250" y="199" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">← 已有</text>
+  
+  <!-- 食材图标 -->
+  <text x="70" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.6">🖼️ 食材图标</text>
+  <text x="250" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">← 已有</text>
+  
+  <!-- 图片管理 -->
+  <text x="70" y="311" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.6">📸 图片管理</text>
+  <text x="250" y="311" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">← 新增</text>
+  
+  <!-- 首页配置 -->
+  <text x="70" y="367" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.6">🏠 首页配置</text>
+  <text x="250" y="367" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">← 已有</text>
+  
+  <!-- 关于页配置 -->
+  <text x="70" y="423" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.6">👥 关于页配置</text>
+  <text x="250" y="423" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">← 已有</text>
+  
+  <!-- 站点配置 -->
+  <text x="70" y="479" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#02041A" fill-opacity="0.6">🔧 站点配置</text>
+  <text x="250" y="479" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">← 已有</text>
+  
+  <!-- Divider -->
+  <line x1="340" y1="100" x2="340" y2="1860" stroke="#02041A" stroke-opacity="0.12" stroke-width="2"/>
+  
+  <!-- Right Content Area Background -->
+  <rect x="380" y="100" width="980" height="1760" rx="16" fill="none" stroke="#02041A" stroke-opacity="0.12" stroke-width="2"/>
+  
+  <!-- Content Title -->
+  <text x="700" y="145" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="bold" fill="#02041A" fill-opacity="0.88" text-anchor="middle">AI 服务配置</text>
+  
+  <!-- Section 1: 菜谱生成配置 -->
+  <text x="400" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#02041A" fill-opacity="0.88">🔹 菜谱生成配置</text>
+  <rect x="400" y="220" width="920" height="330" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1.5"/>
+  
+  <!-- Radio buttons -->
+  <text x="420" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" fill-opacity="0.88">AI服务商:</text>
+  <circle cx="520" cy="251" r="6" fill="#FF9500"/>
+  <circle cx="520" cy="251" r="9" fill="none" stroke="#FF9500" stroke-width="2"/>
+  <text x="535" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" fill-opacity="0.88">GLM(智谱)</text>
+  <circle cx="650" cy="251" r="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.4" stroke-width="2"/>
+  <text x="665" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" fill-opacity="0.6">DeepSeek</text>
+  
+  <!-- API URL -->
+  <text x="420" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">API URL:</text>
+  <rect x="420" y="305" width="880" height="36" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="328" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6">https://api.zhipuai.com/v4</text>
+  
+  <!-- API Key -->
+  <text x="420" y="365" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">API Key:</text>
+  <rect x="420" y="375" width="700" height="36" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="398" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">sk-xxxxxxxxxxxxx</text>
+  <rect x="1135" y="375" width="70" height="36" rx="6" fill="#02041A" fill-opacity="0.06"/>
+  <text x="1170" y="398" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">显示</text>
+  <rect x="1220" y="375" width="100" height="36" rx="6" fill="#2997FF"/>
+  <text x="1270" y="398" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">测试连接</text>
+  
+  <!-- Model -->
+  <text x="420" y="435" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">使用的模型:</text>
+  <rect x="420" y="445" width="250" height="36" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="468" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">glm-4-plus</text>
+  <text x="650" y="468" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">▼</text>
+  
+  <!-- Parameters -->
+  <text x="420" y="505" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">默认生成参数:</text>
+  <text x="420" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">Temperature:</text>
+  <rect x="530" y="515" width="100" height="28" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="580" y="534" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.88" text-anchor="middle">0.7</text>
+  <text x="680" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">Max Tokens:</text>
+  <rect x="790" y="515" width="100" height="28" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="840" y="534" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.88" text-anchor="middle">4000</text>
+  <text x="940" y="530" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">Top P:</text>
+  <rect x="1000" y="515" width="100" height="28" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="1050" y="534" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.88" text-anchor="middle">0.95</text>
+  
+  <!-- Section 2: 核心提示词模板 -->
+  <text x="400" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#02041A" fill-opacity="0.88">🔹 核心提示词模板</text>
+  <rect x="400" y="600" width="920" height="420" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1.5"/>
+  
+  <!-- System Prompt -->
+  <text x="420" y="635" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">系统提示词: (全局角色设定)</text>
+  <rect x="420" y="645" width="880" height="100" rx="8" fill="#02041A" fill-opacity="0.04" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="665" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">你是一位精通中国各地美食的专业...</text>
+  <text x="435" y="685" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">擅长编写详细、准确、富有文化...</text>
+  <text x="435" y="705" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">(可编辑的文本框)</text>
+  
+  <!-- Recipe Prompt Template -->
+  <text x="420" y="775" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">菜谱生成提示词模板:</text>
+  <rect x="420" y="785" width="880" height="140" rx="8" fill="#02041A" fill-opacity="0.04" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="805" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">请生成一道名为"{菜名}"的菜谱...</text>
+  <text x="435" y="825" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">必须包含以下部分:</text>
+  <text x="435" y="845" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">1. 一句话介绍</text>
+  <text x="435" y="865" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">2. 文化故事...</text>
+  <text x="435" y="885" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">(可编辑,支持变量 {菜名}{菜系}等)</text>
+  
+  <!-- Action Buttons -->
+  <rect x="420" y="945" width="250" height="40" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="545" y="970" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">📋 查看完整提示词变量列表</text>
+  <rect x="690" y="945" width="200" height="40" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="790" y="970" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">📝 编辑高级提示词</text>
+  <rect x="910" y="945" width="200" height="40" rx="8" fill="#02041A" fill-opacity="0.06"/>
+  <text x="1010" y="970" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.6" text-anchor="middle">🔄 恢复默认提示词</text>
+  
+  <!-- Section 3: 图片生成配置 -->
+  <text x="400" y="1050" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#02041A" fill-opacity="0.88">🔹 图片生成配置</text>
+  <rect x="400" y="1070" width="920" height="300" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1.5"/>
+  
+  <!-- Finished Image -->
+  <text x="420" y="1111" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">成品图生成服务:</text>
+  <rect x="560" y="1090" width="200" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="575" y="1111" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">Gooo.AI</text>
+  <text x="745" y="1111" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">▼</text>
+  <text x="790" y="1111" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">API Key:</text>
+  <rect x="870" y="1090" width="350" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="885" y="1111" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">xxxxx</text>
+  <rect x="1240" y="1090" width="70" height="32" rx="6" fill="#2997FF"/>
+  <text x="1275" y="1111" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">测试</text>
+  
+  <!-- Step Image -->
+  <text x="420" y="1161" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">步骤图生成服务:</text>
+  <rect x="560" y="1140" width="200" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="575" y="1161" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">Gooo.AI</text>
+  <text x="745" y="1161" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">▼</text>
+  <text x="790" y="1161" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">API Key:</text>
+  <rect x="870" y="1140" width="350" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="885" y="1161" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">xxxxx</text>
+  <rect x="1240" y="1140" width="70" height="32" rx="6" fill="#2997FF"/>
+  <text x="1275" y="1161" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">测试</text>
+  
+  <!-- Ingredient Icon -->
+  <text x="420" y="1211" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">食材图标生成服务:</text>
+  <rect x="560" y="1190" width="200" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="575" y="1211" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">Gooo.AI</text>
+  <text x="745" y="1211" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">▼</text>
+  <text x="790" y="1211" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">API Key:</text>
+  <rect x="870" y="1190" width="350" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="885" y="1211" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">xxxxx</text>
+  <rect x="1240" y="1190" width="70" height="32" rx="6" fill="#2997FF"/>
+  <text x="1275" y="1211" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="600" fill="#FFFFFF" text-anchor="middle">测试</text>
+  
+  <!-- Default Style Guide -->
+  <text x="420" y="1255" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">默认图片风格指南:</text>
+  <rect x="420" y="1265" width="880" height="80" rx="8" fill="#02041A" fill-opacity="0.04" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="1285" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">真实感、高清、食物摄影风格...</text>
+  
+  <!-- Section 4: 质量检查配置 -->
+  <text x="400" y="1400" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#02041A" fill-opacity="0.88">🔹 质量检查配置</text>
+  <rect x="400" y="1420" width="920" height="260" rx="12" fill="none" stroke="#02041A" stroke-opacity="0.2" stroke-width="1.5"/>
+  
+  <!-- Quality Check Model -->
+  <text x="420" y="1461" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">AI质量检查模型:</text>
+  <rect x="560" y="1440" width="250" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="575" y="1461" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">glm-4-flash</text>
+  <text x="795" y="1461" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.4">▼</text>
+  
+  <!-- Quality Check Prompt -->
+  <text x="420" y="1500" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">质量检查提示词:</text>
+  <rect x="420" y="1510" width="880" height="100" rx="8" fill="#02041A" fill-opacity="0.04" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="435" y="1530" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">请评估以下菜谱的质量...</text>
+  <text x="435" y="1550" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.6">从内容完整性、准确性、可读性...</text>
+  
+  <!-- Quality Threshold -->
+  <text x="420" y="1651" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88">默认质量门槛:</text>
+  <rect x="560" y="1630" width="100" height="32" rx="6" fill="#FFFFFF" stroke="#02041A" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="610" y="1651" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#02041A" fill-opacity="0.88" text-anchor="middle">0.80</text>
+  <text x="680" y="1651" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#02041A" fill-opacity="0.4">(0-1)</text>
+  
+  <!-- Bottom Action Buttons -->
+  <rect x="400" y="1710" width="180" height="48" rx="8" fill="#FF9500"/>
+  <text x="490" y="1739" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF" text-anchor="middle">保存配置</text>
+  <rect x="600" y="1710" width="220" height="48" rx="8" fill="#2997FF"/>
+  <text x="710" y="1739" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF" text-anchor="middle">测试全部AI服务</text>
+  
+  <!-- Bottom Tip -->
+  <rect x="400" y="1780" width="920" height="60" rx="12" fill="#FFCC00" fill-opacity="0.15"/>
+  <text x="430" y="1815" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#02041A" fill-opacity="0.88">💡 提示: 修改提示词后建议先生成1-2个测试菜谱验证效果</text>
+</svg>

@@ -1,16 +1,17 @@
 /**
  * 食谱数据类型定义
  *
- * 🚨 重要：严格遵循 PRD Schema v1.1.0
- * 与 lib/validators/recipe.ts 的 Zod Schema 保持完全一致
- *
- * 参考文档：docs/SCHEMA_VALIDATION.md
+ * Schema v2.0.0 - 完整版
+ * 支持文化故事、营养信息、FAQ、SEO等完整字段
  */
 
-// ==================== PRD Schema v1.1.0 ====================
+// ==================== 枚举类型 ====================
 
 // 难度枚举
 export type Difficulty = "easy" | "medium" | "hard";
+
+// 火候枚举
+export type Heat = "low" | "medium-low" | "medium" | "medium-high" | "high";
 
 // 图标键枚举（用于食材分类）
 export type IconKey =
@@ -25,6 +26,7 @@ export type IconKey =
   | "spice"     // 香料
   | "sauce"     // 酱料
   | "oil"       // 油脂
+  | "tool"      // 工具
   | "other";    // 其他
 
 // 图片比例枚举
@@ -33,112 +35,277 @@ export type ImageRatio = "16:9" | "4:3" | "3:2";
 // ==================== 食谱主结构 ====================
 
 export interface Recipe {
-  // Schema版本（必填）
-  schemaVersion: "1.1.0";
+  // Schema版本
+  schemaVersion?: string;
 
-  // 标题（必填）
-  titleZh: string;        // 中文标题（例：啤酒鸭）
-  titleEn?: string | null;       // 英文标题（可选，例：Beer Braised Duck）
+  // 基本信息
+  id?: string;
+  titleZh: string;
+  titleEn?: string | null;
+  aliases?: string[];
 
-  // 摘要信息（PRD v1.1.0）
+  // 产地信息
+  origin?: RecipeOrigin;
+
+  // 摘要信息
   summary: RecipeSummary;
 
-  // 文化故事（PRD v1.1.0）
-  story: RecipeStory;
+  // 文化故事（支持对象或字符串）
+  story?: RecipeStory | string;
+  culturalStory?: string;
 
-  // 食材清单（PRD v1.1.0）
+  // 营养信息
+  nutrition?: RecipeNutrition;
+
+  // 设备清单
+  equipment?: EquipmentItem[];
+
+  // 食材清单
   ingredients: IngredientSection[];
 
-  // 制作步骤（PRD v1.1.0）
+  // 制作步骤
   steps: RecipeStep[];
 
-  // 风格指南（PRD v1.1.0）
+  // FAQ
+  faq?: FAQItem[];
+
+  // 烹饪小贴士
+  tips?: string[];
+
+  // 失败排查
+  troubleshooting?: TroubleshootingItem[];
+
+  // 相关推荐
+  relatedRecipes?: RelatedRecipes;
+
+  // 搭配建议
+  pairing?: PairingInfo;
+
+  // 风格指南
   styleGuide: StyleGuide;
 
-  // 配图方案（PRD v1.1.0）
+  // 配图方案
   imageShots: ImageShot[];
+
+  // SEO
+  seo?: RecipeSEO;
+
+  // 标签信息
+  tags?: RecipeTags;
+
+  // 备注
+  notes?: string[];
+}
+
+// ==================== 产地信息 ====================
+
+export interface RecipeOrigin {
+  country?: string | null;
+  region?: string | null;
+  notes?: string | null;
 }
 
 // ==================== 摘要信息 ====================
 
 export interface RecipeSummary {
-  oneLine: string;         // 一句话描述（例：麦香与肉脂的微醺共舞）
-  healingTone: string;     // 治愈文案（例：家的味道，总在啤酒香里藏着）
-  difficulty: Difficulty;  // 难度（easy/medium/hard）
-  timeTotalMin: number;    // 总耗时（分钟）
-  timeActiveMin: number;   // 操作时间（分钟）
-  servings: number;        // 基准份量（例：3）
+  oneLine: string;
+  healingTone: string;
+  flavorTags?: string[];
+  difficulty: Difficulty;
+  timeTotalMin: number;
+  timeActiveMin: number;
+  servings: number;
+  scaleHint?: string;
 }
 
 // ==================== 文化故事 ====================
 
 export interface RecipeStory {
-  title: string;           // 故事标题（例：啤酒鸭的前世今生）
-  content: string;         // 故事正文
-  tags: string[];          // 标签（例：["川菜", "家常菜", "肉类"]）
+  title: string;
+  content: string;
+  tags?: string[];
+}
+
+// ==================== 营养信息 ====================
+
+export interface NutritionPerServing {
+  calories?: number;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
+  fiber?: number;
+  sodium?: number;
+}
+
+export interface RecipeNutrition {
+  // v2.0.0 格式
+  perServing?: NutritionPerServing;
+  dietaryLabels?: string[];
+  disclaimer?: string;
+  // v1.1.0 扁平格式（向后兼容）
+  calories?: number;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
+  fiber?: number;
+  sodium?: number;
+}
+
+// ==================== 设备清单 ====================
+
+export interface EquipmentItem {
+  name: string;
+  required?: boolean;
+  notes?: string | null;
 }
 
 // ==================== 食材清单 ====================
 
 export interface IngredientSection {
-  section: string;         // 分组名称（例：主料、配料）
-  items: IngredientItem[]; // 食材列表
+  section: string;
+  items: IngredientItem[];
 }
 
 export interface IngredientItem {
-  name: string;            // 食材名称（例：鸭肉）
-  iconKey: IconKey;        // 图标键（例：meat）
-  amount: number;          // 数量（例：750）
-  unit: string;            // 单位（例：克）
-  notes?: string | null;          // 备注（可选，例：半只）
+  name: string;
+  iconKey?: IconKey;
+  amount: number;
+  unit: string;
+  prep?: string | null;
+  optional?: boolean;
+  substitutes?: string[];
+  allergens?: string[];
+  notes?: string | null;
 }
 
 // ==================== 制作步骤 ====================
 
 export interface RecipeStep {
-  id: string;              // 步骤ID（例：step01）
-  title: string;           // 步骤标题（例：冷水焯鸭去腥）
-  action: string;          // 详细操作描述
-  speechText: string;      // 语音朗读文本（用于 COOK NOW 模式）
-  timerSec: number;        // 计时器时长（秒，0表示无计时器）
-  visualCue: string;       // 视觉状态检查提示（例：水面浮起灰色浮沫）
-  failPoint: string;       // 失败点提示（例：煮太久肉质变老）
-  photoBrief: string;      // 配图简述（用于AI生图）
+  id: string;
+  title: string;
+  action: string;
+
+  // v1.1.0 字段
+  speechText?: string;
+  timerSec?: number;
+  visualCue?: string;
+  failPoint?: string;
+  photoBrief?: string;
+
+  // v2.0.0 新增字段
+  heat?: Heat;
+  timeMin?: number;
+  timeMax?: number;
+  statusChecks?: string[];
+  failurePoints?: string[];
+  recovery?: string;
+  safeNote?: string | null;
+
+  // 图片相关
+  imagePrompt?: string;
+  negativePrompt?: string;
+
+  // 关联
+  ingredientRefs?: string[];
+  equipmentRefs?: string[];
+}
+
+// ==================== FAQ ====================
+
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+// ==================== 失败排查 ====================
+
+export interface TroubleshootingItem {
+  problem: string;
+  cause: string;
+  fix: string;
+}
+
+// ==================== 相关推荐 ====================
+
+export interface RelatedRecipes {
+  similar?: string[];
+  pairing?: string[];
+}
+
+// ==================== 搭配建议 ====================
+
+export interface PairingInfo {
+  suggestions?: string[];
+  sauceOrSide?: string[];
 }
 
 // ==================== 风格指南 ====================
 
 export interface StyleGuide {
-  theme: string;           // 主题风格（例：治愈系暖调）
-  lighting: string;        // 光线要求（例：自然光）
-  composition: string;     // 构图风格（例：留白构图）
-  aesthetic: string;       // 美学风格（例：吉卜力风格）
+  // v1.1.0 字段
+  theme?: string;
+  lighting?: string;
+  composition?: string;
+  aesthetic?: string;
+
+  // v2.0.0 新增字段
+  visualTheme?: string;
+  palette?: string[];
+  materials?: string[];
+  props?: string[];
+  compositionRules?: string[];
+  imageRatios?: {
+    cover?: string;
+    step?: string;
+    ingredientsFlatlay?: string;
+  };
 }
 
 // ==================== 配图方案 ====================
 
 export interface ImageShot {
-  key: string;             // 图片键（例：cover, step01, final）
-  imagePrompt: string;     // AI生图提示词
-  ratio: ImageRatio;       // 图片比例（16:9, 4:3, 3:2）
-  imageUrl?: string;       // AI生成的图片URL (扩展字段)
+  key: string;
+  title?: string;
+  imagePrompt: string;
+  negativePrompt?: string;
+  ratio: ImageRatio;
+  imageUrl?: string;
+}
+
+// ==================== SEO ====================
+
+export interface RecipeSEO {
+  slug?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+}
+
+// ==================== 标签信息 ====================
+
+export interface RecipeTags {
+  scenes?: string[];
+  cookingMethods?: string[];
+  tastes?: string[];
+  crowds?: string[];
+  occasions?: string[];
 }
 
 // ==================== UI 相关类型 ====================
 
 // 计时器状态
 export interface TimerState {
-  isActive: boolean;       // 是否运行中
-  timeLeft: number;        // 剩余时间（秒）
-  stepId: string;          // 所属步骤ID
-  label: string;           // 显示标签
+  isActive: boolean;
+  timeLeft: number;
+  stepId: string;
+  label: string;
 }
 
 // 全屏烹饪模式状态
 export interface CookModeState {
-  isFullscreen: boolean;   // 是否全屏
-  currentStepIndex: number; // 当前步骤索引
-  timer: TimerState | null; // 计时器状态
+  isFullscreen: boolean;
+  currentStepIndex: number;
+  timer: TimerState | null;
 }
 
 // AI主厨对话
@@ -151,12 +318,12 @@ export interface AIMessage {
 // ==================== 数据库模型类型（扩展字段） ====================
 
 export interface RecipeDB extends Recipe {
-  id: string;              // 数据库ID
-  createdAt: Date;         // 创建时间
-  updatedAt: Date;         // 更新时间
-  author?: string;         // 作者
-  isPublished: boolean;    // 是否发布
-  viewCount: number;       // 浏览次数
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  author?: string;
+  isPublished: boolean;
+  viewCount: number;
 }
 
 // ==================== 图标映射配置 ====================
@@ -173,6 +340,7 @@ export const ICON_KEY_TO_EMOJI: Record<IconKey, string> = {
   spice: "🌶️",
   sauce: "🍯",
   oil: "🫒",
+  tool: "🔧",
   other: "📦"
 };
 
@@ -188,6 +356,7 @@ export const ICON_KEY_TO_BG_COLOR: Record<IconKey, string> = {
   spice: "bg-red-100",
   sauce: "bg-purple-100",
   oil: "bg-emerald-100",
+  tool: "bg-slate-100",
   other: "bg-gray-100"
 };
 
@@ -205,10 +374,20 @@ export const DIFFICULTY_TO_COLOR: Record<Difficulty, string> = {
   hard: "text-red-600"
 };
 
+// ==================== 火候映射配置 ====================
+
+export const HEAT_TO_LABEL: Record<Heat, string> = {
+  low: "小火",
+  "medium-low": "中小火",
+  medium: "中火",
+  "medium-high": "中大火",
+  high: "大火"
+};
+
 // ==================== 比例映射配置 ====================
 
 export const RATIO_TO_ASPECT: Record<ImageRatio, string> = {
-  "16:9": "aspect-video",      // Tailwind: aspect-video
-  "4:3": "aspect-[4/3]",       // Tailwind: aspect-[4/3]
-  "3:2": "aspect-[3/2]"        // Tailwind: aspect-[3/2]
+  "16:9": "aspect-video",
+  "4:3": "aspect-[4/3]",
+  "3:2": "aspect-[3/2]"
 };

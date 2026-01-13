@@ -2,15 +2,66 @@
  * 图片上传 API 路由
  *
  * POST /api/upload
- * 支持单图片上传到 Cloudflare R2
+ * 优先使用云存储，失败则保存到本地
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { uploadImage, generateSafeFilename } from "@/lib/utils/storage";
+import { writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
+import { requireAdmin } from "@/lib/auth/guard";
+
+// 上传到图床（如 imgbb、smms 等免费服务）
+async function uploadToImageHost(file: File): Promise<string | null> {
+  // 如果配置了 IMGBB_API_KEY，使用 imgbb
+  const imgbbKey = process.env.IMGBB_API_KEY;
+  if (imgbbKey) {
+    try {
+      const formData = new FormData();
+      const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
+      formData.append("image", base64);
+
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        return data.data.url;
+      }
+    } catch (e) {
+      console.error("imgbb upload failed:", e);
+    }
+  }
+
+  return null;
+}
+
+// 保存到本地
+async function saveToLocal(file: File, category: string): Promise<string> {
+  const ext = file.name.split(".").pop() || "jpg";
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  const filename = `${timestamp}-${random}.${ext}`;
+
+  const uploadDir = path.join(process.cwd(), "public", "uploads", category);
+  if (!existsSync(uploadDir)) {
+    await mkdir(uploadDir, { recursive: true });
+  }
+
+  const filePath = path.join(uploadDir, filename);
+  const bytes = await file.arrayBuffer();
+  await writeFile(filePath, Buffer.from(bytes));
+
+  return `/uploads/${category}/${filename}`;
+}
 
 export async function POST(request: NextRequest) {
+  const authError = await requireAdmin();
+  if (authError) return authError;
+
   try {
-    // 验证 Content-Type
     const contentType = request.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
       return NextResponse.json(
@@ -19,16 +70,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 解析表单数据
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const category = (formData.get("category") as string) || "general";
+    const category = (formData.get("category") as string) || "blog";
 
     if (!file) {
-      return NextResponse.json(
-        { error: "未找到文件" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "未找到文件" }, { status: 400 });
     }
 
     // 验证文件类型
@@ -41,50 +88,31 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证文件大小（最大 5MB）
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: "文件过大，最大支持 5MB" },
-        { status: 400 }
-      );
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "文件过大，最大支持 5MB" }, { status: 400 });
     }
 
-    // 生成安全的文件路径
-    const path = generateSafeFilename(file.name, category);
+    // 尝试上传到图床，失败则保存本地
+    let url = await uploadToImageHost(file);
+    let storage = "cloud";
 
-    // 上传到 R2
-    const url = await uploadImage(file, path);
+    if (!url) {
+      url = await saveToLocal(file, category);
+      storage = "local";
+    }
 
     return NextResponse.json({
       success: true,
       url,
-      path,
+      storage,
       size: file.size,
       type: file.type,
     });
   } catch (error) {
     console.error("图片上传错误:", error);
-
-    // 友好的错误提示
-    if (error instanceof Error && error.message.includes("R2 配置")) {
-      return NextResponse.json(
-        { error: "图片存储服务未配置，请联系管理员" },
-        { status: 503 }
-      );
-    }
-
     return NextResponse.json(
-      { error: "图片上传失败，请稍后重试" },
+      { error: "图片上传失败: " + (error as Error).message },
       { status: 500 }
     );
   }
 }
-
-// 配置最大请求体大小（10MB）
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
-  },
-};

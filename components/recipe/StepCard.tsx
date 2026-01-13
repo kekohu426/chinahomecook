@@ -2,6 +2,7 @@
  * StepCard 组件
  *
  * 制作步骤卡片：步骤编号、标题、操作描述、视觉提示、失败点、计时器
+ * 支持复制和下载步骤内容
  *
  * 🚨 设计约束：100%还原设计稿，PRD Schema v1.1.0
  * 参考：docs/UI_DESIGN.md - 制作步骤卡片
@@ -12,6 +13,9 @@
 import { useState } from "react";
 import type { RecipeStep } from "@/types/recipe";
 import { cn } from "@/lib/utils";
+import { copyStepContent, downloadStepImage } from "@/lib/recipe-utils";
+import { StepImage } from "@/components/ui/SafeImage";
+import { useLocale } from "@/components/i18n/LocaleProvider";
 
 interface StepCardProps {
   step: RecipeStep;
@@ -20,26 +24,34 @@ interface StepCardProps {
 }
 
 export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
+  const locale = useLocale();
+  const isEn = locale === "en";
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(step.timerSec);
+  const [copying, setCopying] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  // 步骤卡片的唯一 ID
+  const cardId = `step-card-${stepNumber}`;
 
   // 启动计时器
   const startTimer = () => {
-    if (step.timerSec === 0) return;
+    const timerSec = step.timerSec ?? 0;
+    if (timerSec <= 0) return;
 
     setTimerActive(true);
-    setTimeLeft(step.timerSec);
+    setTimeLeft(timerSec);
 
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
+        if ((prev ?? 0) <= 1) {
           clearInterval(interval);
           setTimerActive(false);
           // 计时器结束提示（可添加音效）
           if (typeof window !== "undefined" && "Notification" in window) {
             try {
-              new Notification("计时器结束", {
-                body: `${step.title} 完成！`,
+              new Notification(isEn ? "Timer finished" : "计时器结束", {
+                body: isEn ? `${step.title} completed!` : `${step.title} 完成！`,
               });
             } catch (e) {
               // Notification API may not be available
@@ -47,7 +59,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
           }
           return 0;
         }
-        return prev - 1;
+        return (prev ?? 0) - 1;
       });
     }, 1000);
   };
@@ -59,44 +71,83 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  // 复制步骤卡片图片
+  const handleCopy = async () => {
+    setCopying(true);
+    const success = await copyStepContent(cardId, stepNumber, step.title);
+    if (!success) {
+      alert(isEn ? "Copy failed. Please try again." : "复制失败，请重试");
+    }
+    setTimeout(() => setCopying(false), 2000);
+  };
+
+  // 下载步骤图片
+  const handleDownload = async () => {
+    setDownloading(true);
+    const success = await downloadStepImage(cardId, stepNumber, step.title);
+    if (!success) {
+      alert(isEn ? "Download failed. Please try again." : "下载失败，请重试");
+    }
+    setDownloading(false);
+  };
+
   return (
-    <div className="bg-white rounded-md shadow-card p-6 mb-6">
-      {/* 步骤编号标签 */}
-      <div className="inline-block bg-brownWarm text-white text-xs font-medium px-3 py-1 rounded-button mb-4">
-        STEP {stepNumber.toString().padStart(2, "0")}
+    <div id={cardId} className="bg-white rounded-[18px] shadow-card border border-cream p-6 mb-6">
+      {/* 步骤编号 + 标题 + 操作按钮 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <span className="bg-brownWarm text-white text-xs font-semibold px-3 py-1 rounded-button tracking-wider shadow-sm">
+            STEP {stepNumber.toString().padStart(2, "0")}
+          </span>
+          <h3 className="text-title-md font-serif font-medium text-textDark">
+            {step.title}
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* 复制按钮 */}
+          <button
+            onClick={handleCopy}
+            disabled={copying}
+            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-brownDark border border-brownWarm/30 rounded-button hover:bg-brownWarm/5 transition-colors disabled:opacity-50"
+          >
+            <span>{copying ? "✓" : "📋"}</span>
+            <span>
+              {copying ? (isEn ? "Copied" : "已复制") : isEn ? "Copy" : "复制"}
+            </span>
+          </button>
+          {/* 下载按钮 */}
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-brownDark border border-brownWarm/30 rounded-button hover:bg-brownWarm/5 transition-colors disabled:opacity-50"
+          >
+            <span>{downloading ? "⏳" : "📥"}</span>
+            <span>
+              {downloading
+                ? isEn
+                  ? "Downloading"
+                  : "下载中"
+                : isEn
+                ? "Download"
+                : "下载"}
+            </span>
+          </button>
+          {/* 计时标签 */}
+          {(step.timerSec ?? 0) > 0 && (
+            <span className="text-xs font-semibold text-orangeAccent bg-orangeAccent/10 px-3 py-1 rounded-full ml-1">
+              {isEn ? "Timer" : "计时"} {Math.floor((step.timerSec ?? 0) / 60)}{" "}
+              {isEn ? "min" : "分"}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* 步骤配图 */}
-      <div className="relative w-full h-56 rounded-image overflow-hidden mb-5 bg-lightGray">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={step.title}
-            className="w-full h-full object-cover transition-transform hover:scale-105 duration-700"
-          />
-        ) : (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-br from-cream via-cream/70 to-orangeAccent/20" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center px-6">
-                <div className="text-2xl mb-2">📸</div>
-                <p className="text-sm text-textGray">步骤配图（待生成）</p>
-              </div>
-            </div>
-          </>
-        )}
-        {step.photoBrief && (
-          <div className="absolute bottom-3 left-3 right-3 bg-white/80 backdrop-blur-sm rounded-sm px-3 py-2">
-            <span className="text-xs font-medium text-textDark">配图提示：</span>
-            <span className="text-xs text-textGray ml-1">{step.photoBrief}</span>
-          </div>
-        )}
+      {/* 步骤配图 - 使用 SafeImage 支持加载失败回退 */}
+      <div className="relative w-full overflow-hidden rounded-image mb-5">
+        <div className="aspect-[4/3] bg-lightGray">
+          <StepImage src={imageUrl} alt={step.title} />
+        </div>
       </div>
-
-      {/* 步骤标题 */}
-      <h3 className="text-title-md font-serif font-medium text-textDark mb-4">
-        {step.title}
-      </h3>
 
       {/* 步骤操作描述 */}
       <p className="text-base text-textDark leading-relaxed mb-4">
@@ -105,11 +156,13 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
 
       {/* 视觉状态检查 */}
       {step.visualCue && (
-        <div className="bg-orangeAccent/10 border-l-4 border-orangeAccent px-4 py-3 mb-4 rounded-sm">
+        <div className="bg-orangeAccent/8 border border-orangeAccent/30 px-4 py-3 mb-4 rounded-md shadow-sm">
           <div className="flex items-start gap-2">
-            <span className="text-lg">👀</span>
+            <span className="text-lg">✍️</span>
             <div>
-              <span className="text-sm font-medium text-brownDark">视觉检查：</span>
+              <span className="text-sm font-semibold text-brownDark">
+                {isEn ? "Check:" : "状态检查："}
+              </span>
               <span className="text-sm text-textDark ml-1">{step.visualCue}</span>
             </div>
           </div>
@@ -118,12 +171,14 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
 
       {/* 失败点提示 */}
       {step.failPoint && (
-        <div className="bg-red-50 border-l-4 border-red-400 px-4 py-3 mb-4 rounded-sm">
-          <div className="flex items-start gap-2">
+        <div className="bg-cream border border-red-200 px-4 py-3 mb-4 rounded-md">
+          <div className="flex items-start gap-2 text-red-700">
             <span className="text-lg">⚠️</span>
-            <div>
-              <span className="text-sm font-medium text-red-700">失败点：</span>
-              <span className="text-sm text-textDark ml-1">{step.failPoint}</span>
+            <div className="text-sm leading-relaxed">
+              <span className="font-semibold">
+                {isEn ? "Pitfall:" : "失败点："}
+              </span>
+              <span className="text-textDark ml-1">{step.failPoint}</span>
             </div>
           </div>
         </div>
@@ -133,7 +188,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
       {/* speechText 在全屏模式中使用，这里不显示 */}
 
       {/* 计时器 */}
-      {step.timerSec > 0 && (
+      {(step.timerSec ?? 0) > 0 && (
         <button
           onClick={startTimer}
           disabled={timerActive}
@@ -146,9 +201,15 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
         >
           <span className="mr-2">{timerActive ? "⏰" : "⏱️"}</span>
           {timerActive ? (
-            <>计时运行中 - {formatTime(timeLeft)}</>
+            <>
+              {isEn ? "Timer running" : "计时运行中"} - {formatTime(timeLeft ?? 0)}
+            </>
           ) : (
-            <>开启计时器 ({Math.floor(step.timerSec / 60)}分钟)</>
+            <>
+              {isEn ? "Start timer" : "开启计时器"} (
+              {Math.floor((step.timerSec ?? 0) / 60)}
+              {isEn ? " min" : "分钟"})
+            </>
           )}
         </button>
       )}

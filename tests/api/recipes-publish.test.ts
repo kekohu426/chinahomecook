@@ -1,28 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { PATCH } from "@/app/api/recipes/[id]/route";
+import { describe, it, expect, vi } from "vitest";
 
-const findUnique = vi.fn();
-const update = vi.fn();
-
-vi.mock("@/lib/db/prisma", () => ({
-  prisma: {
-    recipe: {
-      findUnique,
-      update,
-    },
-  },
+// Mock auth 模块避免 next-auth 模块解析问题
+vi.mock("@/lib/auth", () => ({
+  auth: vi.fn(() => Promise.resolve(null)),
 }));
 
-describe("PATCH /api/recipes/[id]", () => {
-  beforeEach(() => {
-    findUnique.mockReset();
-    update.mockReset();
-  });
+// Mock prisma
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {},
+}));
 
-  it("updates publish status when body is valid", async () => {
-    findUnique.mockResolvedValueOnce({ id: "1", isPublished: false });
-    update.mockResolvedValueOnce({ id: "1", isPublished: true });
+import { PATCH } from "@/app/api/recipes/[id]/route";
 
+describe("PATCH /api/recipes/[id] (deprecated)", () => {
+  it("returns 410 Gone status indicating the endpoint is deprecated", async () => {
     const request = new Request("http://localhost/api/recipes/1", {
       method: "PATCH",
       body: JSON.stringify({ isPublished: true }),
@@ -33,22 +24,8 @@ describe("PATCH /api/recipes/[id]", () => {
     });
     const json = await response.json();
 
-    expect(json.success).toBe(true);
-    expect(json.data.isPublished).toBe(true);
-  });
-
-  it("rejects invalid payload", async () => {
-    const request = new Request("http://localhost/api/recipes/1", {
-      method: "PATCH",
-      body: JSON.stringify({}),
-    });
-
-    const response = await PATCH(request as any, {
-      params: Promise.resolve({ id: "1" }),
-    });
-    const json = await response.json();
-
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(410);
     expect(json.success).toBe(false);
+    expect(json.error).toContain("废弃");
   });
 });
