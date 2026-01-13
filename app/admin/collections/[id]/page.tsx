@@ -515,7 +515,7 @@ export default function CollectionEditPage() {
     { id: "basic" as TabType, label: "基本信息", icon: Settings },
     { id: "rules" as TabType, label: "匹配规则", icon: Filter },
     { id: "content" as TabType, label: "内容管理", icon: FileText },
-    { id: "ai" as TabType, label: "AI 生成", icon: Sparkles },
+    { id: "ai" as TabType, label: "AI生成菜谱", icon: Sparkles },
     { id: "seo" as TabType, label: "SEO 设置", icon: Search },
   ];
 
@@ -767,33 +767,6 @@ export default function CollectionEditPage() {
                     )}
                   </div>
 
-                  {/* 描述 */}
-                  <div>
-                    <label className="block text-sm font-medium text-textDark mb-2">
-                      描述
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={3}
-                      placeholder="简短描述此聚合页的内容..."
-                      className="w-full px-4 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm"
-                    />
-                  </div>
-
-                  {/* 英文描述 */}
-                  <div>
-                    <label className="block text-sm font-medium text-textDark mb-2">
-                      英文描述
-                    </label>
-                    <textarea
-                      value={formData.descriptionEn}
-                      onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
-                      rows={3}
-                      placeholder="English description..."
-                      className="w-full px-4 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm"
-                    />
-                  </div>
                 </div>
 
                 {/* 右侧：封面图片和设置 */}
@@ -1105,6 +1078,45 @@ export default function CollectionEditPage() {
                     {generatingSeo ? "生成中..." : "一键生成"}
                   </button>
                 </div>
+              </div>
+
+              {/* 页面描述（从基本信息移过来） */}
+              <div className="border-t border-cream pt-6">
+                <h3 className="text-sm font-medium text-textDark mb-4">页面描述</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-textDark mb-2">
+                      描述（中文）
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                      placeholder={`介绍${collection.name}的特点...`}
+                      className="w-full px-4 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm"
+                    />
+                    <p className="text-xs text-textGray mt-1">
+                      显示在页面顶部的简介文字
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-textDark mb-2">
+                      描述（英文）
+                    </label>
+                    <textarea
+                      value={formData.descriptionEn}
+                      onChange={(e) => setFormData({ ...formData, descriptionEn: e.target.value })}
+                      rows={3}
+                      placeholder="Description in English..."
+                      className="w-full px-4 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SEO 设置 */}
+              <div className="border-t border-cream pt-6">
+                <h3 className="text-sm font-medium text-textDark mb-4">SEO 设置</h3>
               </div>
 
               <div>
