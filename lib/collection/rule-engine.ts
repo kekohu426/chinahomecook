@@ -87,6 +87,11 @@ function buildCustomRuleWhere(rules: CustomRuleConfig): RecipeWhereInput {
     }
   }
 
+  // 如果没有任何规则，返回一个永远不匹配的条件
+  if (conditions.length === 0 && excludeConditions.length === 0) {
+    return { id: { equals: "never-match-empty-rules" } };
+  }
+
   // 组合最终条件
   const result: RecipeWhereInput = {};
 

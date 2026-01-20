@@ -78,6 +78,7 @@ export default function CollectionsPage() {
   const typeFilter = searchParams.get("type") || "";
   const statusFilter = searchParams.get("status") || "";
   const qualifiedFilter = searchParams.get("qualified") || "";
+  const filter = searchParams.get("filter") || ""; // featured | landing
 
   const loadCollections = useCallback(async () => {
     setLoading(true);
@@ -88,6 +89,7 @@ export default function CollectionsPage() {
       if (typeFilter) params.set("type", typeFilter);
       if (statusFilter) params.set("status", statusFilter);
       if (qualifiedFilter) params.set("qualified", qualifiedFilter);
+      if (filter) params.set("filter", filter);
       if (searchQuery) params.set("search", searchQuery);
 
       const response = await fetch(`/api/admin/collections?${params}`);
@@ -104,7 +106,7 @@ export default function CollectionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [typeFilter, statusFilter, qualifiedFilter, searchQuery, page]);
+  }, [typeFilter, statusFilter, qualifiedFilter, filter, searchQuery, page]);
 
   useEffect(() => {
     loadCollections();
@@ -137,22 +139,35 @@ export default function CollectionsPage() {
 
   const hasFilters = typeFilter || statusFilter || qualifiedFilter || searchQuery;
 
+  // 获取页面标题
+  const getPageTitle = () => {
+    if (filter === "featured") return "⭐ 精品聚合页";
+    if (filter === "landing") return "📄 落地页";
+    return "二级聚合页管理";
+  };
+
+  const getPageDescription = () => {
+    if (filter === "featured") return "在一级聚合页展示的精品聚合页";
+    if (filter === "landing") return "不在一级聚合页展示的落地页（SEO流量入口）";
+    return "管理菜系、场景、口味等聚合页的内容和 SEO";
+  };
+
   return (
     <div>
       {/* 面包屑 */}
       <div className="text-sm text-textGray mb-4">
         <Link href="/admin" className="hover:text-brownWarm">配置</Link>
         <span className="mx-2">/</span>
-        <span className="text-textDark">二级聚合页管理</span>
+        <span className="text-textDark">{getPageTitle()}</span>
       </div>
 
       {/* 页头 */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif font-medium text-textDark mb-2">
-            二级聚合页管理
+            {getPageTitle()}
           </h1>
-          <p className="text-textGray">管理菜系、场景、口味等聚合页的内容和 SEO</p>
+          <p className="text-textGray">{getPageDescription()}</p>
         </div>
         <Link
           href="/admin/collections/new"
@@ -326,6 +341,9 @@ export default function CollectionsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-textGray uppercase tracking-wider">
                   状态
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-textGray uppercase tracking-wider">
+                  编辑时间
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-textGray uppercase tracking-wider">
                   操作
                 </th>
@@ -431,6 +449,9 @@ export default function CollectionsPage() {
                           {qualifiedInfo.icon} {qualifiedInfo.label}
                         </span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-textGray">
+                      {new Date(collection.updatedAt).toLocaleString("zh-CN")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">

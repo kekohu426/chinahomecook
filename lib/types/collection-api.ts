@@ -86,6 +86,7 @@ export interface CollectionListItem {
   path: string;
   status: CollectionStatus | string;
   coverImage: string | null;
+  sortOrder: number;
 
   // 数量统计（缓存）
   minRequired: number;
@@ -136,6 +137,14 @@ export interface CollectionDetail extends Omit<CollectionListItem, 'cachedMatche
   // 关联实体名称（方便展示）
   linkedEntityName?: string;  // 如 "川菜"、"减脂" 等
   linkedEntityType?: string;  // cuisine/location/tag
+
+  // 已加入的食谱列表（限制数量，避免过大）
+  recipes?: Array<{
+    id: string;
+    title: string;
+    status: string;
+    addMethod: "rule" | "manual" | "ai";  // 加入方式：规则匹配/手动添加/AI生成
+  }>;
 }
 
 export type CollectionDetailResponse = ApiResponse<CollectionDetail>;
@@ -170,6 +179,8 @@ export interface UpdateCollectionRequest {
   description?: string;
   descriptionEn?: string;
   coverImage?: string;
+  ruleType?: 'auto' | 'custom';
+  rules?: RuleConfig;
   minRequired?: number;
   targetCount?: number;
   sortOrder?: number;

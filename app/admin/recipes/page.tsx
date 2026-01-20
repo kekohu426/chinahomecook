@@ -2,29 +2,16 @@
  * 后台管理 - 食谱列表页
  *
  * 路由：/admin/recipes
- * 显示所有食谱，支持搜索、筛选、多选批量操作
+ * 显示所有食谱，支持搜索、筛选、编辑、删除
  */
 
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  SUPPORTED_LOCALES,
-  DEFAULT_LOCALE,
-  type Locale,
-} from "@/lib/i18n/config";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Loader2, CheckCircle, XCircle, Tag } from "lucide-react";
-
-interface Translation {
-  id: string;
-  locale: string;
-  isReviewed: boolean;
-  reviewedAt: string | null;
-}
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye, Edit2, Trash2 } from "lucide-react";
 
 // tags 按类型分组的格式
 type TagsByType = Record<string, { id: string; name: string; slug: string }[]>;
@@ -35,26 +22,35 @@ interface Recipe {
   slug: string;
   status: "draft" | "pending" | "published" | "archived";
   reviewStatus: "pending" | "approved" | "rejected";
-  reviewedAt: string | null;
   createdAt: string;
   cuisine: { id: string; name: string } | null;
   location: { id: string; name: string } | null;
+  collection: { id: string; name: string; type: string } | null;
   tags: TagsByType;
-  translations?: Translation[];
 }
 
-type BatchAction = "publish" | "unpublish" | "approve" | "reject" | "translate";
+interface CuisineOption {
+  id: string;
+  name: string;
+  slug: string;
+}
 
-interface TranslationProgress {
-  isOpen: boolean;
-  total: number;
-  current: number;
-  successCount: number;
-  failedCount: number;
-  currentTitle: string;
-  status: "idle" | "translating" | "complete";
-  results: { title: string; status: "success" | "failed"; error?: string }[];
-  autoApprove: boolean;
+interface LocationOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface CollectionOption {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface TagOption {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 const PAGE_SIZE = 20;
@@ -65,43 +61,50 @@ export default function RecipesListPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [reviewFilter, setReviewFilter] = useState<string>("all");
-  const [targetLocales, setTargetLocales] = useState<Locale[]>(
-    SUPPORTED_LOCALES.filter((loc) => loc !== DEFAULT_LOCALE) as Locale[]
-  );
+
+  // 新增筛选条件
+  const [cuisineFilter, setCuisineFilter] = useState<string>("all");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [collectionFilter, setCollectionFilter] = useState<string>("all");
+
+  // 标签筛选
+  const [sceneFilter, setSceneFilter] = useState<string>("all");
+  const [methodFilter, setMethodFilter] = useState<string>("all");
+  const [tasteFilter, setTasteFilter] = useState<string>("all");
+  const [crowdFilter, setCrowdFilter] = useState<string>("all");
+  const [occasionFilter, setOccasionFilter] = useState<string>("all");
+
+  // 筛选选项
+  const [cuisineOptions, setCuisineOptions] = useState<CuisineOption[]>([]);
+  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
+  const [collectionOptions, setCollectionOptions] = useState<CollectionOption[]>([]);
+
+  // 标签选项
+  const [sceneOptions, setSceneOptions] = useState<TagOption[]>([]);
+  const [methodOptions, setMethodOptions] = useState<TagOption[]>([]);
+  const [tasteOptions, setTasteOptions] = useState<TagOption[]>([]);
+  const [crowdOptions, setCrowdOptions] = useState<TagOption[]>([]);
+  const [occasionOptions, setOccasionOptions] = useState<TagOption[]>([]);
 
   // 分页状态
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-
-  // 多选状态
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchAction, setBatchAction] = useState<string>("");
   const [batchLoading, setBatchLoading] = useState(false);
-
-  // 翻译进度状态
-  const [translateProgress, setTranslateProgress] = useState<TranslationProgress>({
-    isOpen: false,
-    total: 0,
-    current: 0,
-    successCount: 0,
-    failedCount: 0,
-    currentTitle: "",
-    status: "idle",
-    results: [],
-    autoApprove: false,
-  });
 
   // 搜索防抖 (300ms)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const listAbortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1); // 搜索时重置页码
+      setPage(1);
     }, 300);
 
     return () => {
@@ -111,14 +114,43 @@ export default function RecipesListPage() {
     };
   }, [search]);
 
-  // 计算全选状态
-  const allSelected = useMemo(() => {
-    return recipes.length > 0 && selectedIds.size === recipes.length;
-  }, [recipes.length, selectedIds.size]);
+  // 加载筛选选项
+  useEffect(() => {
+    async function loadFilterOptions() {
+      try {
+        const [cuisinesRes, locationsRes, collectionsRes, tagsRes] =
+          await Promise.all([
+            fetch("/api/config/cuisines"),
+            fetch("/api/config/locations"),
+            fetch("/api/admin/collections?page=1&pageSize=200"),
+            fetch("/api/admin/config/tags/available"),
+          ]);
 
-  const someSelected = useMemo(() => {
-    return selectedIds.size > 0 && selectedIds.size < recipes.length;
-  }, [recipes.length, selectedIds.size]);
+        const [cuisinesData, locationsData, collectionsData, tagsData] =
+          await Promise.all([
+            cuisinesRes.json(),
+            locationsRes.json(),
+            collectionsRes.json(),
+            tagsRes.json(),
+          ]);
+
+        if (cuisinesData.success) setCuisineOptions(cuisinesData.data || []);
+        if (locationsData.success) setLocationOptions(locationsData.data || []);
+        if (collectionsData.success) setCollectionOptions(collectionsData.data || []);
+
+        if (tagsData.success && tagsData.data) {
+          setSceneOptions(tagsData.data.scenes || []);
+          setMethodOptions(tagsData.data.cookingMethods || []);
+          setTasteOptions(tagsData.data.tastes || []);
+          setCrowdOptions(tagsData.data.crowds || []);
+          setOccasionOptions(tagsData.data.occasions || []);
+        }
+      } catch (error) {
+        console.error("加载筛选选项失败:", error);
+      }
+    }
+    loadFilterOptions();
+  }, []);
 
   // 加载食谱列表
   const loadRecipes = useCallback(async () => {
@@ -131,13 +163,16 @@ export default function RecipesListPage() {
       params.append("page", page.toString());
       params.append("limit", PAGE_SIZE.toString());
       if (debouncedSearch) params.append("search", debouncedSearch);
-      if (statusFilter !== "all") {
-        params.append("status", statusFilter);
-      }
-      if (reviewFilter !== "all") {
-        params.append("reviewStatus", reviewFilter);
-      }
-      params.append("includeTranslations", "true");
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (cuisineFilter !== "all") params.append("cuisineId", cuisineFilter);
+      if (locationFilter !== "all") params.append("locationId", locationFilter);
+      if (collectionFilter !== "all") params.append("collectionId", collectionFilter);
+      // 标签筛选
+      if (sceneFilter !== "all") params.append("sceneId", sceneFilter);
+      if (methodFilter !== "all") params.append("methodId", methodFilter);
+      if (tasteFilter !== "all") params.append("tasteId", tasteFilter);
+      if (crowdFilter !== "all") params.append("crowdId", crowdFilter);
+      if (occasionFilter !== "all") params.append("occasionId", occasionFilter);
 
       const response = await fetch(`/api/admin/recipes?${params}`, {
         signal: controller.signal,
@@ -146,13 +181,10 @@ export default function RecipesListPage() {
 
       if (data.success) {
         setRecipes(data.data);
-        // 更新分页信息
         if (data.pagination) {
           setTotal(data.pagination.total);
           setTotalPages(data.pagination.totalPages);
         }
-        // 清空选择
-        setSelectedIds(new Set());
       }
     } catch (error) {
       if ((error as Error).name === "AbortError") {
@@ -164,225 +196,7 @@ export default function RecipesListPage() {
         setLoading(false);
       }
     }
-  }, [page, debouncedSearch, statusFilter, reviewFilter]);
-
-  // 切换单个选择
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  // 全选/取消全选
-  const toggleSelectAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(recipes.map((r) => r.id)));
-    }
-  };
-
-  // 流式批量翻译
-  const handleStreamTranslate = async (autoApprove: boolean) => {
-    if (selectedIds.size === 0) {
-      alert("请先选择食谱");
-      return;
-    }
-
-    if (targetLocales.length === 0) {
-      alert("请选择至少一个目标语言");
-      return;
-    }
-
-    // 打开进度弹窗
-    setTranslateProgress({
-      isOpen: true,
-      total: selectedIds.size,
-      current: 0,
-      successCount: 0,
-      failedCount: 0,
-      currentTitle: "",
-      status: "translating",
-      results: [],
-      autoApprove,
-    });
-
-    try {
-      const response = await fetch("/api/admin/recipes/batch/translate-stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recipeIds: Array.from(selectedIds),
-          targetLocales,
-          autoApprove,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("请求失败");
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error("无法读取响应流");
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let pendingData = "";
-
-      const handleEvent = (payload: string) => {
-        try {
-          const data = JSON.parse(payload);
-
-          if (data.type === "translating") {
-            setTranslateProgress((prev) => ({
-              ...prev,
-              current: data.current,
-              currentTitle: data.title,
-            }));
-          } else if (data.type === "progress") {
-            setTranslateProgress((prev) => ({
-              ...prev,
-              current: data.current,
-              successCount: data.successCount,
-              failedCount: data.failedCount,
-              currentTitle: data.title,
-              results: [
-                ...prev.results,
-                {
-                  title: data.title,
-                  status: data.status,
-                  error: data.error,
-                },
-              ],
-            }));
-          } else if (data.type === "complete") {
-            setTranslateProgress((prev) => ({
-              ...prev,
-              status: "complete",
-              successCount: data.successCount,
-              failedCount: data.failedCount,
-            }));
-          }
-        } catch {
-          // 忽略解析错误
-        }
-      };
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex = buffer.indexOf("\n");
-        while (newlineIndex >= 0) {
-          const line = buffer.slice(0, newlineIndex).replace(/\r$/, "");
-          buffer = buffer.slice(newlineIndex + 1);
-
-          if (line === "") {
-            if (pendingData) {
-              handleEvent(pendingData);
-              pendingData = "";
-            }
-          } else if (line.startsWith("data:")) {
-            const dataLine = line.slice(5).trimStart();
-            pendingData = pendingData ? `${pendingData}\n${dataLine}` : dataLine;
-          }
-
-          newlineIndex = buffer.indexOf("\n");
-        }
-      }
-
-      if (pendingData) {
-        handleEvent(pendingData);
-      }
-    } catch (error) {
-      console.error("批量翻译失败:", error);
-      setTranslateProgress((prev) => ({
-        ...prev,
-        status: "complete",
-      }));
-      alert("批量翻译失败");
-    }
-  };
-
-  // 关闭翻译进度弹窗
-  const closeTranslateProgress = () => {
-    setTranslateProgress((prev) => ({
-      ...prev,
-      isOpen: false,
-    }));
-    loadRecipes();
-    setSelectedIds(new Set());
-  };
-
-  // 批量操作
-  const handleBatchAction = async (action: BatchAction) => {
-    if (selectedIds.size === 0) {
-      alert("请先选择食谱");
-      return;
-    }
-
-    const actionLabels: Record<BatchAction, string> = {
-      publish: "发布",
-      unpublish: "下架",
-      approve: "审核通过",
-      reject: "审核拒绝",
-      translate: "翻译",
-    };
-
-    // 拒绝操作需要输入原因
-    let rejectReason: string | undefined;
-    if (action === "reject") {
-      const reason = prompt(`请输入拒绝 ${selectedIds.size} 个食谱的原因（可选）:`);
-      if (reason === null) {
-        // 用户点击取消
-        return;
-      }
-      rejectReason = reason || undefined;
-    } else if (
-      !confirm(`确定要${actionLabels[action]}选中的 ${selectedIds.size} 个食谱吗？`)
-    ) {
-      return;
-    }
-
-    setBatchLoading(true);
-    try {
-      const response = await fetch("/api/admin/recipes/batch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          recipeIds: Array.from(selectedIds),
-          targetLocales: action === "translate" ? targetLocales : undefined,
-          autoApprove: false,
-          rejectReason,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert(data.message);
-        loadRecipes();
-      } else {
-        alert(data.message || data.error || "操作失败");
-      }
-    } catch (error) {
-      console.error("批量操作失败:", error);
-      alert("批量操作失败");
-    } finally {
-      setBatchLoading(false);
-    }
-  };
+  }, [page, debouncedSearch, statusFilter, cuisineFilter, locationFilter, collectionFilter, sceneFilter, methodFilter, tasteFilter, crowdFilter, occasionFilter]);
 
   // 删除食谱
   const handleDelete = async (id: string, title: string) => {
@@ -404,43 +218,10 @@ export default function RecipesListPage() {
     }
   };
 
-  // 发布/下架
-  const handleTogglePublish = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "published" ? "draft" : "published";
-    try {
-      const response = await fetch(`/api/admin/recipes/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        alert("更新状态失败");
-        return;
-      }
-
-      loadRecipes();
-    } catch (error) {
-      console.error("更新发布状态失败:", error);
-      alert("更新状态失败");
-    }
-  };
-
-  // 获取翻译状态图标
-  const getTranslationStatus = (
-    translations: Translation[] | undefined,
-    locale: string
-  ) => {
-    if (!translations) return "none";
-    const t = translations.find((t) => t.locale === locale);
-    if (!t) return "none";
-    return t.isReviewed ? "reviewed" : "pending";
-  };
-
   // 筛选条件变化时重置页码
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, reviewFilter]);
+  }, [statusFilter, cuisineFilter, locationFilter, collectionFilter, sceneFilter, methodFilter, tasteFilter, crowdFilter, occasionFilter]);
 
   useEffect(() => {
     loadRecipes();
@@ -451,6 +232,93 @@ export default function RecipesListPage() {
       listAbortRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    const ids = new Set(recipes.map((r) => r.id));
+    setSelectedIds((prev) => new Set([...prev].filter((id) => ids.has(id))));
+  }, [recipes]);
+
+  const toggleSelectAll = () => {
+    if (recipes.length === 0) return;
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = recipes.every((r) => next.has(r.id));
+      if (allSelected) {
+        recipes.forEach((r) => next.delete(r.id));
+      } else {
+        recipes.forEach((r) => next.add(r.id));
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleBatchAction = async () => {
+    if (!batchAction) {
+      alert("请选择批量操作类型");
+      return;
+    }
+    if (selectedIds.size === 0) {
+      alert("请先选择食谱");
+      return;
+    }
+
+    let rejectReason: string | undefined;
+    if (batchAction === "reject") {
+      const reason = prompt("请输入拒绝原因（可选）:");
+      if (reason === null) return;
+      rejectReason = reason.trim() || undefined;
+    } else {
+      const actionLabelMap: Record<string, string> = {
+        publish: "发布",
+        unpublish: "下架",
+        approve: "审核通过",
+        reject: "拒绝",
+      };
+      if (!confirm(`确定要批量${actionLabelMap[batchAction] || "操作"}所选食谱吗？`)) {
+        return;
+      }
+    }
+
+    setBatchLoading(true);
+    try {
+      const response = await fetch("/api/admin/recipes/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: batchAction,
+          recipeIds: Array.from(selectedIds),
+          rejectReason,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || data.error || "批量操作失败");
+      }
+
+      alert(data.message || "批量操作成功");
+      setSelectedIds(new Set());
+      setBatchAction("");
+      loadRecipes();
+    } catch (error) {
+      console.error("批量操作失败:", error);
+      alert(error instanceof Error ? error.message : "批量操作失败");
+    } finally {
+      setBatchLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -471,170 +339,138 @@ export default function RecipesListPage() {
             </Button>
           </Link>
         </div>
-
-        {/* 快捷导航 */}
-        <div className="flex gap-3">
-          <Link
-            href="/admin/generate"
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm rounded-lg transition-all"
-          >
-            AI生成菜谱
-          </Link>
-        <Link
-          href="/admin/review/recipes"
-          className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 text-sm rounded-lg transition-colors"
-        >
-          审核管理
-        </Link>
-          <Link
-            href="/admin/config"
-            className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 text-sm rounded-lg transition-colors"
-          >
-            配置管理
-          </Link>
-          <Link
-            href="/"
-            className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 text-sm rounded-lg transition-colors"
-          >
-            返回首页
-          </Link>
-        </div>
       </div>
 
       {/* 筛选工具栏 */}
-      <div className="bg-white rounded-md shadow-card p-4 mb-4 flex flex-wrap gap-4">
-        <Input
-          placeholder="搜索食谱名称..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-[200px]"
-        />
+      <div className="bg-white rounded-md shadow-card p-4 mb-4">
+        <div className="flex flex-wrap gap-3">
+          <Input
+            placeholder="搜索食谱名称..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-[200px]"
+          />
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-sm"
-        >
-          <option value="all">全部发布状态</option>
-          <option value="published">已发布</option>
-          <option value="draft">草稿</option>
-          <option value="pending">待发布</option>
-          <option value="archived">已归档</option>
-        </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部状态</option>
+            <option value="published">已发布</option>
+            <option value="draft">草稿</option>
+            <option value="pending">待审核</option>
+            <option value="archived">已归档</option>
+          </select>
 
-        <select
-          value={reviewFilter}
-          onChange={(e) => setReviewFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-sm"
-        >
-          <option value="all">全部审核状态</option>
-          <option value="approved">已审核</option>
-          <option value="pending">待审核</option>
-          <option value="rejected">已拒绝</option>
-        </select>
+          <select
+            value={cuisineFilter}
+            onChange={(e) => setCuisineFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部菜系</option>
+            {cuisineOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
 
-        <div className="flex items-center gap-2 text-sm text-textGray">
-          <span className="whitespace-nowrap">翻译目标:</span>
-          {SUPPORTED_LOCALES.filter((loc) => loc !== DEFAULT_LOCALE).map(
-            (loc) => {
-              const checked = targetLocales.includes(loc as Locale);
-              return (
-                <label
-                  key={loc}
-                  className="flex items-center gap-1 px-2 py-1 border border-gray-200 rounded cursor-pointer hover:bg-gray-50"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => {
-                      setTargetLocales((prev) =>
-                        e.target.checked
-                          ? [...prev, loc as Locale]
-                          : prev.filter((l) => l !== loc)
-                      );
-                    }}
-                  />
-                  <span>{loc.toUpperCase()}</span>
-                </label>
-              );
-            }
-          )}
+          <select
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部地点</option>
+            {locationOptions.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={collectionFilter}
+            onChange={(e) => setCollectionFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部聚合页</option>
+            {collectionOptions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.type})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 标签筛选 */}
+        <div className="flex flex-wrap gap-3 mt-3 pt-3 border-t border-gray-100">
+          <select
+            value={sceneFilter}
+            onChange={(e) => setSceneFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部场景</option>
+            {sceneOptions.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={methodFilter}
+            onChange={(e) => setMethodFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部烹饪方法</option>
+            {methodOptions.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={tasteFilter}
+            onChange={(e) => setTasteFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部口味</option>
+            {tasteOptions.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={crowdFilter}
+            onChange={(e) => setCrowdFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部人群</option>
+            {crowdOptions.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={occasionFilter}
+            onChange={(e) => setOccasionFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+          >
+            <option value="all">全部场合</option>
+            {occasionOptions.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
-
-      {/* 批量操作栏 */}
-      {selectedIds.size > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4 flex items-center gap-4">
-          <span className="text-blue-700 font-medium">
-            已选择 {selectedIds.size} 项
-          </span>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleBatchAction("approve")}
-              disabled={batchLoading}
-              className="text-green-600 border-green-300 hover:bg-green-50"
-            >
-              批量审核通过
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleBatchAction("publish")}
-              disabled={batchLoading}
-              className="text-blue-600 border-blue-300 hover:bg-blue-50"
-            >
-              批量发布
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleBatchAction("unpublish")}
-              disabled={batchLoading}
-              className="text-gray-600 border-gray-300 hover:bg-gray-50"
-            >
-              批量下架
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleStreamTranslate(false)}
-              disabled={batchLoading || translateProgress.status === "translating"}
-              className="text-purple-600 border-purple-300 hover:bg-purple-50"
-            >
-              批量翻译 ({targetLocales.map((l) => l.toUpperCase()).join(", ")})
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleStreamTranslate(true)}
-              disabled={batchLoading || translateProgress.status === "translating"}
-              className="text-indigo-600 border-indigo-300 hover:bg-indigo-50"
-              title="翻译后自动审核通过"
-            >
-              翻译+审核
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleBatchAction("reject")}
-              disabled={batchLoading}
-              className="text-red-600 border-red-300 hover:bg-red-50"
-            >
-              批量拒绝
-            </Button>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setSelectedIds(new Set())}
-            className="ml-auto"
-          >
-            取消选择
-          </Button>
-        </div>
-      )}
 
       {/* 食谱列表 */}
       {loading ? (
@@ -651,31 +487,62 @@ export default function RecipesListPage() {
         </div>
       ) : (
         <div className="bg-white rounded-md shadow-card overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b bg-gray-50">
+            <div className="flex items-center gap-3 text-sm text-textGray">
+              <span>已选 {selectedIds.size} 条</span>
+              <button
+                type="button"
+                onClick={() => setSelectedIds(new Set())}
+                className="text-brownWarm hover:underline"
+              >
+                清空选择
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={batchAction}
+                onChange={(e) => setBatchAction(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-sm text-sm"
+              >
+                <option value="">批量操作</option>
+                <option value="approve">审核通过</option>
+                <option value="reject">审核拒绝</option>
+                <option value="publish">发布</option>
+                <option value="unpublish">下架为草稿</option>
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleBatchAction}
+                disabled={batchLoading}
+              >
+                {batchLoading ? "处理中..." : "执行"}
+              </Button>
+            </div>
+          </div>
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-4 py-3 text-left w-12">
-                  <Checkbox
-                    checked={allSelected}
-                    // @ts-ignore - indeterminate is valid but not in types
-                    data-state={someSelected ? "indeterminate" : allSelected ? "checked" : "unchecked"}
-                    onCheckedChange={toggleSelectAll}
+                <th className="px-4 py-3 text-left text-sm font-medium text-textDark w-10">
+                  <input
+                    type="checkbox"
+                    checked={recipes.length > 0 && recipes.every((r) => selectedIds.has(r.id))}
+                    onChange={toggleSelectAll}
+                    className="h-4 w-4"
                   />
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
                   食谱名称
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  标签
+                  分类/标签
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  审核状态
+                  聚合页
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  发布状态
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  翻译状态
+                  状态
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
                   创建时间
@@ -687,16 +554,13 @@ export default function RecipesListPage() {
             </thead>
             <tbody className="divide-y">
               {recipes.map((recipe) => (
-                <tr
-                  key={recipe.id}
-                  className={`hover:bg-gray-50 ${
-                    selectedIds.has(recipe.id) ? "bg-blue-50" : ""
-                  }`}
-                >
+                <tr key={recipe.id} className="hover:bg-gray-50">
                   <td className="px-4 py-4">
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       checked={selectedIds.has(recipe.id)}
-                      onCheckedChange={() => toggleSelect(recipe.id)}
+                      onChange={() => toggleSelectOne(recipe.id)}
+                      className="h-4 w-4"
                     />
                   </td>
                   <td className="px-4 py-4">
@@ -731,7 +595,7 @@ export default function RecipesListPage() {
                         </span>
                       ))}
                       {/* 烹饪方法标签 */}
-                      {recipe.tags?.cooking_method?.slice(0, 1).map((tag) => (
+                      {recipe.tags?.method?.slice(0, 1).map((tag) => (
                         <span
                           key={tag.id}
                           className="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-700"
@@ -760,75 +624,36 @@ export default function RecipesListPage() {
                     </div>
                   </td>
                   <td className="px-4 py-4">
-                    {recipe.reviewStatus === "approved" ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-sm">
-                        已审核
-                      </span>
-                    ) : recipe.reviewStatus === "rejected" ? (
-                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-sm">
-                        已拒绝
-                      </span>
+                    {recipe.collection ? (
+                      <Link
+                        href={`/admin/collections/${recipe.collection.id}`}
+                        className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded hover:bg-indigo-200"
+                      >
+                        {recipe.collection.name}
+                      </Link>
                     ) : (
-                      <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-sm">
-                        待审核
-                      </span>
+                      <span className="text-gray-400 text-xs">-</span>
                     )}
                   </td>
                   <td className="px-4 py-4">
-                    {recipe.status === "published" ? (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-sm">
-                        已发布
-                      </span>
-                    ) : recipe.status === "archived" ? (
-                      <span className="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded-sm">
-                        已归档
-                      </span>
-                    ) : recipe.status === "pending" ? (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-sm">
-                        待发布
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-sm">
-                        草稿
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex gap-2">
-                      {SUPPORTED_LOCALES.filter(
-                        (loc) => loc !== DEFAULT_LOCALE
-                      ).map((loc) => {
-                        const status = getTranslationStatus(
-                          recipe.translations,
-                          loc
-                        );
-                        return (
-                          <span
-                            key={loc}
-                            className={`px-2 py-1 text-xs rounded-sm ${
-                              status === "reviewed"
-                                ? "bg-green-100 text-green-700"
-                                : status === "pending"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-gray-100 text-gray-400"
-                            }`}
-                            title={
-                              status === "reviewed"
-                                ? "已审核"
-                                : status === "pending"
-                                ? "待审核"
-                                : "未翻译"
-                            }
-                          >
-                            {loc.toUpperCase()}
-                            {status === "reviewed"
-                              ? " ✓"
-                              : status === "pending"
-                              ? " ⏳"
-                              : " ✗"}
-                          </span>
-                        );
-                      })}
+                    <div className="flex flex-col gap-1">
+                      {recipe.status === "published" ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-sm inline-block w-fit">
+                          已发布
+                        </span>
+                      ) : recipe.status === "archived" ? (
+                        <span className="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded-sm inline-block w-fit">
+                          已归档
+                        </span>
+                      ) : recipe.status === "pending" ? (
+                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-sm inline-block w-fit">
+                          待审核
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-sm inline-block w-fit">
+                          草稿
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-4 text-sm text-textGray">
@@ -836,33 +661,24 @@ export default function RecipesListPage() {
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex gap-2 justify-end">
-                      <Link href={`/recipe/${recipe.id}`}>
-                        <Button variant="outline" size="sm">
-                          查看
+                      <Link href={`/admin/recipes/${recipe.id}/preview`} target="_blank">
+                        <Button variant="outline" size="sm" title="预览">
+                          <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
                       <Link href={`/admin/recipes/${recipe.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          编辑
+                        <Button variant="outline" size="sm" title="编辑">
+                          <Edit2 className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          handleTogglePublish(recipe.id, recipe.status)
-                        }
-                        className="text-brownWarm hover:text-brownWarm/90 hover:bg-cream"
-                      >
-                        {recipe.status === "published" ? "下架" : "发布"}
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleDelete(recipe.id, recipe.title)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="删除"
                       >
-                        删除
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </td>
@@ -920,111 +736,6 @@ export default function RecipesListPage() {
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* 翻译进度弹窗 */}
-      {translateProgress.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
-            {/* 弹窗头部 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b">
-              <h3 className="text-lg font-medium text-textDark">
-                批量翻译{translateProgress.autoApprove ? " (自动审核)" : ""}
-              </h3>
-              {translateProgress.status === "complete" && (
-                <button
-                  onClick={closeTranslateProgress}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-
-            {/* 进度条 */}
-            <div className="px-6 py-4">
-              <div className="flex items-center justify-between mb-2 text-sm">
-                <span className="text-textGray">
-                  {translateProgress.status === "translating"
-                    ? `正在翻译: ${translateProgress.currentTitle}`
-                    : "翻译完成"}
-                </span>
-                <span className="text-textDark font-medium">
-                  {translateProgress.current} / {translateProgress.total}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    translateProgress.status === "complete"
-                      ? "bg-green-500"
-                      : "bg-purple-500"
-                  }`}
-                  style={{
-                    width: `${
-                      translateProgress.total > 0
-                        ? (translateProgress.current / translateProgress.total) * 100
-                        : 0
-                    }%`,
-                  }}
-                />
-              </div>
-
-              {/* 统计信息 */}
-              <div className="flex items-center gap-4 mt-4 text-sm">
-                <div className="flex items-center gap-1 text-green-600">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>成功 {translateProgress.successCount}</span>
-                </div>
-                <div className="flex items-center gap-1 text-red-600">
-                  <XCircle className="h-4 w-4" />
-                  <span>失败 {translateProgress.failedCount}</span>
-                </div>
-                {translateProgress.status === "translating" && (
-                  <div className="flex items-center gap-1 text-purple-600 ml-auto">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>翻译中...</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 结果列表 */}
-            {translateProgress.results.length > 0 && (
-              <div className="px-6 pb-4">
-                <div className="text-sm text-textGray mb-2">翻译结果:</div>
-                <div className="max-h-48 overflow-y-auto border rounded-md divide-y">
-                  {translateProgress.results.map((result, index) => (
-                    <div
-                      key={index}
-                      className={`px-3 py-2 flex items-center justify-between text-sm ${
-                        result.status === "failed" ? "bg-red-50" : ""
-                      }`}
-                    >
-                      <span className="truncate flex-1">{result.title}</span>
-                      {result.status === "success" ? (
-                        <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      ) : (
-                        <span className="text-red-500 text-xs flex-shrink-0 ml-2">
-                          {result.error || "失败"}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 弹窗底部 */}
-            {translateProgress.status === "complete" && (
-              <div className="px-6 py-4 border-t bg-gray-50 flex justify-end">
-                <Button onClick={closeTranslateProgress}>
-                  关闭
-                </Button>
-              </div>
-            )}
-          </div>
         </div>
       )}
     </div>

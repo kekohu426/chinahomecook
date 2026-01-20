@@ -17,6 +17,8 @@ import {
   Eye,
 } from "lucide-react";
 
+import { MapPin, Globe } from "lucide-react";
+
 // 标签类型配置
 const TAG_TYPES = {
   scene: {
@@ -24,30 +26,49 @@ const TAG_TYPES = {
     icon: ChefHat,
     apiPath: "scenes",
     description: "用餐场景，如早餐、午餐、下午茶等",
+    isConfig: false,
   },
   method: {
     label: "烹饪方法",
     icon: Utensils,
     apiPath: "cooking-methods",
     description: "烹饪方式，如炒、煮、蒸、烤等",
+    isConfig: false,
   },
   taste: {
     label: "口味",
     icon: Heart,
     apiPath: "tastes",
     description: "口味特征，如甜、咸、辣、麻辣等",
+    isConfig: false,
   },
   crowd: {
     label: "适宜人群",
     icon: Users,
     apiPath: "crowds",
     description: "适合的人群，如儿童、老人、健身人群等",
+    isConfig: false,
   },
   occasion: {
     label: "场合",
     icon: Calendar,
     apiPath: "occasions",
     description: "适合的场合，如春节、生日聚会、日常等",
+    isConfig: false,
+  },
+  cuisine: {
+    label: "菜系",
+    icon: Globe,
+    apiPath: "cuisines",
+    description: "菜系分类，如川菜、粤菜、湘菜等",
+    isConfig: true,
+  },
+  location: {
+    label: "地点",
+    icon: MapPin,
+    apiPath: "locations",
+    description: "地理位置，如四川、广东、湖南等",
+    isConfig: true,
   },
 } as const;
 
@@ -91,6 +112,8 @@ export default function TagsConfigPage() {
     taste: 0,
     crowd: 0,
     occasion: 0,
+    cuisine: 0,
+    location: 0,
   });
 
   // 翻译相关状态
@@ -134,7 +157,10 @@ export default function TagsConfigPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}`);
+      const config = TAG_TYPES[activeTab];
+      // 菜系和地点使用不同的 API 路径
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
+      const res = await fetch(`${apiBase}/${config.apiPath}`);
       const data = await res.json();
       if (data.success) {
         setTags(data.data);
@@ -178,9 +204,11 @@ export default function TagsConfigPage() {
 
     setSaving(true);
     try {
+      const config = TAG_TYPES[activeTab];
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
       const endpoint = editingItem
-        ? `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}/${editingItem.id}`
-        : `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}`;
+        ? `${apiBase}/${config.apiPath}/${editingItem.id}`
+        : `${apiBase}/${config.apiPath}`;
       const method = editingItem ? "PUT" : "POST";
 
       const res = await fetch(endpoint, {
@@ -216,8 +244,10 @@ export default function TagsConfigPage() {
     if (!confirm("确定要删除这个标签吗？")) return;
 
     try {
+      const config = TAG_TYPES[activeTab];
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
       const res = await fetch(
-        `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}/${id}`,
+        `${apiBase}/${config.apiPath}/${id}`,
         { method: "DELETE" }
       );
 
@@ -233,8 +263,10 @@ export default function TagsConfigPage() {
 
   async function toggleActive(item: TagItem) {
     try {
+      const config = TAG_TYPES[activeTab];
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
       const res = await fetch(
-        `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}/${item.id}`,
+        `${apiBase}/${config.apiPath}/${item.id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -261,8 +293,10 @@ export default function TagsConfigPage() {
   async function loadTranslations(id: string) {
     setLoadingTranslations(true);
     try {
+      const config = TAG_TYPES[activeTab];
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
       const res = await fetch(
-        `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}/${id}/translations`
+        `${apiBase}/${config.apiPath}/${id}/translations`
       );
       const data = await res.json();
       if (data.success) {
@@ -304,8 +338,10 @@ export default function TagsConfigPage() {
 
     setSavingTranslation(true);
     try {
+      const config = TAG_TYPES[activeTab];
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
       const res = await fetch(
-        `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}/${translatingItem.id}/translations`,
+        `${apiBase}/${config.apiPath}/${translatingItem.id}/translations`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -333,8 +369,10 @@ export default function TagsConfigPage() {
     if (!confirm(`确定要删除 ${translationLocale} 翻译吗？`)) return;
 
     try {
+      const config = TAG_TYPES[activeTab];
+      const apiBase = config.isConfig ? "/api/config" : "/api/admin/config/tags";
       const res = await fetch(
-        `/api/admin/config/tags/${TAG_TYPES[activeTab].apiPath}/${translatingItem.id}/translations?locale=${translationLocale}`,
+        `${apiBase}/${config.apiPath}/${translatingItem.id}/translations?locale=${translationLocale}`,
         { method: "DELETE" }
       );
 
@@ -362,6 +400,8 @@ export default function TagsConfigPage() {
         taste: "taste",
         crowd: "crowd",
         occasion: "occasion",
+        cuisine: "cuisine",
+        location: "location",
       };
       const queryType = typeMap[activeTab] || "scene";
 

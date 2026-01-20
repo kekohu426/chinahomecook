@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Sparkles, Loader2, CheckCircle, XCircle, List } from "lucide-react";
 
@@ -14,12 +14,34 @@ interface Cuisine {
   name: string;
 }
 
+const SINGLE_STAGES = [
+  { label: "准备任务", detail: "校验输入并组装提示词" },
+  { label: "生成菜谱文本", detail: "调用 AI 生成结构化内容" },
+  { label: "清洗与校验", detail: "解析 JSON、补全字段、校验 Schema" },
+  { label: "生成图片", detail: "生成封面/步骤图并转存" },
+  { label: "保存入库", detail: "写入数据库并建立索引" },
+  { label: "完成", detail: "生成结束，等待审核" },
+];
+
+const BATCH_STAGES = [
+  { label: "准备任务", detail: "设置参数并创建请求" },
+  { label: "生成菜谱文本", detail: "调用 AI 生成结构化内容" },
+  { label: "清洗与校验", detail: "解析 JSON、补全字段、校验 Schema" },
+  { label: "生成图片", detail: "生成封面/步骤图并转存" },
+  { label: "保存入库", detail: "写入数据库并建立索引" },
+];
+
 export default function GeneratePage() {
   const [mode, setMode] = useState<"single" | "batch">("single");
   const [locations, setLocations] = useState<Location[]>([]);
   const [cuisines, setCuisines] = useState<Cuisine[]>([]);
   const [batchProgress, setBatchProgress] = useState<
-    Array<{ dishName: string; status: "pending" | "generating" | "success" | "failed"; error?: string }>
+    Array<{
+      dishName: string;
+      status: "pending" | "generating" | "success" | "failed";
+      error?: string;
+      warning?: string;
+    }>
   >([]);
 
   // 单个生成表单
@@ -39,6 +61,14 @@ export default function GeneratePage() {
 
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [singleStageIndex, setSingleStageIndex] = useState<number | null>(null);
+  const [singleStartedAt, setSingleStartedAt] = useState<number | null>(null);
+  const [batchStageIndex, setBatchStageIndex] = useState<number | null>(null);
+  const [batchStageDish, setBatchStageDish] = useState<string | null>(null);
+  const [batchStageStatus, setBatchStageStatus] = useState<"running" | "success" | "failed" | null>(null);
+  const [batchStartedAt, setBatchStartedAt] = useState<number | null>(null);
+  const singleStageTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const batchStageTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadConfigs();
@@ -73,6 +103,18 @@ export default function GeneratePage() {
 
     setGenerating(true);
     setResult(null);
+    setSingleStageIndex(0);
+    setSingleStartedAt(Date.now());
+    if (singleStageTimerRef.current) {
+      clearInterval(singleStageTimerRef.current);
+    }
+    singleStageTimerRef.current = setInterval(() => {
+      setSingleStageIndex((prev) => {
+        if (prev === null) return prev;
+        const max = SINGLE_STAGES.length - 2;
+        return prev >= max ? prev : prev + 1;
+      });
+    }, 4000);
 
     try {
       const res = await fetch("/api/ai/generate-recipe", {
@@ -96,6 +138,8 @@ export default function GeneratePage() {
           success: true,
           message: data.message,
           recipe: data.data,
+          warning: data.warning,
+          stats: data.stats,
         });
         // 清空表单
         setSingleForm({
@@ -118,6 +162,10 @@ export default function GeneratePage() {
       });
     } finally {
       setGenerating(false);
+      if (singleStageTimerRef.current) {
+        clearInterval(singleStageTimerRef.current);
+      }
+      setSingleStageIndex(SINGLE_STAGES.length - 1);
     }
   }
 
@@ -144,6 +192,7 @@ export default function GeneratePage() {
     setBatchProgress(
       dishNames.map((dishName) => ({ dishName, status: "pending" }))
     );
+    setBatchStartedAt(Date.now());
 
     let successCount = 0;
     let failedCount = 0;
@@ -158,6 +207,19 @@ export default function GeneratePage() {
             : item
         )
       );
+      setBatchStageDish(dishName);
+      setBatchStageIndex(0);
+      setBatchStageStatus("running");
+      if (batchStageTimerRef.current) {
+        clearInterval(batchStageTimerRef.current);
+      }
+      batchStageTimerRef.current = setInterval(() => {
+        setBatchStageIndex((prev) => {
+          if (prev === null) return prev;
+          const max = BATCH_STAGES.length - 1;
+          return prev >= max ? prev : prev + 1;
+        });
+      }, 3500);
 
       try {
         const res = await fetch("/api/ai/generate-recipe", {
@@ -179,10 +241,11 @@ export default function GeneratePage() {
           setBatchProgress((prev) =>
             prev.map((item) =>
               item.dishName === dishName
-                ? { ...item, status: "success" }
+                ? { ...item, status: "success", warning: data.warning }
                 : item
             )
           );
+          setBatchStageStatus("success");
         } else {
           failedCount += 1;
           results.push({ dishName, success: false, error: data.error });
@@ -193,6 +256,7 @@ export default function GeneratePage() {
                 : item
             )
           );
+          setBatchStageStatus("failed");
         }
       } catch (error) {
         failedCount += 1;
@@ -204,7 +268,12 @@ export default function GeneratePage() {
               : item
           )
         );
+        setBatchStageStatus("failed");
       }
+      if (batchStageTimerRef.current) {
+        clearInterval(batchStageTimerRef.current);
+      }
+      setBatchStageIndex(BATCH_STAGES.length - 1);
     }
 
     setResult({
@@ -227,7 +296,17 @@ export default function GeneratePage() {
       cuisine: "",
     });
     setGenerating(false);
+    setBatchStageDish(null);
+    setBatchStageIndex(null);
+    setBatchStageStatus(null);
   }
+
+  useEffect(() => {
+    return () => {
+      if (singleStageTimerRef.current) clearInterval(singleStageTimerRef.current);
+      if (batchStageTimerRef.current) clearInterval(batchStageTimerRef.current);
+    };
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -376,6 +455,56 @@ export default function GeneratePage() {
                 </>
               )}
             </button>
+
+            {(generating || singleStageIndex !== null) && (
+              <div className="mt-6 bg-sage-50 border border-sage-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-sage-700">生成进度</span>
+                  {singleStartedAt && (
+                    <span className="text-xs text-sage-500">
+                      已用时 {Math.max(1, Math.round((Date.now() - singleStartedAt) / 1000))} 秒
+                    </span>
+                  )}
+                </div>
+                <ol className="space-y-2">
+                  {SINGLE_STAGES.map((stage, idx) => {
+                    const status =
+                      singleStageIndex === null
+                        ? "pending"
+                        : idx < singleStageIndex
+                        ? "done"
+                        : idx === singleStageIndex
+                        ? "current"
+                        : "pending";
+                    return (
+                      <li key={stage.label} className="flex items-start gap-3">
+                        <span
+                          className={`mt-1 h-2.5 w-2.5 rounded-full ${
+                            status === "done"
+                              ? "bg-green-500"
+                              : status === "current"
+                              ? "bg-purple-500"
+                              : "bg-sage-300"
+                          }`}
+                        />
+                        <div>
+                          <div className="text-sm text-sage-700">
+                            {stage.label}
+                            {status === "current" ? " · 进行中" : status === "done" ? " · 完成" : ""}
+                          </div>
+                          <div className="text-xs text-sage-500">{stage.detail}</div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+                {result?.stats && (
+                  <div className="mt-3 text-xs text-sage-600">
+                    生成图片：步骤图 {result.stats.stepImages} 张，成品图 {result.stats.coverImages} 张
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </form>
       )}
@@ -481,6 +610,57 @@ export default function GeneratePage() {
               <h3 className="text-sm font-medium text-sage-700 mb-4">
                 生成进度
               </h3>
+              {(batchStageDish || batchStageIndex !== null) && (
+                <div className="mb-4 p-3 bg-sage-50 border border-sage-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-sage-700">
+                      当前任务：{batchStageDish || "处理中"}
+                    </span>
+                    {batchStartedAt && (
+                      <span className="text-xs text-sage-500">
+                        已用时 {Math.max(1, Math.round((Date.now() - batchStartedAt) / 1000))} 秒
+                      </span>
+                    )}
+                  </div>
+                  <ol className="space-y-2">
+                    {BATCH_STAGES.map((stage, idx) => {
+                      const status =
+                        batchStageIndex === null
+                          ? "pending"
+                          : idx < batchStageIndex
+                          ? "done"
+                          : idx === batchStageIndex
+                          ? "current"
+                          : "pending";
+                      return (
+                        <li key={stage.label} className="flex items-start gap-3">
+                          <span
+                            className={`mt-1 h-2.5 w-2.5 rounded-full ${
+                              status === "done"
+                                ? "bg-green-500"
+                                : status === "current"
+                                ? "bg-purple-500"
+                                : "bg-sage-300"
+                            }`}
+                          />
+                          <div>
+                            <div className="text-sm text-sage-700">
+                              {stage.label}
+                              {status === "current" ? " · 进行中" : status === "done" ? " · 完成" : ""}
+                            </div>
+                            <div className="text-xs text-sage-500">{stage.detail}</div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                  {batchStageStatus && (
+                    <div className="mt-2 text-xs text-sage-600">
+                      当前菜谱状态：{batchStageStatus === "running" ? "生成中" : batchStageStatus === "success" ? "成功" : "失败"}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="space-y-3" data-testid="batch-progress">
                 {batchProgress.map((item) => (
                   <div
@@ -501,11 +681,11 @@ export default function GeneratePage() {
                         <span className="w-4 h-4 rounded-full border border-sage-300" />
                       )}
                       <span className="text-sm text-sage-700">{item.dishName}</span>
-                    </div>
+                  </div>
                     <div className="text-xs text-sage-500">
                       {item.status === "pending" && "等待中"}
                       {item.status === "generating" && "生成中"}
-                      {item.status === "success" && "成功"}
+                      {item.status === "success" && (item.warning ? "成功（有警告）" : "成功")}
                       {item.status === "failed" && (item.error || "失败")}
                     </div>
                   </div>
@@ -546,6 +726,13 @@ export default function GeneratePage() {
               >
                 {result.message || result.error}
               </p>
+              {result.warning && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-amber-800">
+                    ⚠️ {result.warning}
+                  </p>
+                </div>
+              )}
 
               {/* 单个生成结果 */}
               {result.recipe && (
@@ -559,7 +746,7 @@ export default function GeneratePage() {
                   <p className="text-sm text-sage-600 mb-2">ID：{result.recipe.id}</p>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
                     <p className="text-xs text-yellow-800">
-                      ⚠️ 菜谱已保存为<strong>草稿状态</strong>，需要审核后发布
+                      ⚠️ 菜谱已保存为<strong>待审核状态</strong>，需要审核后发布
                     </p>
                   </div>
                   <div className="flex gap-2">

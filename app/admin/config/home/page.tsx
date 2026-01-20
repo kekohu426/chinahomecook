@@ -16,6 +16,11 @@ import {
   Users,
   Sparkles,
   FileText,
+  Search,
+  GripVertical,
+  ArrowUpDown,
+  Flame,
+  Images,
 } from "lucide-react";
 import { DEFAULT_LOCALE, LOCALE_LABELS, type Locale } from "@/lib/i18n/config";
 
@@ -24,15 +29,28 @@ interface ThemeCard {
   title: string;
   imageUrl: string;
   tag: string;
+  href?: string | null;
   sortOrder: number;
   isActive: boolean;
 }
 
 interface HeroConfig {
   title: string;
+  displayTitle?: string;
+  seoTitle?: string;
   subtitle: string;
   placeholder: string;
   chips: string[];
+  primaryCta?: { label: string; href: string };
+  secondaryCta?: { label: string; href: string };
+  imageUrl?: string;
+  imageFloatingText?: string;
+  statsLabels?: {
+    generated?: string;
+    recipes?: string;
+    collected?: string;
+    times?: string;
+  };
 }
 
 interface StatsConfig {
@@ -91,30 +109,61 @@ interface ConversionCtaConfig {
 }
 
 interface SectionTitles {
-  quickBrowse?: { title: string; subtitle: string };
-  hotRecipes?: { title: string; subtitle: string };
-  customRecipes?: { title: string; subtitle: string };
-  coreFeatures?: { title: string };
-  tools?: { title: string; subtitle: string };
-  testimonials?: { title: string };
-  brandStory?: { title: string };
-  conversionCta?: { title: string; subtitle: string };
+  quickBrowse?: { title?: string; subtitle?: string };
+  hotRecipes?: { title?: string; subtitle?: string; ctaLabel?: string; ctaHref?: string };
+  customRecipes?: { title?: string; subtitle?: string; ctaLabel?: string; ctaHref?: string };
+  themes?: { title?: string; subtitle?: string; ctaLabel?: string; ctaHref?: string };
+  coreFeatures?: { title?: string };
+  tools?: { title?: string; subtitle?: string };
+  testimonials?: { title?: string; subtitle?: string };
+  brandStory?: { title?: string };
+  conversionCta?: { title?: string; subtitle?: string };
 }
+
+// 推荐食谱相关接口
+interface FeaturedRecipe {
+  id: string;
+  titleZh: string;
+  coverImage: string | null;
+  cuisine: string | null;
+  location: string | null;
+  viewCount: number;
+}
+
+interface FeaturedConfig {
+  recipeIds?: string[];
+  autoFill?: boolean;
+}
+
+type RecipeFilter = "hot" | "latest" | "custom";
 
 export default function HomeConfigPage() {
   const [activeTab, setActiveTab] = useState<
-    "hero" | "stats" | "browse" | "testimonials" | "themes" | "sections"
+    "hero" | "stats" | "browse" | "testimonials" | "themes" | "sections" | "featured"
   >("hero");
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   // Hero 配置
   const [heroConfig, setHeroConfig] = useState<HeroConfig>({
     title: "",
+    displayTitle: "",
+    seoTitle: "",
     subtitle: "",
     placeholder: "",
     chips: [],
+    primaryCta: { label: "", href: "" },
+    secondaryCta: { label: "", href: "" },
+    imageUrl: "",
+    imageFloatingText: "",
+    statsLabels: {
+      generated: "",
+      recipes: "",
+      collected: "",
+      times: "",
+    },
   });
   const [chipsInput, setChipsInput] = useState("");
 
@@ -132,6 +181,7 @@ export default function HomeConfigPage() {
     title: "",
     imageUrl: "",
     tag: "",
+    href: "",
     sortOrder: "0",
     isActive: true,
   });
@@ -190,6 +240,16 @@ export default function HomeConfigPage() {
     "titles" | "features" | "tools" | "brand" | "cta"
   >("titles");
 
+  // 推荐食谱配置
+  const [featuredConfigs, setFeaturedConfigs] = useState<Record<string, FeaturedConfig>>();
+  const [featuredRecipesMap, setFeaturedRecipesMap] = useState<Record<string, FeaturedRecipe>>({});
+  const [availableRecipes, setAvailableRecipes] = useState<FeaturedRecipe[]>([]);
+  const [recipeFilter, setRecipeFilter] = useState<RecipeFilter>("hot");
+  const [recipeSearchQuery, setRecipeSearchQuery] = useState("");
+  const [loadingRecipes, setLoadingRecipes] = useState(false);
+  const [featuredSubTab, setFeaturedSubTab] = useState<"hot" | "custom" | "gallery">("hot");
+  const [seeded, setSeeded] = useState(false);
+
   useEffect(() => {
     loadData();
   }, [locale]);
@@ -198,11 +258,15 @@ export default function HomeConfigPage() {
     setLoading(true);
     try {
       const [homeRes, themesRes, browseRes, testimonialRes] = await Promise.all([
-        fetch(`/api/config/home?locale=${locale}`),
-        fetch("/api/config/themes"),
-        fetch(`/api/config/home/browse?locale=${locale}`),
-        fetch(`/api/config/home/testimonials?locale=${locale}`),
+        fetch(`/api/config/home?locale=${locale}`, { cache: "no-store" }),
+        fetch(`/api/config/themes?locale=${locale}`, { cache: "no-store" }),
+        fetch(`/api/config/home/browse?locale=${locale}`, { cache: "no-store" }),
+        fetch(`/api/config/home/testimonials?locale=${locale}`, { cache: "no-store" }),
       ]);
+
+      if (!homeRes.ok || !themesRes.ok || !browseRes.ok || !testimonialRes.ok) {
+        throw new Error("加载配置失败");
+      }
 
       const [homeData, themesData, browseData, testimonialData] =
         await Promise.all([
@@ -249,11 +313,56 @@ export default function HomeConfigPage() {
       if (testimonialData.success) {
         setTestimonials(testimonialData.data);
       }
+
+      // 加载推荐食谱配置
+      try {
+        const featuredRes = await fetch("/api/admin/featured");
+        const featuredData = await featuredRes.json();
+        if (featuredData.success) {
+          setFeaturedConfigs(featuredData.data);
+          setFeaturedRecipesMap(featuredData.recipesMap || {});
+        }
+      } catch (e) {
+        console.error("加载推荐食谱配置失败:", e);
+      }
+
+      const needsSeed =
+        !seeded &&
+        locale === DEFAULT_LOCALE &&
+        themesData.success &&
+        browseData.success &&
+        testimonialData.success &&
+        themesData.data.length === 0 &&
+        browseData.data.length === 0 &&
+        testimonialData.data.length === 0;
+
+      if (needsSeed) {
+        setSeeded(true);
+        await fetch("/api/admin/config/home/seed", { method: "POST" });
+        await loadData();
+        return;
+      }
     } catch (error) {
       console.error("加载配置失败:", error);
       alert("加载配置失败");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function syncHomeData() {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/admin/config/home/seed", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error("同步失败");
+      await loadData();
+      alert("同步成功");
+    } catch (error) {
+      console.error("同步失败:", error);
+      alert("同步失败");
+    } finally {
+      setSeeding(false);
     }
   }
 
@@ -430,6 +539,101 @@ export default function HomeConfigPage() {
     }
   }
 
+  // 推荐食谱相关函数
+  const FEATURED_KEYS = {
+    HOME_HOT: "featured_hot",
+    HOME_CUSTOM: "featured_custom",
+    HOME_GALLERY: "featured_gallery",
+  };
+
+  async function loadAvailableRecipes(filter: RecipeFilter, query?: string) {
+    setLoadingRecipes(true);
+    try {
+      const params = new URLSearchParams({ limit: "50" });
+      if (query) params.set("q", query);
+      if (filter === "latest") params.set("sort", "latest");
+      if (filter === "custom") params.set("custom", "true");
+
+      const response = await fetch(`/api/admin/featured/search?${params}`);
+      const data = await response.json();
+      if (data.success) {
+        setAvailableRecipes(data.data);
+      }
+    } catch (error) {
+      console.error("加载食谱失败:", error);
+    } finally {
+      setLoadingRecipes(false);
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === "featured") {
+      loadAvailableRecipes(recipeFilter, recipeSearchQuery);
+    }
+  }, [activeTab, recipeFilter, recipeSearchQuery]);
+
+  async function saveFeaturedConfig(key: string, value: FeaturedConfig) {
+    setSaving(true);
+    try {
+      const response = await fetch("/api/admin/featured", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, value }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        await loadData();
+        alert("保存成功");
+      } else {
+        alert(data.error || "保存失败");
+      }
+    } catch (error) {
+      console.error("保存失败:", error);
+      alert("保存失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function addFeaturedRecipe(key: string, recipe: FeaturedRecipe) {
+    const config = featuredConfigs?.[key] || {};
+    const ids = config.recipeIds || [];
+    if (!ids.includes(recipe.id)) {
+      setFeaturedConfigs({
+        ...featuredConfigs,
+        [key]: { ...config, recipeIds: [...ids, recipe.id] },
+      });
+      setFeaturedRecipesMap({ ...featuredRecipesMap, [recipe.id]: recipe });
+    }
+  }
+
+  function removeFeaturedRecipe(key: string, recipeId: string) {
+    const config = featuredConfigs?.[key] || {};
+    const ids = config.recipeIds || [];
+    setFeaturedConfigs({
+      ...featuredConfigs,
+      [key]: { ...config, recipeIds: ids.filter((id) => id !== recipeId) },
+    });
+  }
+
+  function moveFeaturedRecipe(key: string, index: number, direction: "up" | "down") {
+    const config = featuredConfigs?.[key] || {};
+    const ids = [...(config.recipeIds || [])];
+    const newIndex = direction === "up" ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= ids.length) return;
+    [ids[index], ids[newIndex]] = [ids[newIndex], ids[index]];
+    setFeaturedConfigs({
+      ...featuredConfigs,
+      [key]: { ...config, recipeIds: ids },
+    });
+  }
+
+  function isFeaturedRecipeAdded(recipeId: string, key: string) {
+    const config = featuredConfigs?.[key] || {};
+    const ids = config.recipeIds || [];
+    return ids.includes(recipeId);
+  }
+
   // 主题卡片操作
   function openThemeModal(theme?: ThemeCard) {
     if (theme) {
@@ -438,6 +642,7 @@ export default function HomeConfigPage() {
         title: theme.title,
         imageUrl: theme.imageUrl,
         tag: theme.tag,
+        href: theme.href || "",
         sortOrder: String(theme.sortOrder),
         isActive: theme.isActive,
       });
@@ -447,6 +652,7 @@ export default function HomeConfigPage() {
         title: "",
         imageUrl: "",
         tag: "",
+        href: "",
         sortOrder: "0",
         isActive: true,
       });
@@ -472,7 +678,9 @@ export default function HomeConfigPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...themeForm,
+          href: themeForm.href || null,
           sortOrder: Number(themeForm.sortOrder) || 0,
+          locale,
         }),
       });
 
@@ -510,7 +718,7 @@ export default function HomeConfigPage() {
       const res = await fetch(`/api/config/themes/${theme.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !theme.isActive }),
+        body: JSON.stringify({ isActive: !theme.isActive, locale: DEFAULT_LOCALE }),
       });
 
       if (!res.ok) throw new Error("更新失败");
@@ -633,7 +841,7 @@ export default function HomeConfigPage() {
       const res = await fetch(`/api/config/home/browse/${item.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !item.isActive }),
+        body: JSON.stringify({ isActive: !item.isActive, locale: DEFAULT_LOCALE }),
       });
       if (!res.ok) throw new Error("更新失败");
       loadData();
@@ -755,7 +963,7 @@ export default function HomeConfigPage() {
       const res = await fetch(`/api/config/home/testimonials/${item.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !item.isActive }),
+        body: JSON.stringify({ isActive: !item.isActive, locale: DEFAULT_LOCALE }),
       });
       if (!res.ok) throw new Error("更新失败");
       loadData();
@@ -832,6 +1040,18 @@ export default function HomeConfigPage() {
               当前为翻译内容编辑
             </span>
           )}
+          <button
+            onClick={syncHomeData}
+            className="ml-auto inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-cream text-textDark hover:text-brownWarm border border-lightGray transition-colors"
+            disabled={seeding}
+          >
+            {seeding ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            同步首页数据
+          </button>
         </div>
       </div>
 
@@ -903,6 +1123,17 @@ export default function HomeConfigPage() {
           <FileText className="w-4 h-4" />
           模块文案
         </button>
+        <button
+          onClick={() => setActiveTab("featured")}
+          className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+            activeTab === "featured"
+              ? "text-brownWarm border-b-2 border-brownWarm"
+              : "text-textGray hover:text-textDark"
+          }`}
+        >
+          <Flame className="w-4 h-4" />
+          推荐食谱
+        </button>
       </div>
 
       {/* Hero 配置 */}
@@ -920,6 +1151,35 @@ export default function HomeConfigPage() {
               className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
               placeholder="做饭，可以更简单"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                展示标题
+              </label>
+              <input
+                value={heroConfig.displayTitle || ""}
+                onChange={(e) =>
+                  setHeroConfig({ ...heroConfig, displayTitle: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="用于页面展示（可不填）"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                SEO 标题
+              </label>
+              <input
+                value={heroConfig.seoTitle || ""}
+                onChange={(e) =>
+                  setHeroConfig({ ...heroConfig, seoTitle: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="用于 SEO（可不填）"
+              />
+            </div>
           </div>
 
           <div>
@@ -948,6 +1208,195 @@ export default function HomeConfigPage() {
               className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
               placeholder="从查找食谱到完成烹饪，我们把步骤与工具都准备好"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-textDark mb-2">
+              主视觉图片 URL
+            </label>
+            <input
+              value={heroConfig.imageUrl || ""}
+              onChange={(e) =>
+                setHeroConfig({ ...heroConfig, imageUrl: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+              placeholder="留空则使用推荐图片"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                主 CTA 文案
+              </label>
+              <input
+                value={heroConfig.primaryCta?.label || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    primaryCta: {
+                      label: e.target.value,
+                      href: heroConfig.primaryCta?.href || "",
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="浏览全部食谱 →"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                主 CTA 跳转
+              </label>
+              <input
+                value={heroConfig.primaryCta?.href || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    primaryCta: {
+                      label: heroConfig.primaryCta?.label || "",
+                      href: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="/recipe"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                次 CTA 文案
+              </label>
+              <input
+                value={heroConfig.secondaryCta?.label || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    secondaryCta: {
+                      label: e.target.value,
+                      href: heroConfig.secondaryCta?.href || "",
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="或试试 AI定制 →"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                次 CTA 跳转
+              </label>
+              <input
+                value={heroConfig.secondaryCta?.href || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    secondaryCta: {
+                      label: heroConfig.secondaryCta?.label || "",
+                      href: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="/ai-custom"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-textDark mb-2">
+              图片浮层文案
+            </label>
+            <input
+              value={heroConfig.imageFloatingText || ""}
+              onChange={(e) =>
+                setHeroConfig({ ...heroConfig, imageFloatingText: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+              placeholder="专业团队审核 · 步骤可复现"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                统计-已生成
+              </label>
+              <input
+                value={heroConfig.statsLabels?.generated || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    statsLabels: {
+                      ...(heroConfig.statsLabels || {}),
+                      generated: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="已生成"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                统计-菜谱
+              </label>
+              <input
+                value={heroConfig.statsLabels?.recipes || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    statsLabels: {
+                      ...(heroConfig.statsLabels || {}),
+                      recipes: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="菜谱"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                统计-已收藏
+              </label>
+              <input
+                value={heroConfig.statsLabels?.collected || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    statsLabels: {
+                      ...(heroConfig.statsLabels || {}),
+                      collected: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="已收藏"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textDark mb-2">
+                统计-次数
+              </label>
+              <input
+                value={heroConfig.statsLabels?.times || ""}
+                onChange={(e) =>
+                  setHeroConfig({
+                    ...heroConfig,
+                    statsLabels: {
+                      ...(heroConfig.statsLabels || {}),
+                      times: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                placeholder="次"
+              />
+            </div>
           </div>
 
           <div>
@@ -1360,9 +1809,14 @@ export default function HomeConfigPage() {
                     <h3 className="font-medium text-textDark mb-1">
                       {theme.title}
                     </h3>
-                    <p className="text-sm text-textGray mb-3">
+                    <p className="text-sm text-textGray mb-1">
                       标签: {theme.tag} · 排序: {theme.sortOrder}
                     </p>
+                    {theme.href && (
+                      <p className="text-xs text-textGray mb-2">
+                        跳转: {theme.href}
+                      </p>
+                    )}
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => toggleThemeActive(theme)}
@@ -1471,6 +1925,24 @@ export default function HomeConfigPage() {
                     className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
                     placeholder="副标题"
                   />
+                  <input
+                    value={sectionTitles.hotRecipes?.ctaLabel || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      hotRecipes: { ...sectionTitles.hotRecipes, ctaLabel: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="CTA 文案"
+                  />
+                  <input
+                    value={sectionTitles.hotRecipes?.ctaHref || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      hotRecipes: { ...sectionTitles.hotRecipes, ctaHref: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="CTA 跳转链接"
+                  />
                 </div>
 
                 <div className="space-y-4">
@@ -1492,6 +1964,64 @@ export default function HomeConfigPage() {
                     })}
                     className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
                     placeholder="副标题"
+                  />
+                  <input
+                    value={sectionTitles.customRecipes?.ctaLabel || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      customRecipes: { ...sectionTitles.customRecipes, ctaLabel: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="CTA 文案"
+                  />
+                  <input
+                    value={sectionTitles.customRecipes?.ctaHref || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      customRecipes: { ...sectionTitles.customRecipes, ctaHref: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="CTA 跳转链接"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-textDark">主题卡片</h4>
+                  <input
+                    value={sectionTitles.themes?.title || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      themes: { ...sectionTitles.themes, title: e.target.value, subtitle: sectionTitles.themes?.subtitle || "" }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="标题"
+                  />
+                  <input
+                    value={sectionTitles.themes?.subtitle || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      themes: { ...sectionTitles.themes, title: sectionTitles.themes?.title || "", subtitle: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="副标题"
+                  />
+                  <input
+                    value={sectionTitles.themes?.ctaLabel || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      themes: { ...sectionTitles.themes, ctaLabel: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="CTA 文案"
+                  />
+                  <input
+                    value={sectionTitles.themes?.ctaHref || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      themes: { ...sectionTitles.themes, ctaHref: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="CTA 跳转链接"
                   />
                 </div>
 
@@ -1536,10 +2066,19 @@ export default function HomeConfigPage() {
                     value={sectionTitles.testimonials?.title || ""}
                     onChange={(e) => setSectionTitles({
                       ...sectionTitles,
-                      testimonials: { title: e.target.value }
+                      testimonials: { ...sectionTitles.testimonials, title: e.target.value }
                     })}
                     className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
                     placeholder="标题"
+                  />
+                  <input
+                    value={sectionTitles.testimonials?.subtitle || ""}
+                    onChange={(e) => setSectionTitles({
+                      ...sectionTitles,
+                      testimonials: { ...sectionTitles.testimonials, subtitle: e.target.value }
+                    })}
+                    className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                    placeholder="副标题"
                   />
                 </div>
 
@@ -2412,6 +2951,20 @@ export default function HomeConfigPage() {
                 </p>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-textDark mb-2">
+                  跳转链接
+                </label>
+                <input
+                  value={themeForm.href}
+                  onChange={(e) =>
+                    setThemeForm({ ...themeForm, href: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-lightGray rounded-lg focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                  placeholder="留空则使用标签跳转"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-textDark mb-2">
@@ -2460,6 +3013,276 @@ export default function HomeConfigPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 推荐食谱配置 */}
+      {activeTab === "featured" && (
+        <div className="space-y-6">
+          {/* 子标签页 */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: "hot" as const, label: "热门精选", icon: <Flame className="w-4 h-4" /> },
+              { key: "custom" as const, label: "定制精选", icon: <Sparkles className="w-4 h-4" /> },
+              { key: "gallery" as const, label: "图库精选", icon: <Images className="w-4 h-4" /> },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFeaturedSubTab(tab.key)}
+                className={`px-4 py-2 rounded-full text-sm transition-colors flex items-center gap-2 ${
+                  featuredSubTab === tab.key
+                    ? "bg-brownWarm text-white"
+                    : "bg-cream text-textGray hover:text-textDark"
+                }`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 食谱选择器 */}
+          {(() => {
+            const keyMap = {
+              hot: FEATURED_KEYS.HOME_HOT,
+              custom: FEATURED_KEYS.HOME_CUSTOM,
+              gallery: FEATURED_KEYS.HOME_GALLERY,
+            };
+            const titleMap = {
+              hot: "首页「本周精选家常菜」区块",
+              custom: "首页「AI定制精选」区块",
+              gallery: "首页「美食图库」区块",
+            };
+            const descMap = {
+              hot: "手动选择展示的食谱，不足时自动用热门补充",
+              custom: "展示用户定制的精选食谱",
+              gallery: "展示精美的食谱封面图",
+            };
+            const currentKey = keyMap[featuredSubTab];
+            const config = featuredConfigs?.[currentKey] || {};
+            const ids = config.recipeIds || [];
+
+            return (
+              <div className="bg-white rounded-lg border border-lightGray p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium text-textDark">{titleMap[featuredSubTab]}</h3>
+                    <p className="text-sm text-textGray">{descMap[featuredSubTab]}</p>
+                  </div>
+                  <span className="text-sm text-textGray">已选 {ids.length} 个</span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* 左侧：已选食谱 */}
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-textDark">已选食谱（用上下按钮排序）</div>
+                    {ids.length === 0 ? (
+                      <div className="text-sm text-textGray py-8 text-center border-2 border-dashed border-lightGray rounded-lg">
+                        从右侧点击卡片或「添加」按钮加入
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                        {ids.map((id, index) => {
+                          const recipe = featuredRecipesMap[id];
+                          if (!recipe) return null;
+                          return (
+                            <div
+                              key={id}
+                              className="flex items-center gap-3 p-3 bg-cream/50 rounded-lg group"
+                            >
+                              <GripVertical className="w-4 h-4 text-gray-400 cursor-move flex-shrink-0" />
+                              <div className="w-10 h-10 rounded bg-gray-200 overflow-hidden flex-shrink-0">
+                                {recipe.coverImage && (
+                                  <Image
+                                    src={recipe.coverImage}
+                                    alt={recipe.titleZh}
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                    unoptimized
+                                  />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-textDark truncate">
+                                  {recipe.titleZh}
+                                </div>
+                                <div className="text-xs text-textGray">
+                                  {recipe.cuisine || recipe.location || "未分类"}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => moveFeaturedRecipe(currentKey, index, "up")}
+                                  disabled={index === 0}
+                                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                  title="上移"
+                                >
+                                  <ArrowUpDown className="w-4 h-4 rotate-180" />
+                                </button>
+                                <button
+                                  onClick={() => moveFeaturedRecipe(currentKey, index, "down")}
+                                  disabled={index === ids.length - 1}
+                                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                                  title="下移"
+                                >
+                                  <ArrowUpDown className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => removeFeaturedRecipe(currentKey, id)}
+                                  className="p-1 text-gray-400 hover:text-red-500"
+                                  title="移除"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 右侧：可选食谱 */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium text-textDark">候选食谱库</div>
+                      <div className="flex gap-1">
+                        {[
+                          { key: "hot" as const, label: "热门" },
+                          { key: "latest" as const, label: "最新" },
+                          { key: "custom" as const, label: "AI定制" },
+                        ].map((filter) => (
+                          <button
+                            key={filter.key}
+                            onClick={() => setRecipeFilter(filter.key)}
+                            className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                              recipeFilter === filter.key
+                                ? "bg-brownWarm text-white"
+                                : "bg-cream text-textGray hover:bg-brownWarm/10"
+                            }`}
+                          >
+                            {filter.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 搜索框 */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="搜索食谱..."
+                        value={recipeSearchQuery}
+                        onChange={(e) => setRecipeSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-lightGray rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brownWarm/50"
+                      />
+                      {recipeSearchQuery && (
+                        <button
+                          onClick={() => setRecipeSearchQuery("")}
+                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                        >
+                          <X className="w-4 h-4 text-gray-400" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* 食谱网格 */}
+                    {loadingRecipes ? (
+                      <div className="py-8 text-center">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto text-brownWarm" />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 max-h-[340px] overflow-y-auto">
+                        {availableRecipes.map((recipe) => {
+                          const added = isFeaturedRecipeAdded(recipe.id, currentKey);
+                          return (
+                            <button
+                              key={recipe.id}
+                              onClick={() => {
+                                if (!added) {
+                                  addFeaturedRecipe(currentKey, recipe);
+                                }
+                              }}
+                              disabled={added}
+                              className={`group relative p-2 rounded-lg text-left transition-all ${
+                                added
+                                  ? "bg-green-50 border-2 border-green-200 opacity-60"
+                                  : "bg-cream/50 hover:bg-brownWarm/10 border-2 border-transparent"
+                              }`}
+                            >
+                              <div className="aspect-[4/3] rounded bg-gray-200 overflow-hidden mb-2">
+                                {recipe.coverImage && (
+                                  <Image
+                                    src={recipe.coverImage}
+                                    alt={recipe.titleZh}
+                                    width={160}
+                                    height={120}
+                                    className="w-full h-full object-cover"
+                                    unoptimized
+                                  />
+                                )}
+                              </div>
+                              <div className="text-xs font-medium text-textDark line-clamp-2">
+                                {recipe.titleZh}
+                              </div>
+                              <div className="mt-2 flex items-center justify-between text-xs">
+                                <span className="text-textGray">{recipe.viewCount} 浏览</span>
+                                <span
+                                  className={`px-2 py-0.5 rounded-full ${
+                                    added
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-brownWarm text-white"
+                                  }`}
+                                >
+                                  {added ? "已添加" : "添加"}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 热门精选特有的自动补充选项 */}
+                {featuredSubTab === "hot" && (
+                  <div className="flex items-center gap-4 pt-4 border-t border-lightGray">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={config.autoFill ?? true}
+                        onChange={(e) =>
+                          setFeaturedConfigs({
+                            ...featuredConfigs,
+                            [currentKey]: {
+                              ...config,
+                              autoFill: e.target.checked,
+                            },
+                          })
+                        }
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-textGray">不足时自动用热门食谱补充</span>
+                    </label>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={() => saveFeaturedConfig(currentKey, config)}
+                    disabled={saving}
+                    className="px-4 py-2 bg-brownWarm text-white rounded-lg hover:bg-brownDark transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    保存
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

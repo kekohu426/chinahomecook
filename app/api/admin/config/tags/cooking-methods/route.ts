@@ -31,9 +31,21 @@ export async function GET(request: NextRequest) {
       orderBy: { sortOrder: "asc" },
       include: {
         translations: true,
-        _count: { select: { recipes: true } },
       },
     });
+
+    const methodIds = methods.map((method) => method.id);
+    const counts = methodIds.length
+      ? await prisma.recipeTag.groupBy({
+          by: ["tagId"],
+          where: {
+            tagId: { in: methodIds },
+            recipe: { status: "published" },
+          },
+          _count: { _all: true },
+        })
+      : [];
+    const countMap = new Map(counts.map((item) => [item.tagId, item._count._all]));
 
     const data = methods.map((method) => ({
       id: method.id,
@@ -43,7 +55,7 @@ export async function GET(request: NextRequest) {
       sortOrder: method.sortOrder,
       isActive: method.isActive,
       translations: method.translations,
-      _count: { recipes: method._count.recipes },
+      recipeCount: countMap.get(method.id) || 0,
     }));
 
     return NextResponse.json({ success: true, data });

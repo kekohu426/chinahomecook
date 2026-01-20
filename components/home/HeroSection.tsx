@@ -9,6 +9,13 @@ interface HeroConfig {
   subtitle: string;
   placeholder: string;
   chips: string[];
+  imageFloatingText?: string;
+  statsLabels?: {
+    generated: string;
+    recipes: string;
+    collected: string;
+    times: string;
+  };
 }
 
 interface HeroSectionProps {
@@ -111,19 +118,19 @@ export function HeroSection({
             {stats && (
               <div className="mt-8 flex flex-wrap items-center gap-2 text-base text-textGray">
                 <span>
-                  📊 {isEn ? "Generated" : "已生成"}{" "}
+                  📊 {config.statsLabels?.generated || (isEn ? "Generated" : "已生成")}{" "}
                   <span className="font-semibold text-brownWarm">
                     {formatNumber(stats.recipesGenerated)}+
                   </span>{" "}
-                  {isEn ? "recipes" : "菜谱"}
+                  {config.statsLabels?.recipes || (isEn ? "recipes" : "菜谱")}
                 </span>
                 <span className="text-cream">|</span>
                 <span>
-                  ❤️ {isEn ? "Collected" : "已收藏"}{" "}
+                  ❤️ {config.statsLabels?.collected || (isEn ? "Collected" : "已收藏")}{" "}
                   <span className="font-semibold text-brownWarm">
                     {formatNumber(stats.recipesCollected)}+
                   </span>{" "}
-                  {isEn ? "times" : "次"}
+                  {config.statsLabels?.times || (isEn ? "times" : "次")}
                 </span>
               </div>
             )}
@@ -153,9 +160,10 @@ export function HeroSection({
             </div>
             <div className="absolute -bottom-6 -left-6 bg-white/90 border border-cream rounded-2xl px-4 py-3 shadow-card">
               <p className="text-xs text-textGray">
-                {isEn
-                  ? "Expert-reviewed · Repeatable steps"
-                  : "专业团队审核 · 步骤可复现"}
+                {config.imageFloatingText ||
+                  (isEn
+                    ? "Expert-reviewed · Repeatable steps"
+                    : "专业团队审核 · 步骤可复现")}
               </p>
             </div>
           </div>

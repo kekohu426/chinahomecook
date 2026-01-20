@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   Edit2,
@@ -13,6 +13,7 @@ import {
   FolderUp,
   CheckCircle,
   XCircle,
+  Download,
 } from "lucide-react";
 
 interface IngredientIcon {
@@ -32,6 +33,8 @@ export default function IconsPage() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showMissingOnly, setShowMissingOnly] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [formState, setFormState] = useState({
     name: "",
@@ -46,12 +49,37 @@ export default function IconsPage() {
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [batchUploading, setBatchUploading] = useState(false);
+  const [batchGenerating, setBatchGenerating] = useState(false);
+  const [exportingMissing, setExportingMissing] = useState(false);
   const [batchResults, setBatchResults] = useState<{
     name: string;
     iconUrl: string;
     success: boolean;
     error?: string;
   }[] | null>(null);
+  const [batchGenerateResults, setBatchGenerateResults] = useState<{
+    name: string;
+    iconUrl?: string;
+    success: boolean;
+    error?: string;
+  }[] | null>(null);
+
+  const filteredIcons = useMemo(
+    () => (showMissingOnly ? icons.filter((icon) => !icon.iconUrl) : icons),
+    [icons, showMissingOnly]
+  );
+  const selectedIcons = useMemo(
+    () => icons.filter((icon) => selectedIds.has(icon.id)),
+    [icons, selectedIds]
+  );
+  const selectedMissingIcons = useMemo(
+    () => selectedIcons.filter((icon) => !icon.iconUrl),
+    [selectedIcons]
+  );
+  const missingCount = useMemo(
+    () => icons.filter((icon) => !icon.iconUrl).length,
+    [icons]
+  );
 
   useEffect(() => {
     loadData();
@@ -85,6 +113,8 @@ export default function IconsPage() {
           return (a.sortOrder || 0) - (b.sortOrder || 0);
         });
         setIcons(sorted);
+        const nextIdSet = new Set(sorted.map((icon) => icon.id));
+        setSelectedIds((prev) => new Set([...prev].filter((id) => nextIdSet.has(id))));
       }
     } catch (error) {
       console.error("加载图标失败:", error);
@@ -294,6 +324,104 @@ export default function IconsPage() {
     }
   };
 
+  const toggleSelectAll = () => {
+    if (filteredIcons.length === 0) return;
+    const allSelected = filteredIcons.every((icon) => selectedIds.has(icon.id));
+    if (allSelected) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        filteredIcons.forEach((icon) => next.delete(icon.id));
+        return next;
+      });
+      return;
+    }
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      filteredIcons.forEach((icon) => next.add(icon.id));
+      return next;
+    });
+  };
+
+  const handleBatchGenerate = async () => {
+    if (selectedMissingIcons.length === 0) {
+      alert("请选择待补充图标的食材");
+      return;
+    }
+
+    setBatchGenerating(true);
+    setBatchGenerateResults(null);
+
+    const results: {
+      name: string;
+      iconUrl?: string;
+      success: boolean;
+      error?: string;
+    }[] = [];
+
+    for (const icon of selectedMissingIcons) {
+      const prompt =
+        icon.prompt?.trim() ||
+        `${icon.name}，食材图标，写实风格，白色背景，居中，高清`;
+
+      try {
+        const response = await fetch("/api/images/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            negativePrompt: "模糊，低质量，变形，文字，水印",
+            width: 768,
+            height: 768,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok || !data.success || !data.imageUrl) {
+          throw new Error(data.error || "生成失败");
+        }
+
+        const updateRes = await fetch(`/api/config/ingredient-icons/${icon.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: icon.name,
+            aliases: icon.aliases,
+            iconUrl: data.imageUrl,
+            prompt,
+            source: "ai",
+            sortOrder: icon.sortOrder,
+            isActive: icon.isActive,
+          }),
+        });
+
+        if (!updateRes.ok) {
+          throw new Error("保存失败");
+        }
+
+        results.push({
+          name: icon.name,
+          iconUrl: data.imageUrl,
+          success: true,
+        });
+      } catch (error) {
+        results.push({
+          name: icon.name,
+          success: false,
+          error: error instanceof Error ? error.message : "生成失败",
+        });
+      }
+    }
+
+    setBatchGenerateResults(results);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      selectedMissingIcons.forEach((icon) => next.delete(icon.id));
+      return next;
+    });
+    await loadData();
+    setBatchGenerating(false);
+  };
+
   // 批量上传处理
   const handleBatchUpload = async (files: FileList) => {
     if (files.length === 0) return;
@@ -302,29 +430,75 @@ export default function IconsPage() {
     setBatchResults(null);
 
     try {
-      const formData = new FormData();
-      Array.from(files).forEach((file) => {
-        formData.append("files", file);
-      });
+      const MAX_FILES_PER_BATCH = 3;
+      const fileArray = Array.from(files);
+      const allResults: any[] = [];
 
-      const res = await fetch("/api/icons/batch-upload", {
-        method: "POST",
-        body: formData,
-      });
+      for (let i = 0; i < fileArray.length; i += MAX_FILES_PER_BATCH) {
+        const batch = fileArray.slice(i, i + MAX_FILES_PER_BATCH);
+        const formData = new FormData();
+        batch.forEach((file) => {
+          formData.append("files", file);
+        });
 
-      const data = await res.json();
+        const res = await fetch("/api/icons/batch-upload", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!res.ok) {
-        throw new Error(data.error || "上传失败");
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "上传失败");
+        }
+
+        if (Array.isArray(data.results)) {
+          allResults.push(...data.results);
+        }
       }
 
-      setBatchResults(data.results);
+      setBatchResults(allResults);
       loadData(); // 刷新列表
     } catch (error) {
       console.error("批量上传失败:", error);
       alert(error instanceof Error ? error.message : "批量上传失败");
     } finally {
       setBatchUploading(false);
+    }
+  };
+
+  const handleExportMissingIcons = async () => {
+    setExportingMissing(true);
+    try {
+      const names = Array.from(
+        new Set(
+          icons
+            .filter((icon) => !icon.iconUrl)
+            .map((icon) => icon.name.trim())
+            .filter(Boolean)
+        )
+      );
+
+      if (names.length === 0) {
+        alert("暂无待补全图标的食材");
+        return;
+      }
+
+      const content = names.join("\n");
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `missing-icon-ingredients-${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("导出失败:", error);
+      alert(error instanceof Error ? error.message : "导出失败");
+    } finally {
+      setExportingMissing(false);
     }
   };
 
@@ -348,13 +522,60 @@ export default function IconsPage() {
             管理食材图标库，支持上传和 AI 生成
           </p>
           {/* 待补充统计 */}
-          {icons.filter(i => !i.iconUrl).length > 0 && (
+          {missingCount > 0 && (
             <p className="mt-2 text-orange-600 text-sm">
-              ⚠️ 有 <strong>{icons.filter(i => !i.iconUrl).length}</strong> 个食材待补充图标
+              ⚠️ 有 <strong>{missingCount}</strong> 个食材待补充图标
             </p>
           )}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 items-center">
+          <button
+            onClick={() => setShowMissingOnly((prev) => !prev)}
+            className={`px-4 py-2 rounded-lg border transition-colors ${
+              showMissingOnly
+                ? "border-orange-300 bg-orange-50 text-orange-700"
+                : "border-sage-200 text-sage-600 hover:border-sage-400"
+            }`}
+          >
+            {showMissingOnly ? "查看全部" : "仅看无图标"}
+          </button>
+          <div className="text-sm text-sage-500">
+            已选 {selectedIcons.length}，待补全 {selectedMissingIcons.length}
+          </div>
+          <button
+            onClick={handleBatchGenerate}
+            disabled={batchGenerating || selectedMissingIcons.length === 0}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60"
+          >
+            {batchGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                生成中...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                批量 AI 生成
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleExportMissingIcons}
+            disabled={exportingMissing}
+            className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60"
+          >
+            {exportingMissing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                导出中...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                导出待补全食材
+              </>
+            )}
+          </button>
           {/* 批量上传按钮 */}
           <label className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 cursor-pointer">
             <FolderUp className="w-4 h-4" />
@@ -403,6 +624,63 @@ export default function IconsPage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {batchResults.map((result, index) => (
+              <div
+                key={index}
+                className={`p-3 rounded-lg border ${
+                  result.success
+                    ? "border-green-200 bg-green-50"
+                    : "border-red-200 bg-red-50"
+                }`}
+              >
+                {result.success && result.iconUrl && (
+                  <img
+                    src={result.iconUrl}
+                    alt={result.name}
+                    className="w-12 h-12 object-cover rounded mx-auto mb-2"
+                  />
+                )}
+                <div className="flex items-center justify-center gap-1">
+                  {result.success ? (
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-red-600" />
+                  )}
+                  <span
+                    className={`text-sm truncate ${
+                      result.success ? "text-green-700" : "text-red-700"
+                    }`}
+                    title={result.error || result.name}
+                  >
+                    {result.name}
+                  </span>
+                </div>
+                {result.error && (
+                  <p className="text-xs text-red-500 text-center mt-1">
+                    {result.error}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 批量 AI 生成结果 */}
+      {batchGenerateResults && (
+        <div className="bg-white rounded-lg border border-sage-200 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-sage-800">
+              批量 AI 生成结果
+            </h2>
+            <button
+              onClick={() => setBatchGenerateResults(null)}
+              className="text-sage-500 hover:text-sage-700 text-sm"
+            >
+              关闭
+            </button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {batchGenerateResults.map((result, index) => (
               <div
                 key={index}
                 className={`p-3 rounded-lg border ${
@@ -629,6 +907,17 @@ export default function IconsPage() {
             <thead className="bg-sage-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-sage-700 uppercase">
+                  <input
+                    type="checkbox"
+                    checked={
+                      filteredIcons.length > 0 &&
+                      filteredIcons.every((icon) => selectedIds.has(icon.id))
+                    }
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-sage-700 uppercase">
                   图标
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-sage-700 uppercase">
@@ -649,83 +938,107 @@ export default function IconsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-sage-100">
-              {icons.map((icon) => (
-                <tr key={icon.id} className={`hover:bg-sage-50 ${!icon.iconUrl ? "bg-orange-50" : ""}`}>
-                  <td className="px-6 py-4">
-                    {icon.iconUrl ? (
-                      <img
-                        src={icon.iconUrl}
-                        alt={icon.name}
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-orange-100 border-2 border-dashed border-orange-300 rounded-lg flex items-center justify-center">
-                        <ImageIcon className="w-6 h-6 text-orange-400" />
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-sage-800">
-                    {icon.name}
-                    {!icon.iconUrl && (
-                      <span className="ml-2 px-2 py-0.5 bg-orange-200 text-orange-700 text-xs rounded">
-                        待补充图标
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-sage-600">
-                    {icon.aliases?.length > 0
-                      ? icon.aliases.join(", ")
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        icon.source === "ai"
-                          ? "bg-purple-100 text-purple-700"
-                          : icon.source === "upload"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {icon.source === "ai"
-                        ? "AI 生成"
-                        : icon.source === "upload"
-                        ? "上传"
-                        : "未知"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleToggleActive(icon)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        icon.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {icon.isActive ? "启用" : "禁用"}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="inline-flex gap-3">
-                      <button
-                        onClick={() => handleEdit(icon)}
-                        className="text-sage-600 hover:text-sage-800"
-                        title="编辑"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(icon.id)}
-                        className="text-red-600 hover:text-red-800"
-                        title="删除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+              {filteredIcons.length === 0 ? (
+                <tr>
+                  <td className="px-6 py-8 text-center text-sm text-sage-500" colSpan={7}>
+                    暂无待补充图标
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredIcons.map((icon) => (
+                  <tr key={icon.id} className={`hover:bg-sage-50 ${!icon.iconUrl ? "bg-orange-50" : ""}`}>
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(icon.id)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setSelectedIds((prev) => {
+                            const next = new Set(prev);
+                            if (checked) next.add(icon.id);
+                            else next.delete(icon.id);
+                            return next;
+                          });
+                        }}
+                        className="w-4 h-4"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      {icon.iconUrl ? (
+                        <img
+                          src={icon.iconUrl}
+                          alt={icon.name}
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-orange-100 border-2 border-dashed border-orange-300 rounded-lg flex items-center justify-center">
+                          <ImageIcon className="w-6 h-6 text-orange-400" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-sage-800">
+                      {icon.name}
+                      {!icon.iconUrl && (
+                        <span className="ml-2 px-2 py-0.5 bg-orange-200 text-orange-700 text-xs rounded">
+                          待补充图标
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-sage-600">
+                      {icon.aliases?.length > 0
+                        ? icon.aliases.join(", ")
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          icon.source === "ai"
+                            ? "bg-purple-100 text-purple-700"
+                            : icon.source === "upload"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {icon.source === "ai"
+                          ? "AI 生成"
+                          : icon.source === "upload"
+                          ? "上传"
+                          : "未知"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleToggleActive(icon)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          icon.isActive
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {icon.isActive ? "启用" : "禁用"}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="inline-flex gap-3">
+                        <button
+                          onClick={() => handleEdit(icon)}
+                          className="text-sage-600 hover:text-sage-800"
+                          title="编辑"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(icon.id)}
+                          className="text-red-600 hover:text-red-800"
+                          title="删除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         )}

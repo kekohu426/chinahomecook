@@ -18,11 +18,19 @@ interface Recipe {
 interface HotRecipesSectionProps {
   recipes: Recipe[];
   locale?: Locale;
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
 }
 
 export function HotRecipesSection({
   recipes,
   locale = DEFAULT_LOCALE,
+  title,
+  subtitle,
+  ctaLabel,
+  ctaHref,
 }: HotRecipesSectionProps) {
   const isEn = locale === "en";
   const getDifficultyLabel = (value?: string) => {
@@ -42,19 +50,20 @@ export function HotRecipesSection({
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-serif font-medium text-textDark">
-              {locale === "en" ? "Weekly Favorites" : "本周精选家常菜"}
+              {title || (locale === "en" ? "Weekly Favorites" : "本周精选家常菜")}
             </h2>
             <p className="text-textGray mt-1">
-              {locale === "en"
-                ? "AI-curated and expert-reviewed."
-                : "AI 辅助整理，团队审核，新手也能轻松上手。"}
+              {subtitle ||
+                (locale === "en"
+                  ? "AI-curated and expert-reviewed."
+                  : "AI 辅助整理，团队审核，新手也能轻松上手。")}
             </p>
           </div>
           <LocalizedLink
-            href="/recipe"
+            href={ctaHref || "/recipe"}
             className="text-brownWarm hover:text-brownDark flex items-center gap-1 font-medium"
           >
-            {locale === "en" ? "View more" : "查看更多"}
+            {ctaLabel || (locale === "en" ? "View more" : "查看更多")}
             <ArrowRight className="w-4 h-4" />
           </LocalizedLink>
         </div>

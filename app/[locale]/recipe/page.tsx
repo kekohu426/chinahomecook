@@ -102,6 +102,7 @@ async function getRecipePageConfig(): Promise<RecipePageConfig> {
 
 const getCachedConfig = unstable_cache(getRecipePageConfig, ["recipe-page-config"], {
   revalidate: 300,
+  tags: ["recipe-page-config"],
 });
 
 export async function generateMetadata({

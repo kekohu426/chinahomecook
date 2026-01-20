@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -168,35 +169,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       try {
         const targetLangName = LOCALE_NAMES_EN[targetLocale];
         const sourceLangName = LOCALE_NAMES_EN[sourceLocale];
-        const prompt = `你是一位专业的翻译。请把以下食谱内容从${sourceLangName}翻译成${targetLangName}，保持结构和数字不变。
-
-返回 JSON，字段必须包含：
-{
-  "title": "标题",
-  "description": "一句话介绍",
-  "difficulty": "easy/medium/hard",
-  "summary": { "oneLine": "", "healingTone": "", "difficulty": "easy/medium/hard", "timeTotalMin": 45, "timeActiveMin": 20, "servings": 3 },
-  "story": { "title": "", "content": "", "tags": ["tag1","tag2"] },
-  "ingredients": [ { "section": "", "items": [ { "name": "", "iconKey": "meat", "amount": 500, "unit": "克", "notes": "" } ] } ],
-  "steps": [ { "id": "", "title": "", "action": "", "speechText": "", "timerSec": 0, "visualCue": "", "failPoint": "", "photoBrief": "" } ]
-}
-
-要求：
-1) 仅翻译文本，保持数字/时长/比例/键名不变。
-2) 不要删除字段和数组元素。
-3) 不要翻译单位和 iconKey。
-4) 只返回 JSON，不要额外说明。
-
-源内容：
-${JSON.stringify(sourceData, null, 2)}`;
+        const applied = await getAppliedPrompt("translate_recipe", {
+          sourceLangName,
+          targetLangName,
+          sourceData: JSON.stringify(sourceData, null, 2),
+        });
+        if (!applied?.prompt) {
+          throw new Error("未找到可用的提示词配置");
+        }
 
         const response = await provider.chat({
           messages: [
-            {
-              role: "system",
-              content: "你是严格的 JSON 翻译器，只返回有效 JSON，禁止输出多余文本。",
-            },
-            { role: "user", content: prompt },
+            ...(applied.systemPrompt
+              ? [{ role: "system", content: applied.systemPrompt }]
+              : []),
+            { role: "user", content: applied.prompt },
           ],
           temperature: 0.3,
           maxTokens: 6000,

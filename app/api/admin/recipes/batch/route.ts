@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "@/lib/ai/provider";
 import { requireAdmin } from "@/lib/auth/guard";
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -94,27 +95,13 @@ export async function POST(request: NextRequest) {
  * 批量发布/下架
  */
 async function handleBatchPublish(recipeIds: string[], publish: boolean) {
-  // 如果是发布，检查是否都已审核
-  if (publish) {
-    const recipes = await prisma.recipe.findMany({
-      where: { id: { in: recipeIds } },
-      select: { id: true, title: true, reviewStatus: true },
-    });
-
-    const unapproved = recipes.filter((r) => r.reviewStatus !== "approved");
-    if (unapproved.length > 0) {
-      return {
-        success: false,
-        message: `以下食谱未审核，无法发布：${unapproved.map((r) => r.title).join("、")}`,
-      };
-    }
-  }
-
   const updated = await prisma.recipe.updateMany({
     where: { id: { in: recipeIds } },
     data: {
       status: publish ? "published" : "draft",
       publishedAt: publish ? new Date() : null,
+      reviewStatus: publish ? "approved" : undefined,
+      reviewedAt: publish ? new Date() : undefined,
     },
   });
 
@@ -134,6 +121,8 @@ async function handleBatchApprove(recipeIds: string[], approve: boolean, rejectR
     data: {
       reviewStatus: approve ? "approved" : "rejected",
       reviewedAt: new Date(),
+      status: approve ? "published" : "draft",
+      publishedAt: approve ? new Date() : null,
     },
   });
 
@@ -206,35 +195,21 @@ async function translateSingleRecipe(
     try {
       const targetLangName = LOCALE_NAMES_EN[targetLocale];
       const sourceLangName = LOCALE_NAMES_EN[sourceLocale];
-      const prompt = `你是一位专业的翻译。请把以下食谱内容从${sourceLangName}翻译成${targetLangName}，保持结构和数字不变。
-
-返回 JSON，字段必须包含：
-{
-  "title": "标题",
-  "summary": { "oneLine": "", "healingTone": "", "difficulty": "easy/medium/hard", "timeTotalMin": 45, "timeActiveMin": 20, "servings": 3 },
-  "story": { "title": "", "content": "", "tags": ["tag1","tag2"] },
-  "ingredients": [ { "section": "", "items": [ { "name": "", "iconKey": "meat", "amount": 500, "unit": "克", "notes": "" } ] } ],
-  "steps": [ { "id": "", "title": "", "action": "", "speechText": "", "timerSec": 0, "visualCue": "", "failPoint": "", "photoBrief": "" } ],
-  "styleGuide": { "theme": "", "lighting": "", "composition": "", "aesthetic": "" },
-  "imageShots": [ { "key": "", "imagePrompt": "", "ratio": "4:3", "imageUrl": "" } ]
-}
-
-要求：
-1) 仅翻译文本，保持数字/时长/比例/键名不变。
-2) 不要删除字段和数组元素。
-3) 不要翻译单位和 iconKey；imagePrompt 可按语义翻译。
-4) 只返回 JSON，不要额外说明。
-
-源内容：
-${JSON.stringify(sourceData, null, 2)}`;
+      const applied = await getAppliedPrompt("translate_recipe_full", {
+        sourceLangName,
+        targetLangName,
+        sourceData: JSON.stringify(sourceData, null, 2),
+      });
+      if (!applied?.prompt) {
+        throw new Error("未找到可用的提示词配置");
+      }
 
       const response = await provider.chat({
         messages: [
-          {
-            role: "system",
-            content: "你是严格的 JSON 翻译器，只返回有效 JSON，禁止输出多余文本。",
-          },
-          { role: "user", content: prompt },
+          ...(applied.systemPrompt
+            ? [{ role: "system" as const, content: applied.systemPrompt }]
+            : []),
+          { role: "user" as const, content: applied.prompt },
         ],
         temperature: 0.3,
         maxTokens: 6000,

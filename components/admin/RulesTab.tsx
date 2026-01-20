@@ -24,6 +24,8 @@ import {
   Eye,
   Save,
   Edit3,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import type { CollectionDetail } from "@/lib/types/collection-api";
 import type { RuleConfig } from "@/lib/types/collection";
@@ -65,6 +67,16 @@ export default function RulesTab({ collection, onRefresh }: RulesTabProps) {
   const [editing, setEditing] = useState(false);
   const [editedRules, setEditedRules] = useState<RuleConfig>(collection.rules);
   const [saving, setSaving] = useState(false);
+
+  // AI 生成规则状态
+  const [showAiGenerator, setShowAiGenerator] = useState(false);
+  const [aiInput, setAiInput] = useState("");
+  const [generating, setGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState<{
+    rules: any[];
+    explanation: string;
+    confidence: number;
+  } | null>(null);
 
   // 测试规则
   const handleTestRules = useCallback(async () => {
@@ -124,6 +136,66 @@ export default function RulesTab({ collection, onRefresh }: RulesTabProps) {
   const handleCancelEdit = () => {
     setEditedRules(collection.rules);
     setEditing(false);
+  };
+
+  // AI 生成规则
+  const handleGenerateRules = async () => {
+    if (!aiInput.trim()) {
+      alert("请输入描述");
+      return;
+    }
+
+    setGenerating(true);
+    setAiResult(null);
+
+    try {
+      const response = await fetch("/api/admin/collections/generate-rules", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userInput: aiInput }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAiResult(data.data);
+      } else {
+        alert(data.error || "生成失败");
+      }
+    } catch (error) {
+      console.error("AI 生成规则失败:", error);
+      alert("生成失败，请稍后重试");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // 应用 AI 生成的规则
+  const handleApplyAiRules = () => {
+    if (!aiResult) return;
+
+    // 转换为 RuleConfig 格式
+    // AI 返回的 rules 数组中每个 group 有 logic 和 rules 字段
+    // 需要转换为 RuleEditor 期望的 logic 和 conditions 字段
+    const newRules: RuleConfig = {
+      mode: "custom",
+      groups: aiResult.rules.map((group: any) => ({
+        logic: group.logic,
+        conditions: group.rules.map((rule: any) => ({
+          field: "tagId",
+          operator: rule.operator === "equals" ? "eq" : rule.operator === "in" ? "in" : "eq",
+          value: rule.value,
+          tagType: rule.field, // scene, method, taste, crowd, occasion
+        })),
+      })),
+      exclude: [],
+    };
+
+    setEditedRules(newRules);
+    setEditing(true);
+    setShowAiGenerator(false);
+    setAiInput("");
+    setAiResult(null);
   };
 
   // 获取关联实体图标
@@ -209,7 +281,114 @@ export default function RulesTab({ collection, onRefresh }: RulesTabProps) {
 
       {/* 主题模式：规则编辑器 */}
       {collection.ruleType === "custom" && (
-        <div className="bg-white border border-cream rounded-lg p-4">
+        <>
+          {/* AI 智能生成入口 */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-purple-900">AI 智能生成规则</h4>
+                  <p className="text-sm text-purple-700 mt-1">
+                    用自然语言描述你想要的食谱类型，AI 会自动生成匹配规则
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAiGenerator(!showAiGenerator)}
+                className="px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+              >
+                {showAiGenerator ? "收起" : "展开"}
+              </button>
+            </div>
+
+            {showAiGenerator && (
+              <div className="mt-4 space-y-4">
+                {/* 输入框 */}
+                <div>
+                  <label className="block text-sm font-medium text-textDark mb-2">
+                    描述你想要的食谱类型
+                  </label>
+                  <textarea
+                    value={aiInput}
+                    onChange={(e) => setAiInput(e.target.value)}
+                    placeholder="例如：产后产妇食谱、适合老人的清淡家常菜、快手下饭菜..."
+                    className="w-full px-3 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm resize-none"
+                    rows={3}
+                    disabled={generating}
+                  />
+                </div>
+
+                {/* 生成按钮 */}
+                <button
+                  onClick={handleGenerateRules}
+                  disabled={generating || !aiInput.trim()}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      AI 生成中...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      生成规则
+                    </>
+                  )}
+                </button>
+
+                {/* AI 生成结果 */}
+                {aiResult && (
+                  <div className="bg-white border border-purple-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          <span className="font-medium text-textDark">规则生成成功</span>
+                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                            置信度: {(aiResult.confidence * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <p className="text-sm text-textGray">{aiResult.explanation}</p>
+                      </div>
+                    </div>
+
+                    {/* 规则预览 */}
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-xs font-mono text-textGray">
+                        <pre className="whitespace-pre-wrap">
+                          {JSON.stringify(aiResult.rules, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+
+                    {/* 操作按钮 */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleApplyAiRules}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-white bg-brownWarm hover:bg-brownDark rounded-lg transition-colors"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        应用此规则
+                      </button>
+                      <button
+                        onClick={() => setAiResult(null)}
+                        className="px-4 py-2 text-sm text-textGray hover:text-textDark border border-cream rounded-lg transition-colors"
+                      >
+                        重新生成
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 规则编辑器 */}
+          <div className="bg-white border border-cream rounded-lg p-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium text-textDark">规则配置</h4>
             <div className="flex items-center gap-2">
@@ -252,6 +431,10 @@ export default function RulesTab({ collection, onRefresh }: RulesTabProps) {
               rules={editedRules}
               onChange={setEditedRules}
               disabled={saving}
+              collectionId={collection.id}
+              cuisineId={collection.cuisineId}
+              locationId={collection.locationId}
+              tagId={collection.tagId}
             />
           ) : (
             <div className="text-sm text-textGray">
@@ -263,6 +446,7 @@ export default function RulesTab({ collection, onRefresh }: RulesTabProps) {
             </div>
           )}
         </div>
+        </>
       )}
 
       {/* 匹配统计 */}

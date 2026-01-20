@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth";
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 
 // 权限验证
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -86,13 +87,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 构建提示词
-    const prompt = buildRecommendPrompt({
-      cuisineName,
-      locationName,
-      count,
-      existingTitles: existingTitles.slice(0, 50), // 最多传50个用于参考
+    let collectionName = "通用推荐";
+    let collectionType = "custom";
+    if (collectionId) {
+      const collection = await prisma.collection.findUnique({
+        where: { id: collectionId },
+        select: { name: true, type: true },
+      });
+      if (collection) {
+        collectionName = collection.name;
+        collectionType = collection.type;
+      }
+    }
+
+    const existingList = existingTitles.slice(0, 50);
+    const existingSection = existingList.length
+      ? `【已有菜谱（请勿重复推荐）】\n${existingList.join("、")}${existingTitles.length > 50 ? `\n...等共 ${existingTitles.length} 个` : ""}`
+      : "";
+
+    const applied = await getAppliedPrompt("dish_recommend", {
+      count: String(count),
+      collectionName,
+      collectionType,
+      cuisineLine: cuisineName ? `- 菜系: ${cuisineName}` : "",
+      locationLine: locationName ? `- 地区: ${locationName}` : "",
+      tagLine: "",
+      descriptionLine: "",
+      styleLine: "",
+      existingSection,
     });
+    if (!applied?.prompt) {
+      return NextResponse.json(
+        { success: false, error: "未找到可用的提示词配置" },
+        { status: 500 }
+      );
+    }
 
     // 调用AI API
     const response = await fetch(`${aiConfig.textBaseUrl}/chat/completions`, {
@@ -104,14 +133,10 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: aiConfig.textModel || "glm-4-flash",
         messages: [
-          {
-            role: "system",
-            content: "你是一位资深的中餐美食专家，精通各大菜系的经典菜品。请根据要求推荐适合的菜名。",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
+          ...(applied.systemPrompt
+            ? [{ role: "system", content: applied.systemPrompt }]
+            : []),
+          { role: "user", content: applied.prompt },
         ],
         temperature: 0.8,
       }),
@@ -153,45 +178,6 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * 构建推荐提示词
- */
-function buildRecommendPrompt(params: {
-  cuisineName: string;
-  locationName: string;
-  count: number;
-  existingTitles: string[];
-}): string {
-  const { cuisineName, locationName, count, existingTitles } = params;
-
-  let context = "";
-  if (cuisineName) context += `菜系：${cuisineName}\n`;
-  if (locationName) context += `地域：${locationName}\n`;
-
-  let exclusion = "";
-  if (existingTitles.length > 0) {
-    exclusion = `\n以下菜品已存在，请避免推荐：\n${existingTitles.slice(0, 30).join("、")}${existingTitles.length > 30 ? "等" : ""}`;
-  }
-
-  return `请推荐${count}道${cuisineName || "中式"}菜品。
-
-${context}${exclusion}
-
-请按以下JSON格式返回：
-[
-  {
-    "name": "菜名",
-    "confidence": 0.95,
-    "reason": "推荐理由（一句话）"
-  }
-]
-
-要求：
-1. 推荐经典、有代表性的菜品
-2. confidence表示推荐置信度(0-1)，越经典越高
-3. 每道菜的reason简洁说明为什么推荐
-4. 只返回JSON数组，不要其他内容`;
-}
-
 /**
  * 解析AI返回的推荐结果
  */

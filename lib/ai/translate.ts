@@ -14,6 +14,7 @@
 
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "./provider";
+import { getAppliedPrompt } from "./prompt-manager";
 
 /**
  * 翻译服务支持的语言
@@ -30,6 +31,9 @@ export type TranslationLocale = (typeof TRANSLATION_LOCALES)[number];
 // 向后兼容的别名
 export const SUPPORTED_LOCALES = TRANSLATION_LOCALES;
 export type SupportedLocale = TranslationLocale;
+
+// 默认语言（源语言）
+const DEFAULT_LOCALE: SupportedLocale = "zh";
 
 // 语言名称映射（用于提示词）
 const LOCALE_NAMES: Record<SupportedLocale, { zh: string; en: string }> = {
@@ -117,36 +121,23 @@ export async function translateRecipe(
     };
 
     const targetLangName = LOCALE_NAMES[targetLocale].en;
-    const prompt = `你是一位专业的翻译。请把以下食谱内容从Chinese翻译成${targetLangName}，保持结构和数字不变。
-
-返回 JSON，字段必须包含：
-{
-  "title": "标题",
-  "description": "一句话介绍",
-  "difficulty": "easy/medium/hard",
-  "summary": { "oneLine": "", "healingTone": "", "difficulty": "easy/medium/hard", "timeTotalMin": 45, "timeActiveMin": 20, "servings": 3 },
-  "story": { "title": "", "content": "", "tags": ["tag1","tag2"] },
-  "ingredients": [ { "section": "", "items": [ { "name": "", "iconKey": "meat", "amount": 500, "unit": "克", "notes": "" } ] } ],
-  "steps": [ { "id": "", "title": "", "action": "", "speechText": "", "timerSec": 0, "visualCue": "", "failPoint": "", "photoBrief": "" } ]
-}
-
-要求：
-1) 仅翻译文本，保持数字/时长/比例/键名不变。
-2) 不要删除字段和数组元素。
-3) 不要翻译单位和 iconKey。
-4) 只返回 JSON，不要额外说明。
-
-源内容：
-${JSON.stringify(sourceData, null, 2)}`;
+    const sourceLangName = LOCALE_NAMES[DEFAULT_LOCALE].en;
+    const applied = await getAppliedPrompt("translate_recipe", {
+      sourceLangName,
+      targetLangName,
+      sourceData: JSON.stringify(sourceData, null, 2),
+    });
+    if (!applied?.prompt) {
+      return { success: false, error: "未找到可用的提示词配置" };
+    }
 
     const provider = getTextProvider();
     const response = await provider.chat({
       messages: [
-        {
-          role: "system",
-          content: "你是严格的 JSON 翻译器，只返回有效 JSON，禁止输出多余文本。",
-        },
-        { role: "user", content: prompt },
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
       ],
       temperature: 0.3,
       maxTokens: 6000,
@@ -226,21 +217,23 @@ export async function translateCuisine(
     }
 
     const targetLangName = LOCALE_NAMES[targetLocale].en;
-    const prompt = `翻译以下菜系信息到${targetLangName}，返回 JSON：
-{
-  "name": "名称",
-  "description": "描述"
-}
-
-源内容：
-名称：${cuisine.name}
-描述：${cuisine.description || ""}
-
-只返回 JSON。`;
+    const applied = await getAppliedPrompt("translate_cuisine", {
+      targetLangName,
+      name: cuisine.name,
+      description: cuisine.description || "",
+    });
+    if (!applied?.prompt) {
+      return { success: false, error: "未找到可用的提示词配置" };
+    }
 
     const provider = getTextProvider();
     const response = await provider.chat({
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
+      ],
       temperature: 0.3,
       maxTokens: 500,
     });
@@ -300,21 +293,23 @@ export async function translateLocation(
     }
 
     const targetLangName = LOCALE_NAMES[targetLocale].en;
-    const prompt = `翻译以下地域信息到${targetLangName}，返回 JSON：
-{
-  "name": "名称",
-  "description": "描述"
-}
-
-源内容：
-名称：${location.name}
-描述：${location.description || ""}
-
-只返回 JSON。`;
+    const applied = await getAppliedPrompt("translate_location", {
+      targetLangName,
+      name: location.name,
+      description: location.description || "",
+    });
+    if (!applied?.prompt) {
+      return { success: false, error: "未找到可用的提示词配置" };
+    }
 
     const provider = getTextProvider();
     const response = await provider.chat({
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
+      ],
       temperature: 0.3,
       maxTokens: 500,
     });
@@ -374,19 +369,23 @@ export async function translateTag(
     }
 
     const targetLangName = LOCALE_NAMES[targetLocale].en;
-    const prompt = `翻译以下标签名称到${targetLangName}，返回 JSON：
-{
-  "name": "名称"
-}
-
-标签类型：${tag.type}
-源名称：${tag.name}
-
-只返回 JSON。`;
+    const applied = await getAppliedPrompt("translate_tag", {
+      targetLangName,
+      type: tag.type,
+      name: tag.name,
+    });
+    if (!applied?.prompt) {
+      return { success: false, error: "未找到可用的提示词配置" };
+    }
 
     const provider = getTextProvider();
     const response = await provider.chat({
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
+      ],
       temperature: 0.3,
       maxTokens: 200,
     });
@@ -444,23 +443,24 @@ export async function translateCollection(
     }
 
     const targetLangName = LOCALE_NAMES[targetLocale].en;
-    const prompt = `翻译以下合集信息到${targetLangName}，返回 JSON：
-{
-  "name": "名称",
-  "description": "描述",
-  "seo": { "title": "", "description": "", "keywords": [] }
-}
-
-源内容：
-名称：${collection.name}
-描述：${collection.description || ""}
-SEO：${JSON.stringify(collection.seo || {})}
-
-只返回 JSON。`;
+    const applied = await getAppliedPrompt("translate_collection", {
+      targetLangName,
+      name: collection.name,
+      description: collection.description || "",
+      seo: JSON.stringify(collection.seo || {}),
+    });
+    if (!applied?.prompt) {
+      return { success: false, error: "未找到可用的提示词配置" };
+    }
 
     const provider = getTextProvider();
     const response = await provider.chat({
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
+      ],
       temperature: 0.3,
       maxTokens: 800,
     });
@@ -521,21 +521,23 @@ export async function translateIngredient(
     }
 
     const targetLangName = LOCALE_NAMES[targetLocale].en;
-    const prompt = `翻译以下食材名称到${targetLangName}，返回 JSON：
-{
-  "name": "名称",
-  "unit": "默认单位"
-}
-
-源内容：
-名称：${ingredient.name}
-单位：${ingredient.unit || ""}
-
-只返回 JSON。`;
+    const applied = await getAppliedPrompt("translate_ingredient", {
+      targetLangName,
+      name: ingredient.name,
+      unit: ingredient.unit || "",
+    });
+    if (!applied?.prompt) {
+      return { success: false, error: "未找到可用的提示词配置" };
+    }
 
     const provider = getTextProvider();
     const response = await provider.chat({
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
+      ],
       temperature: 0.3,
       maxTokens: 200,
     });

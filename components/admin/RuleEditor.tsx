@@ -7,19 +7,125 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus,
   Trash2,
   GripVertical,
+  AlertTriangle,
+  CheckCircle,
+  RefreshCw,
 } from "lucide-react";
 import type { RuleConfig, CustomRuleConfig, RuleGroup, RuleCondition } from "@/lib/types/collection";
+import RuleTagSelector from "./RuleTagSelector";
 
 interface RuleEditorProps {
   rules: RuleConfig;
   onChange: (rules: RuleConfig) => void;
   disabled?: boolean;
+  collectionId?: string;
+  cuisineId?: string | null;
+  locationId?: string | null;
+  tagId?: string | null;
 }
+
+// 快捷模板
+const QUICK_TEMPLATES = [
+  {
+    id: "empty",
+    name: "清空规则",
+    description: "清空所有规则",
+    rules: { mode: "custom" as const, groups: [], exclude: [] },
+  },
+  {
+    id: "single-tag",
+    name: "单个标签",
+    description: "匹配包含特定标签的食谱",
+    rules: {
+      mode: "custom" as const,
+      groups: [
+        {
+          logic: "OR" as const,
+          conditions: [
+            { field: "tagId", operator: "eq", value: "", tagType: "scene" },
+          ],
+        },
+      ],
+      exclude: [],
+    },
+  },
+  {
+    id: "multi-tags-or",
+    name: "多标签（任一）",
+    description: "匹配包含任一标签的食谱",
+    rules: {
+      mode: "custom" as const,
+      groups: [
+        {
+          logic: "OR" as const,
+          conditions: [
+            { field: "tagId", operator: "eq", value: "", tagType: "scene" },
+            { field: "tagId", operator: "eq", value: "", tagType: "taste" },
+          ],
+        },
+      ],
+      exclude: [],
+    },
+  },
+  {
+    id: "multi-tags-and",
+    name: "多标签（全部）",
+    description: "匹配同时包含多个标签的食谱",
+    rules: {
+      mode: "custom" as const,
+      groups: [
+        {
+          logic: "AND" as const,
+          conditions: [
+            { field: "tagId", operator: "eq", value: "", tagType: "scene" },
+            { field: "tagId", operator: "eq", value: "", tagType: "taste" },
+          ],
+        },
+      ],
+      exclude: [],
+    },
+  },
+  {
+    id: "quick-recipes",
+    name: "快手菜",
+    description: "烹饪时间≤30分钟的食谱",
+    rules: {
+      mode: "custom" as const,
+      groups: [
+        {
+          logic: "OR" as const,
+          conditions: [
+            { field: "cookTime", operator: "lte", value: 30 },
+          ],
+        },
+      ],
+      exclude: [],
+    },
+  },
+  {
+    id: "beginner-friendly",
+    name: "新手友好",
+    description: "难度≤2且时间≤45分钟",
+    rules: {
+      mode: "custom" as const,
+      groups: [
+        {
+          logic: "AND" as const,
+          conditions: [
+            { field: "difficulty", operator: "lte", value: 2 },
+            { field: "cookTime", operator: "lte", value: 45 },
+          ],
+        },
+      ],
+      exclude: [],
+    },
+  },
+];
 
 // 字段选项
 const FIELD_OPTIONS = [
@@ -84,11 +190,50 @@ const createEmptyGroup = (): RuleGroup => ({
   conditions: [createEmptyCondition()],
 });
 
-export default function RuleEditor({ rules, onChange, disabled }: RuleEditorProps) {
+export default function RuleEditor({ rules, onChange, disabled, collectionId, cuisineId, locationId, tagId }: RuleEditorProps) {
   // 确保是 custom 规则
   const customRules: CustomRuleConfig = rules.mode === "custom"
     ? rules as CustomRuleConfig
     : { mode: "custom", groups: [], exclude: [] };
+
+  // 实时预览状态
+  const [previewCount, setPreviewCount] = useState<number | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  // 实时预览匹配数量
+  useEffect(() => {
+    const fetchPreview = async () => {
+      setPreviewLoading(true);
+      setPreviewError(null);
+      try {
+        const response = await fetch("/api/admin/collections/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rules: customRules,
+            cuisineId,
+            locationId,
+            tagId,
+          }),
+        });
+        const data = await response.json();
+        if (data.success) {
+          setPreviewCount(data.data.count);
+        } else {
+          setPreviewError(data.error);
+        }
+      } catch (error) {
+        setPreviewError("预览失败");
+      } finally {
+        setPreviewLoading(false);
+      }
+    };
+
+    // 防抖：延迟500ms后执行
+    const timer = setTimeout(fetchPreview, 500);
+    return () => clearTimeout(timer);
+  }, [customRules, cuisineId, locationId, tagId]);
 
   // 更新规则
   const updateRules = (updates: Partial<CustomRuleConfig>) => {
@@ -173,6 +318,88 @@ export default function RuleEditor({ rules, onChange, disabled }: RuleEditorProp
 
   return (
     <div className="space-y-6">
+      {/* 快捷模板 */}
+      <div className="bg-gray-50 border border-cream rounded-lg p-4">
+        <h4 className="text-sm font-medium text-textDark mb-3">快捷模板</h4>
+        <div className="grid grid-cols-3 gap-2">
+          {QUICK_TEMPLATES.map((template) => (
+            <button
+              key={template.id}
+              onClick={() => onChange(template.rules)}
+              disabled={disabled}
+              className="text-left p-3 bg-white border border-cream rounded-lg hover:border-brownWarm hover:bg-brownWarm/5 transition-colors disabled:opacity-50"
+            >
+              <div className="text-sm font-medium text-textDark">{template.name}</div>
+              <div className="text-xs text-textGray mt-1">{template.description}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 实时匹配预览 */}
+      <div className={`rounded-lg p-4 border ${
+        previewCount === null
+          ? "bg-gray-50 border-gray-200"
+          : previewCount === 0
+          ? "bg-red-50 border-red-200"
+          : previewCount > 100
+          ? "bg-amber-50 border-amber-200"
+          : "bg-green-50 border-green-200"
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {previewLoading ? (
+              <RefreshCw className="h-5 w-5 text-gray-400 animate-spin" />
+            ) : previewCount === null ? (
+              <AlertTriangle className="h-5 w-5 text-gray-400" />
+            ) : previewCount === 0 ? (
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            ) : previewCount > 100 ? (
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+            ) : (
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            )}
+            <div>
+              <div className="text-sm font-medium text-textDark">
+                {previewLoading ? "正在计算..." : "实时匹配预览"}
+              </div>
+              <div className={`text-xs mt-0.5 ${
+                previewCount === null
+                  ? "text-gray-600"
+                  : previewCount === 0
+                  ? "text-red-600"
+                  : previewCount > 100
+                  ? "text-amber-600"
+                  : "text-green-600"
+              }`}>
+                {previewError ? (
+                  previewError
+                ) : previewCount === null ? (
+                  "配置规则后将显示匹配数量"
+                ) : previewCount === 0 ? (
+                  "当前规则没有匹配到任何食谱"
+                ) : previewCount > 100 ? (
+                  `匹配到 ${previewCount} 个食谱（建议控制在 30-50 个以内）`
+                ) : (
+                  `当前匹配 ${previewCount} 个已发布食谱`
+                )}
+              </div>
+            </div>
+          </div>
+          {previewCount !== null && (
+            <div className={`text-3xl font-bold ${
+              previewCount === 0
+                ? "text-red-600"
+                : previewCount > 100
+                ? "text-amber-600"
+                : "text-green-600"
+            }`}>
+              {previewCount}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 规则组列表 */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -207,7 +434,7 @@ export default function RuleEditor({ rules, onChange, disabled }: RuleEditorProp
                 {groupIndex > 0 && (
                   <div className="flex items-center justify-center py-2">
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                      AND
+                      并且
                     </span>
                   </div>
                 )}
@@ -227,8 +454,8 @@ export default function RuleEditor({ rules, onChange, disabled }: RuleEditorProp
                         disabled={disabled}
                         className="px-2 py-1 text-xs border border-cream rounded focus:outline-none focus:border-brownWarm"
                       >
-                        <option value="OR">满足任一 (OR)</option>
-                        <option value="AND">满足全部 (AND)</option>
+                        <option value="OR">满足任一条件</option>
+                        <option value="AND">满足全部条件</option>
                       </select>
                     </div>
                     <button
@@ -273,7 +500,7 @@ export default function RuleEditor({ rules, onChange, disabled }: RuleEditorProp
       {/* 排除条件 */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-textDark">排除条件 (NOT)</h4>
+          <h4 className="text-sm font-medium text-textDark">排除条件</h4>
           <button
             onClick={addExclude}
             disabled={disabled}
@@ -286,6 +513,9 @@ export default function RuleEditor({ rules, onChange, disabled }: RuleEditorProp
 
         {(customRules.exclude || []).length > 0 && (
           <div className="border border-red-200 rounded-lg p-4 bg-red-50/50 space-y-3">
+            <p className="text-xs text-red-600 mb-2">
+              以下条件的食谱将被排除（不会出现在匹配结果中）
+            </p>
             {(customRules.exclude || []).map((condition, index) => (
               <ConditionRow
                 key={index}
@@ -339,7 +569,7 @@ function ConditionRow({
             ? "bg-amber-100 text-amber-700"
             : "bg-blue-100 text-blue-700"
         }`}>
-          {isExclude ? "或" : logic}
+          {isExclude ? "或" : logic === "OR" ? "或" : "且"}
         </span>
       )}
 
@@ -396,18 +626,27 @@ function ConditionRow({
       </select>
 
       {/* 值输入 */}
-      <input
-        type={isNumericField(condition.field) ? "number" : "text"}
-        value={condition.value as string}
-        onChange={(e) => onChange({
-          value: isNumericField(condition.field)
-            ? parseInt(e.target.value) || 0
-            : e.target.value,
-        })}
-        disabled={disabled}
-        placeholder={isNumericField(condition.field) ? "数值" : "标签ID或名称"}
-        className="flex-1 min-w-[100px] px-2 py-1.5 text-sm border border-cream rounded focus:outline-none focus:border-brownWarm"
-      />
+      {needsTagType ? (
+        <RuleTagSelector
+          tagType={condition.tagType || "scene"}
+          value={condition.value as string}
+          onChange={(value) => onChange({ value })}
+          disabled={disabled}
+        />
+      ) : (
+        <input
+          type={isNumericField(condition.field) ? "number" : "text"}
+          value={condition.value as string}
+          onChange={(e) => onChange({
+            value: isNumericField(condition.field)
+              ? parseInt(e.target.value) || 0
+              : e.target.value,
+          })}
+          disabled={disabled}
+          placeholder={isNumericField(condition.field) ? "数值" : "ID或名称"}
+          className="flex-1 min-w-[100px] px-2 py-1.5 text-sm border border-cream rounded focus:outline-none focus:border-brownWarm"
+        />
+      )}
 
       {/* 删除按钮 */}
       <button

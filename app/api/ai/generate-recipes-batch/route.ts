@@ -9,6 +9,10 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { generateRecipesBatch } from "@/lib/ai/generate-recipe";
 import { prisma } from "@/lib/db/prisma";
 import type { Prisma } from "@prisma/client";
+import { ensureIngredientIconRecords } from "@/lib/ingredients/ensure-ingredient-icons";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const authError = await requireAdmin();
@@ -16,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { dishNames, location, cuisine, autoSave } = body;
+    const { dishNames, servings, timeBudget, equipment, dietary, cuisine, autoSave } = body;
 
     if (!dishNames || !Array.isArray(dishNames) || dishNames.length === 0) {
       return NextResponse.json(
@@ -27,36 +31,73 @@ export async function POST(request: NextRequest) {
 
     // 批量生成
     const batchResult = await generateRecipesBatch(dishNames, {
-      location,
+      servings,
+      timeBudget,
+      equipment,
+      dietary,
       cuisine,
     });
 
     // 如果autoSave为true，保存所有成功生成的菜谱
     if (autoSave !== false) {
-      const savedRecipes = [];
+      const savedRecipes: Array<{ recipe: Prisma.RecipeGetPayload<{ select: { id: true; title: true } }>; warning?: string }> = [];
+      const savedWarnings: Array<{ dishName: string; warning: string }> = [];
 
       for (const result of batchResult.results) {
-        if (result.success && result.data) {
+        if (result.data) {
           try {
             // 生成slug
             const slug = `${result.data.titleZh.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
 
+            await ensureIngredientIconRecords(result.data.ingredients);
+
+            // 排除 tags 字段（AI 返回的是结构化标签建议，不能直接存入多对多关系）
+            const { tags: _aiTags, ...recipeDataWithoutTags } = result.data;
+
             const recipe = await prisma.recipe.create({
               data: {
-                title: result.data.titleZh,
-                summary: result.data.summary as unknown as Prisma.InputJsonValue,
-                story: result.data.story as unknown as Prisma.InputJsonValue,
-                ingredients: result.data.ingredients as unknown as Prisma.InputJsonValue,
-                steps: result.data.steps as unknown as Prisma.InputJsonValue,
-                styleGuide: result.data.styleGuide as unknown as Prisma.InputJsonValue,
-                imageShots: result.data.imageShots as unknown as Prisma.InputJsonValue,
+                title: recipeDataWithoutTags.titleZh,
+                summary: recipeDataWithoutTags.summary as unknown as Prisma.InputJsonValue,
+                story: (recipeDataWithoutTags.story ?? recipeDataWithoutTags.culturalStory ?? null) as unknown as Prisma.InputJsonValue,
+                ingredients: recipeDataWithoutTags.ingredients as unknown as Prisma.InputJsonValue,
+                steps: recipeDataWithoutTags.steps as unknown as Prisma.InputJsonValue,
+                nutrition: (recipeDataWithoutTags.nutrition ?? null) as unknown as Prisma.InputJsonValue,
+                faq: (recipeDataWithoutTags.faq ?? null) as unknown as Prisma.InputJsonValue,
+                tips: (recipeDataWithoutTags.tips ?? null) as unknown as Prisma.InputJsonValue,
+                troubleshooting: (recipeDataWithoutTags.troubleshooting ?? null) as unknown as Prisma.InputJsonValue,
+                relatedRecipes: (recipeDataWithoutTags.relatedRecipes ?? null) as unknown as Prisma.InputJsonValue,
+                pairing: (recipeDataWithoutTags.pairing ?? null) as unknown as Prisma.InputJsonValue,
+                seo: (recipeDataWithoutTags.seo ?? null) as unknown as Prisma.InputJsonValue,
+                notes: (recipeDataWithoutTags.notes ?? null) as unknown as Prisma.InputJsonValue,
+                styleGuide: recipeDataWithoutTags.styleGuide as unknown as Prisma.InputJsonValue,
+                imageShots: recipeDataWithoutTags.imageShots as unknown as Prisma.InputJsonValue,
                 slug,
                 aiGenerated: true,
                 status: "draft",
+                reviewStatus: "pending",
+                transStatus: result.success
+                  ? undefined
+                  : ({
+                      generateError: result.error,
+                      validationIssues: result.issues,
+                    } as Prisma.InputJsonValue),
               },
             });
 
-            savedRecipes.push(recipe);
+            if (!result.success && result.error) {
+              savedWarnings.push({
+                dishName: result.dishName,
+                warning: result.error,
+              });
+            }
+
+            savedRecipes.push({
+              recipe: {
+                id: recipe.id,
+                title: recipe.title,
+              },
+              ...(result.success ? {} : { warning: result.error }),
+            });
 
             // 避免数据库写入过快，每次写入间隔100ms
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -74,8 +115,9 @@ export async function POST(request: NextRequest) {
           failed: batchResult.failed,
           saved: savedRecipes.length,
           savedRecipes,
+          savedWarnings,
           failedDishes: batchResult.results
-            .filter((r) => !r.success)
+            .filter((r) => !r.success && !r.data)
             .map((r) => ({
               dishName: r.dishName,
               error: r.error,

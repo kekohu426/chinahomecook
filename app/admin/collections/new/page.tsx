@@ -18,22 +18,20 @@ const TYPE_OPTIONS = [
   { value: "taste", label: "口味" },
   { value: "crowd", label: "人群" },
   { value: "occasion", label: "场合" },
-  { value: "topic", label: "专题" },
+  { value: "ingredient", label: "食材" },
+  { value: "theme", label: "主题" },
 ];
 
 export default function NewCollectionPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    type: "topic",
+    type: "theme",
     name: "",
     slug: "",
     path: "",
     minRequired: 10,
     targetCount: 30,
-    isFeatured: false,
-    seoTitle: "",
-    seoDescription: "",
   });
 
   const handleChange = (field: string, value: string | number | boolean) => {
@@ -100,12 +98,7 @@ export default function NewCollectionPage() {
           slug: form.slug,
           minRequired: form.minRequired,
           targetCount: form.targetCount,
-          isFeatured: form.isFeatured,
           rules: defaultRules,
-          seo: {
-            title: form.seoTitle || form.name,
-            description: form.seoDescription,
-          },
         }),
       });
 
@@ -230,48 +223,6 @@ export default function NewCollectionPage() {
               />
               <p className="text-xs text-textGray mt-1">理想的内容数量</p>
             </div>
-          </div>
-
-          {/* 是否精选 */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isFeatured"
-              checked={form.isFeatured}
-              onChange={(e) => handleChange("isFeatured", e.target.checked)}
-              className="w-4 h-4 rounded border-cream text-brownWarm focus:ring-brownWarm"
-            />
-            <label htmlFor="isFeatured" className="text-sm text-textDark">
-              设为精选（在首页展示）
-            </label>
-          </div>
-
-          {/* SEO 标题 */}
-          <div>
-            <label className="block text-sm font-medium text-textDark mb-2">
-              SEO 标题
-            </label>
-            <input
-              type="text"
-              value={form.seoTitle}
-              onChange={(e) => handleChange("seoTitle", e.target.value)}
-              placeholder="留空则使用名称"
-              className="w-full px-3 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm"
-            />
-          </div>
-
-          {/* SEO 描述 */}
-          <div>
-            <label className="block text-sm font-medium text-textDark mb-2">
-              SEO 描述
-            </label>
-            <textarea
-              value={form.seoDescription}
-              onChange={(e) => handleChange("seoDescription", e.target.value)}
-              placeholder="搜索引擎展示的描述文字"
-              rows={3}
-              className="w-full px-3 py-2 border border-cream rounded-lg focus:outline-none focus:border-brownWarm resize-none"
-            />
           </div>
         </div>
 

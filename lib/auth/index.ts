@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { Adapter } from "next-auth/adapters";
-import { prisma } from "@/lib/db/prisma";
 import { authConfig } from "./config";
 
 export const {
@@ -10,16 +8,17 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: PrismaAdapter(prisma) as Adapter,
-  session: { strategy: "jwt" }, // 使用 JWT 以支持 Edge Runtime 中间件
+  session: { strategy: "jwt" }, // 使用 JWT，不需要数据库
   ...authConfig,
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user, account }) {
-      // 首次登录时从数据库获取用户信息
+      // 首次登录时保存用户信息到 token
       if (user) {
-        token.id = user.id ?? "";
-        token.role = user.role || "USER";
+        token.id = user.id ?? user.email ?? "";
+        token.role = "ADMIN"; // 暂时所有用户都是 ADMIN
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
@@ -27,20 +26,10 @@ export const {
       if (session.user && token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
       }
       return session;
-    },
-  },
-  events: {
-    async createUser({ user }) {
-      // First user becomes ADMIN
-      const userCount = await prisma.user.count();
-      if (userCount === 1 && user.id) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { role: "ADMIN" },
-        });
-      }
     },
   },
 });

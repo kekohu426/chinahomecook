@@ -8,8 +8,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth";
+import { DEFAULT_RECIPE_PROMPT, DEFAULT_SEO_PROMPT } from "@/lib/ai/prompts";
+import { clearImageConfigCache } from "@/lib/ai/evolink";
 
 const DEFAULT_CONFIG_ID = "default";
+
+function normalizeText(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  return String(value);
+}
 
 async function requireAdmin(): Promise<NextResponse | null> {
   const session = await auth();
@@ -43,7 +51,15 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ success: true, data: config });
+    const resolvedConfig = {
+      ...config,
+      recipePrompt: config.recipePrompt?.trim()
+        ? config.recipePrompt
+        : DEFAULT_RECIPE_PROMPT,
+      seoPrompt: config.seoPrompt?.trim() ? config.seoPrompt : DEFAULT_SEO_PROMPT,
+    };
+
+    return NextResponse.json({ success: true, data: resolvedConfig });
   } catch (error) {
     console.error("获取 AI 配置失败:", error);
     return NextResponse.json(
@@ -76,10 +92,10 @@ export async function PUT(request: NextRequest) {
         transApiKey: body.transApiKey ?? null,
         transBaseUrl: body.transBaseUrl ?? null,
         transModel: body.transModel ?? null,
-        recipePrompt: body.recipePrompt ?? body.recipePromptTemplate ?? null,
-        recipeSystemPrompt: body.recipeSystemPrompt ?? null,
-        transPrompt: body.transPrompt ?? null,
-        seoPrompt: body.seoPrompt ?? null,
+        recipePrompt: normalizeText(body.recipePrompt ?? body.recipePromptTemplate),
+        recipeSystemPrompt: normalizeText(body.recipeSystemPrompt),
+        transPrompt: normalizeText(body.transPrompt),
+        seoPrompt: normalizeText(body.seoPrompt),
       },
       create: {
         id: DEFAULT_CONFIG_ID,
@@ -96,12 +112,15 @@ export async function PUT(request: NextRequest) {
         transApiKey: body.transApiKey ?? null,
         transBaseUrl: body.transBaseUrl ?? null,
         transModel: body.transModel ?? null,
-        recipePrompt: body.recipePrompt ?? body.recipePromptTemplate ?? null,
-        recipeSystemPrompt: body.recipeSystemPrompt ?? null,
-        transPrompt: body.transPrompt ?? null,
-        seoPrompt: body.seoPrompt ?? null,
+        recipePrompt: normalizeText(body.recipePrompt ?? body.recipePromptTemplate),
+        recipeSystemPrompt: normalizeText(body.recipeSystemPrompt),
+        transPrompt: normalizeText(body.transPrompt),
+        seoPrompt: normalizeText(body.seoPrompt),
       },
     });
+
+    // 清除图像配置缓存，使新配置立即生效
+    clearImageConfigCache();
 
     return NextResponse.json({ success: true, data: config });
   } catch (error) {

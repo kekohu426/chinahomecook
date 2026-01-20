@@ -36,11 +36,13 @@ export async function getQualifiedCollectionsByType(
 ): Promise<QualifiedCollectionCard[]> {
   const locales = getContentLocales(locale);
   const isEn = locale === "en";
+  const isTheme = type === "theme";
 
   const collections = await prisma.collection.findMany({
     where: {
-      type,
+      type: isTheme ? { in: ["theme", "topic"] } : type,
       status: "published",
+      // 不检查 isFeatured，因为它是计算结果而不是查询条件
       // 达标条件：cachedPublishedCount >= minRequired
       // 使用 raw SQL 或者在应用层过滤
     },
@@ -65,7 +67,7 @@ export async function getQualifiedCollectionsByType(
       name: isEn ? (translation?.name || c.nameEn || c.name) : c.name,
       nameEn: c.nameEn || undefined,
       slug: c.slug,
-      path: c.path,
+      path: c.type === "topic" ? `/recipe/theme/${c.slug}` : c.path,
       type: c.type,
       coverImage: c.coverImage,
       publishedCount: c.cachedPublishedCount,
@@ -196,6 +198,18 @@ const DEFAULT_BLOCKS: AggregationBlockConfig[] = [
     subtitle: "猪肉、鸡肉、豆腐...",
     subtitleEn: "Pork, chicken, tofu...",
     cardCount: 8,
+    minThreshold: 0,
+    collapsed: false,
+  },
+  {
+    type: "theme",
+    enabled: true,
+    order: 7,
+    title: "专题精选",
+    titleEn: "Featured Topics",
+    subtitle: "策划主题合集",
+    subtitleEn: "Curated theme collections",
+    cardCount: 6,
     minThreshold: 0,
     collapsed: false,
   },

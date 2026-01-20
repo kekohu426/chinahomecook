@@ -13,6 +13,8 @@ import { Footer } from "@/components/layout/Footer";
 import type { Locale } from "@/lib/i18n/config";
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/lib/i18n/config";
 import { getContentLocales } from "@/lib/i18n/content";
+import { buildRuleWhereClause } from "@/lib/collection/rule-engine";
+import type { RuleConfig, SeoConfig } from "@/lib/types/collection";
 import {
   ChevronRight,
   Home,
@@ -101,11 +103,24 @@ export async function generateMetadata({
 
   const cuisineTranslation = cuisine.translations.find((t) => t.locale === locale);
   const cuisineName = cuisineTranslation?.name || cuisine.name;
+  const collection = await prisma.collection.findFirst({
+    where: {
+      type: "cuisine",
+      cuisineId: cuisine.id,
+      status: "published",
+    },
+    select: { seo: true },
+  });
+  const seo = (collection?.seo as SeoConfig) || undefined;
 
   // 筛选页：noindex + canonical
   if (hasFilters) {
     return {
-      title: `${cuisineName}${isEn ? " Recipes" : "菜谱"}`,
+      title:
+        (isEn ? seo?.titleEn : seo?.titleZh) ||
+        `${cuisineName}${isEn ? " Recipes" : "菜谱"}`,
+      description: (isEn ? seo?.descriptionEn : seo?.descriptionZh) || undefined,
+      keywords: seo?.keywords,
       robots: { index: false, follow: true },
       alternates: {
         canonical: `/${locale}/recipe/cuisine/${slug}`,
@@ -115,12 +130,18 @@ export async function generateMetadata({
 
   // 默认模板（SEO 内容块功能待实现）
   return {
-    title: isEn
-      ? `${cuisineName} Recipes - Recipe Zen`
-      : `${cuisineName}菜谱大全 - Recipe Zen`,
-    description: isEn
-      ? `Explore authentic ${cuisineName} recipes with step-by-step instructions.`
-      : `精选${cuisineName}做法大全，新手友好，步骤详解。`,
+    title:
+      (isEn ? seo?.titleEn : seo?.titleZh) ||
+      (isEn
+        ? `${cuisineName} Recipes - Recipe Zen`
+        : `${cuisineName}菜谱大全 - Recipe Zen`),
+    description:
+      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
+      (isEn
+        ? `Explore authentic ${cuisineName} recipes with step-by-step instructions.`
+        : `精选${cuisineName}做法大全，新手友好，步骤详解。`),
+    keywords: seo?.keywords,
+    robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -145,16 +166,62 @@ export default async function CuisinePage({
   const cuisineTranslation = cuisine.translations.find((t) => t.locale === locale);
   const cuisineName = cuisineTranslation?.name || cuisine.name;
 
-  // 查询条件
-  const where: any = {
-    status: "published",
-    cuisineId: cuisine.id,
-  };
+  // 获取对应的 Collection 以获取规则/置顶/排除
+  const collection = await prisma.collection.findFirst({
+    where: {
+      type: "cuisine",
+      cuisineId: cuisine.id,
+      status: "published",
+    },
+    select: {
+      rules: true,
+      cuisineId: true,
+      locationId: true,
+      tagId: true,
+      excludedRecipeIds: true,
+      pinnedRecipeIds: true,
+      seo: true,
+    },
+  });
+
+  const pinnedIds = collection?.pinnedRecipeIds || [];
+  const excludedIds = collection?.excludedRecipeIds || [];
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const heroTitle = isEn
+    ? seo?.h1En || `${cuisineName} Recipes`
+    : seo?.h1Zh || `${cuisineName}菜谱`;
+  const heroSubtitle =
+    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (isEn
+      ? `Explore authentic ${cuisineName} recipes with step-by-step instructions.`
+      : `精选${cuisineName}家常做法，步骤详细，新手友好。`);
+  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+
+  const baseRuleWhere = collection
+    ? buildRuleWhereClause(collection.rules as RuleConfig, {
+        cuisineId: collection.cuisineId,
+        locationId: collection.locationId,
+        tagId: collection.tagId,
+        excludedRecipeIds: collection.excludedRecipeIds,
+      })
+    : { cuisineId: cuisine.id };
+
+  const conditions: Record<string, unknown>[] = [];
+  const baseCondition = pinnedIds.length > 0
+    ? { OR: [baseRuleWhere, { id: { in: pinnedIds } }] }
+    : baseRuleWhere;
+  conditions.push(baseCondition);
+
+  conditions.push({ status: "published" });
+
+  if (excludedIds.length > 0) {
+    conditions.push({ id: { notIn: excludedIds } });
+  }
 
   if (locationParam) {
     const locationId = await resolveLocationFilter(locationParam);
     if (locationId) {
-      where.locationId = locationId;
+      conditions.push({ locationId });
     }
   }
 
@@ -163,29 +230,34 @@ export default async function CuisinePage({
     // 暂时通过标题搜索
     const ingredients = ingredient.split(",").map((i) => i.trim()).filter(Boolean);
     if (ingredients.length > 0) {
-      where.title = { contains: ingredients[0] };
+      conditions.push({ title: { contains: ingredients[0] } });
     }
   }
 
-  // 获取对应的 Collection 以获取置顶食谱
-  const collection = await prisma.collection.findFirst({
-    where: {
-      type: "cuisine",
-      cuisineId: cuisine.id,
-      status: "published",
-    },
-    select: {
-      pinnedRecipeIds: true,
-    },
-  });
-
-  const pinnedIds = collection?.pinnedRecipeIds || [];
+  const where = conditions.length > 1 ? { AND: conditions } : conditions[0];
   const hasPinnedRecipes = page === 1 && pinnedIds.length > 0;
+
+  const pinnedConditions: Record<string, unknown>[] = [];
+  pinnedConditions.push({ id: { in: pinnedIds } });
+  pinnedConditions.push({ status: "published" });
+  if (locationParam) {
+    const locationId = await resolveLocationFilter(locationParam);
+    if (locationId) {
+      pinnedConditions.push({ locationId });
+    }
+  }
+  if (ingredient) {
+    const ingredients = ingredient.split(",").map((i) => i.trim()).filter(Boolean);
+    if (ingredients.length > 0) {
+      pinnedConditions.push({ title: { contains: ingredients[0] } });
+    }
+  }
+  const pinnedWhere = pinnedConditions.length > 1 ? { AND: pinnedConditions } : pinnedConditions[0];
 
   // 获取置顶食谱（仅第一页）
   const pinnedRecipes = hasPinnedRecipes
     ? await prisma.recipe.findMany({
-        where: { id: { in: pinnedIds }, status: "published" },
+        where: pinnedWhere,
         include: {
           cuisine: { select: { id: true, name: true, slug: true } },
           location: { select: { id: true, name: true, slug: true } },
@@ -203,7 +275,7 @@ export default async function CuisinePage({
 
   // 计算主列表需要获取的数量
   const mainLimit = hasPinnedRecipes ? Math.max(0, limit - sortedPinnedRecipes.length) : limit;
-  const mainWhere = hasPinnedRecipes ? { ...where, id: { notIn: pinnedIds } } : where;
+  const mainWhere = hasPinnedRecipes ? { AND: [where, { id: { notIn: pinnedIds } }] } : where;
 
   // 获取食谱
   const [mainRecipesData, total] = await Promise.all([
@@ -302,13 +374,11 @@ export default async function CuisinePage({
           <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 items-center">
             <div>
               <h1 className="text-4xl lg:text-5xl font-serif font-medium text-white mb-4">
-                {cuisineName}{isEn ? " Recipes" : "菜谱"}
+                {heroTitle}
               </h1>
 
               <p className="text-white/90 text-lg mb-6">
-                {isEn
-                  ? `Explore authentic ${cuisineName} recipes with step-by-step instructions.`
-                  : `精选${cuisineName}家常做法，步骤详细，新手友好。`}
+                {heroSubtitle}
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -558,6 +628,14 @@ export default async function CuisinePage({
                   ))}
                 </div>
               </div>
+            </div>
+          </section>
+        )}
+
+        {footerText && (
+          <section className="mt-12">
+            <div className="bg-white rounded-2xl border border-cream p-6 text-sm text-textGray leading-relaxed">
+              {footerText}
             </div>
           </section>
         )}

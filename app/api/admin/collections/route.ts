@@ -36,6 +36,133 @@ function generateSlug(name: string): string {
     .slice(0, 50);
 }
 
+const AUTO_TYPES = [
+  "cuisine",
+  "region",
+  "scene",
+  "method",
+  "taste",
+  "crowd",
+  "occasion",
+  "ingredient",
+];
+
+async function getUniqueSlug(base: string, used: Set<string>, type: string): Promise<string> {
+  if (!used.has(base)) return base;
+  const typed = `${base}-${type}`;
+  if (!used.has(typed)) return typed;
+  let counter = 2;
+  while (used.has(`${typed}-${counter}`)) {
+    counter += 1;
+  }
+  return `${typed}-${counter}`;
+}
+
+async function createCollectionSafe(data: Parameters<typeof prisma.collection.create>[0]["data"]) {
+  try {
+    await prisma.collection.create({ data });
+  } catch (error) {
+    console.warn("自动同步合集失败（忽略）:", error);
+  }
+}
+
+async function autoSyncCollections(): Promise<void> {
+  const existing = await prisma.collection.findMany({
+    where: { type: { in: AUTO_TYPES } },
+    select: {
+      id: true,
+      type: true,
+      slug: true,
+      cuisineId: true,
+      locationId: true,
+      tagId: true,
+    },
+  });
+
+  const usedSlugs = new Set(existing.map((item) => item.slug));
+  const existingCuisineIds = new Set(
+    existing.filter((item) => item.cuisineId).map((item) => item.cuisineId as string)
+  );
+  const existingLocationIds = new Set(
+    existing.filter((item) => item.locationId).map((item) => item.locationId as string)
+  );
+  const existingTagIds = new Set(
+    existing.filter((item) => item.tagId).map((item) => item.tagId as string)
+  );
+
+  const [cuisines, locations, tags] = await Promise.all([
+    prisma.cuisine.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, slug: true, sortOrder: true },
+    }),
+    prisma.location.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, slug: true, sortOrder: true },
+    }),
+    prisma.tag.findMany({
+      where: { isActive: true, type: { in: AUTO_TYPES.filter((t) => t !== "region" && t !== "cuisine") } },
+      select: { id: true, name: true, slug: true, type: true, sortOrder: true },
+    }),
+  ]);
+
+  for (const cuisine of cuisines) {
+    if (existingCuisineIds.has(cuisine.id)) continue;
+    const baseSlug = cuisine.slug || generateSlug(cuisine.name);
+    const slug = await getUniqueSlug(baseSlug, usedSlugs, "cuisine");
+    usedSlugs.add(slug);
+    const path = `${CollectionTypePath.cuisine}/${slug}`;
+    await createCollectionSafe({
+      type: "cuisine",
+      name: cuisine.name,
+      slug,
+      path,
+      ruleType: "auto",
+      rules: { mode: "auto", field: "cuisineId", value: cuisine.id },
+      sortOrder: cuisine.sortOrder || 0,
+      cuisineId: cuisine.id,
+    });
+  }
+
+  for (const location of locations) {
+    if (existingLocationIds.has(location.id)) continue;
+    const baseSlug = location.slug || generateSlug(location.name);
+    const slug = await getUniqueSlug(baseSlug, usedSlugs, "region");
+    usedSlugs.add(slug);
+    const path = `${CollectionTypePath.region}/${slug}`;
+    await createCollectionSafe({
+      type: "region",
+      name: location.name,
+      slug,
+      path,
+      ruleType: "auto",
+      rules: { mode: "auto", field: "locationId", value: location.id },
+      sortOrder: location.sortOrder || 0,
+      locationId: location.id,
+    });
+  }
+
+  for (const tag of tags) {
+    if (existingTagIds.has(tag.id)) continue;
+    const baseSlug = tag.slug || generateSlug(tag.name);
+    const slug = await getUniqueSlug(baseSlug, usedSlugs, tag.type);
+    usedSlugs.add(slug);
+    const typePath =
+      CollectionTypePath[tag.type as keyof typeof CollectionTypePath] ||
+      `/recipe/${tag.type}`;
+    const path = `${typePath}/${slug}`;
+    await createCollectionSafe({
+      type: tag.type,
+      name: tag.name,
+      slug,
+      path,
+      ruleType: "auto",
+      rules: { mode: "auto", field: "tagId", value: tag.id },
+      sortOrder: tag.sortOrder || 0,
+      tagId: tag.id,
+    });
+  }
+}
+
 /**
  * GET /api/admin/collections
  *
@@ -63,8 +190,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    await autoSyncCollections();
+
     // 解析查询参数
     const searchParams = request.nextUrl.searchParams;
+    const filter = searchParams.get("filter"); // featured | landing
     const params: CollectionListParams = {
       page: parseInt(searchParams.get("page") || "1"),
       pageSize: Math.min(parseInt(searchParams.get("pageSize") || "20"), 100),
@@ -77,8 +207,8 @@ export async function GET(request: NextRequest) {
       search: searchParams.get("search") || undefined,
       sortBy:
         (searchParams.get("sortBy") as CollectionListParams["sortBy"]) ||
-        "sortOrder",
-      sortOrder: (searchParams.get("sortOrder") as "asc" | "desc") || "asc",
+        "updatedAt",
+      sortOrder: (searchParams.get("sortOrder") as "asc" | "desc") || "desc",
     };
 
     // 构建查询条件
@@ -91,6 +221,13 @@ export async function GET(request: NextRequest) {
 
     if (params.status) {
       where.status = params.status;
+    }
+
+    // 根据 filter 参数筛选
+    if (filter === "featured") {
+      where.isFeatured = true;
+    } else if (filter === "landing") {
+      where.isFeatured = false;
     }
 
     if (params.search) {
@@ -116,6 +253,7 @@ export async function GET(request: NextRequest) {
         path: true,
         status: true,
         coverImage: true,
+        sortOrder: true,
         minRequired: true,
         targetCount: true,
         cachedMatchedCount: true,
@@ -137,6 +275,7 @@ export async function GET(request: NextRequest) {
       path: c.path,
       status: c.status,
       coverImage: c.coverImage,
+      sortOrder: c.sortOrder,
       minRequired: c.minRequired,
       targetCount: c.targetCount,
       cachedMatchedCount: c.cachedMatchedCount,

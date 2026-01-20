@@ -17,6 +17,7 @@ import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
+import type { SeoConfig } from "@/lib/types/collection";
 import type { Locale } from "@/lib/i18n/config";
 import { ChevronRight, Home, Leaf } from "lucide-react";
 import Link from "next/link";
@@ -33,14 +34,43 @@ export async function generateMetadata({
 }: IngredientPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   const ingredient = decodeURIComponent(slug);
+  const locales = getContentLocales(locale);
   const isEn = locale === "en";
+  const tag = await prisma.tag.findFirst({
+    where: { slug: ingredient, type: "ingredient" },
+    include: {
+      translations: { where: { locale: { in: locales } } },
+    },
+  });
+  const collection = tag
+    ? await prisma.collection.findFirst({
+        where: {
+          type: "ingredient",
+          tagId: tag.id,
+          status: "published",
+        },
+        select: { seo: true },
+      })
+    : null;
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const ingredientName = tag
+    ? (isEn
+        ? tag.translations.find((t) => t.locale === locale)?.name || tag.name
+        : tag.name)
+    : ingredient;
   return {
-    title: isEn
-      ? `${ingredient} Recipes - Recipe Zen`
-      : `${ingredient}做法 - Recipe Zen`,
-    description: isEn
-      ? `Explore recipes featuring ${ingredient}.`
-      : `精选${ingredient}相关做法，家常易做。`,
+    title:
+      (isEn ? seo?.titleEn : seo?.titleZh) ||
+      (isEn
+        ? `${ingredientName} Recipes - Recipe Zen`
+        : `${ingredientName}做法 - Recipe Zen`),
+    description:
+      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
+      (isEn
+        ? `Explore recipes featuring ${ingredientName}.`
+        : `精选${ingredientName}相关做法，家常易做。`),
+    keywords: seo?.keywords,
+    robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -91,11 +121,22 @@ export default async function IngredientPage({
         },
         select: {
           pinnedRecipeIds: true,
+          seo: true,
         },
       })
     : null;
 
   const pinnedIds = collection?.pinnedRecipeIds || [];
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const headerTitle = isEn
+    ? seo?.h1En || ingredientName
+    : seo?.h1Zh || ingredientName;
+  const headerSubtitle =
+    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (isEn
+      ? `Recipes featuring ${ingredientName}, curated for home cooking.`
+      : `围绕${ingredientName}的家常做法合集。`);
+  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
   const hasPinnedRecipes = page === 1 && pinnedIds.length > 0;
 
   // 获取置顶食谱（仅第一页）
@@ -165,13 +206,11 @@ export default async function IngredientPage({
           <div className="flex items-center gap-3 mb-3">
             <Leaf className="w-8 h-8 text-green-600" />
             <h1 className="text-3xl md:text-4xl font-serif font-medium text-textDark">
-              {ingredientName}
+              {headerTitle}
             </h1>
           </div>
           <p className="text-textGray text-lg max-w-3xl">
-            {isEn
-              ? `Recipes featuring ${ingredientName}, curated for home cooking.`
-              : `围绕${ingredientName}的家常做法合集。`}
+            {headerSubtitle}
           </p>
         </div>
       </div>
@@ -249,6 +288,12 @@ export default async function IngredientPage({
                 {isEn ? "Next" : "下一页"}
               </Link>
             )}
+          </div>
+        )}
+
+        {footerText && (
+          <div className="mt-16 bg-white rounded-2xl border border-cream p-6 text-sm text-textGray leading-relaxed">
+            {footerText}
           </div>
         )}
       </main>

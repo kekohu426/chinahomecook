@@ -9,6 +9,7 @@ import { generateRecipe } from "@/lib/ai/generate-recipe";
 import { prisma } from "@/lib/db/prisma";
 import { evolinkClient } from "@/lib/ai/evolink";
 import { uploadImage, generateSafeFilename } from "@/lib/utils/storage";
+import { ensureIngredientIconRecords } from "@/lib/ingredients/ensure-ingredient-icons";
 
 export async function POST(request: NextRequest) {
   try {
@@ -121,15 +122,28 @@ export async function POST(request: NextRequest) {
     }
 
     // 保存到数据库
+    await ensureIngredientIconRecords(result.data.ingredients);
+
+    // 排除 tags 字段（AI 返回的是结构化标签建议，不能直接存入多对多关系）
+    const { tags: _aiTags, ...recipeDataWithoutTags } = result.data;
+
     const recipe = await prisma.recipe.create({
       data: {
-        title: result.data.titleZh,
-        summary: result.data.summary as object,
-        story: result.data.story as object,
-        ingredients: result.data.ingredients as object,
-        steps: result.data.steps as object,
-        styleGuide: result.data.styleGuide as object,
-        imageShots: result.data.imageShots as object,
+        title: recipeDataWithoutTags.titleZh,
+        summary: recipeDataWithoutTags.summary as object,
+        story: (recipeDataWithoutTags.story ?? recipeDataWithoutTags.culturalStory ?? null) as object,
+        ingredients: recipeDataWithoutTags.ingredients as object,
+        steps: recipeDataWithoutTags.steps as object,
+        nutrition: (recipeDataWithoutTags.nutrition ?? null) as object,
+        faq: (recipeDataWithoutTags.faq ?? null) as object,
+        tips: (recipeDataWithoutTags.tips ?? null) as object,
+        troubleshooting: (recipeDataWithoutTags.troubleshooting ?? null) as object,
+        relatedRecipes: (recipeDataWithoutTags.relatedRecipes ?? null) as object,
+        pairing: (recipeDataWithoutTags.pairing ?? null) as object,
+        seo: (recipeDataWithoutTags.seo ?? null) as object,
+        notes: (recipeDataWithoutTags.notes ?? null) as object,
+        styleGuide: recipeDataWithoutTags.styleGuide as object,
+        imageShots: recipeDataWithoutTags.imageShots as object,
         slug,
         coverImage,
         aiGenerated: true,

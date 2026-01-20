@@ -5,6 +5,7 @@
  */
 
 import { getTextProvider } from "./provider";
+import { getAppliedPrompt } from "./prompt-manager";
 
 export interface RecommendContext {
   collectionName: string;
@@ -21,62 +22,64 @@ export interface RecommendedDish {
   name: string;
   reason: string;
   confidence: number;
+  category?: string; // 经典名菜|家常菜|特色菜
+  difficulty?: string; // 简单|中等|困难
+  cookingTime?: number; // 分钟
+  season?: string; // 春|夏|秋|冬|四季
+}
+
+/**
+ * 获取当前季节
+ */
+function getCurrentSeason(): string {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return "春";
+  if (month >= 6 && month <= 8) return "夏";
+  if (month >= 9 && month <= 11) return "秋";
+  return "冬";
+}
+
+/**
+ * 获取季节指导
+ */
+function getSeasonGuidance(): string {
+  const season = getCurrentSeason();
+  const seasonalFoods: Record<string, string> = {
+    春: "春季适合：春笋、豌豆、韭菜、香椿、草莓等时令食材",
+    夏: "夏季适合：黄瓜、西红柿、茄子、苦瓜、西瓜等清爽食材",
+    秋: "秋季适合：南瓜、莲藕、板栗、螃蟹、柿子等秋季食材",
+    冬: "冬季适合：白菜、萝卜、羊肉、牛肉、火锅等温补食材",
+  };
+  return `当前季节：${season}，优先推荐当季食材的菜品。${seasonalFoods[season]}`;
+}
+
+/**
+ * 获取类型差异化指导
+ */
+function getTypeGuidance(collectionType: string): string {
+  const typeGuidanceMap: Record<string, string> = {
+    cuisine: "重点推荐该菜系的代表菜、家常菜和地方特色菜，体现菜系特点",
+    ingredient: "重点推荐该食材的经典做法、常见做法和特色做法，展示食材多样性",
+    scene: "根据场景特点推荐适合的菜品，如快手菜推荐制作时间短的，宴客菜推荐有面子的",
+    method: "推荐适合该烹饪方式的菜品，展示技法的多样应用",
+    taste: "推荐符合该口味的菜品，体现味型特点",
+    crowd: "根据人群特点推荐适合的菜品，考虑营养需求和饮食禁忌",
+    occasion: "根据场合推荐适合的菜品，考虑文化寓意和传统习俗",
+    region: "推荐该地域的特色菜，体现地方美食文化",
+  };
+  return typeGuidanceMap[collectionType] || "推荐符合合集主题的菜品";
 }
 
 /**
  * 构建推荐提示词
  */
-function buildRecommendPrompt(context: RecommendContext, count: number): string {
-  const parts: string[] = [];
-
-  parts.push(`你是一个中国美食专家，请为以下合集推荐 ${count} 个适合的菜名。`);
-  parts.push("");
-  parts.push("【合集信息】");
-  parts.push(`- 合集名称: ${context.collectionName}`);
-  parts.push(`- 合集类型: ${context.collectionType}`);
-
-  if (context.cuisineName) {
-    parts.push(`- 菜系: ${context.cuisineName}`);
-  }
-  if (context.locationName) {
-    parts.push(`- 地区: ${context.locationName}`);
-  }
-  if (context.tagName) {
-    parts.push(`- 标签: ${context.tagName}`);
-  }
-  if (context.description) {
-    parts.push(`- 描述: ${context.description}`);
-  }
-  if (context.style) {
-    parts.push(`- 风格要求: ${context.style}`);
-  }
-
-  if (context.existingTitles.length > 0) {
-    parts.push("");
-    parts.push("【已有菜谱（请勿重复推荐）】");
-    // 只显示前 30 个，避免 prompt 过长
-    const displayTitles = context.existingTitles.slice(0, 30);
-    parts.push(displayTitles.join("、"));
-    if (context.existingTitles.length > 30) {
-      parts.push(`...等共 ${context.existingTitles.length} 个`);
-    }
-  }
-
-  parts.push("");
-  parts.push("【输出要求】");
-  parts.push("1. 输出严格 JSON 数组格式，不要 markdown 代码块");
-  parts.push("2. 每个推荐包含: name(菜名), reason(推荐理由), confidence(置信度0-1)");
-  parts.push("3. 菜名必须是真实存在的中国菜，不要编造");
-  parts.push("4. 推荐理由简洁明了，20字以内");
-  parts.push("5. 置信度表示该菜与合集的匹配程度");
-  parts.push("6. 不要推荐已有菜谱中的菜名或其别名");
-  parts.push("");
-  parts.push("【输出示例】");
-  parts.push('[{"name":"麻婆豆腐","reason":"川菜经典，麻辣鲜香","confidence":0.95}]');
-  parts.push("");
-  parts.push(`请推荐 ${count} 个菜名：`);
-
-  return parts.join("\n");
+function buildExistingSection(existingTitles: string[]) {
+  if (existingTitles.length === 0) return "";
+  const displayTitles = existingTitles.slice(0, 30);
+  const moreLine = existingTitles.length > 30
+    ? `\n...等共 ${existingTitles.length} 个`
+    : "";
+  return `【已有菜谱（请勿重复推荐）】\n${displayTitles.join("、")}${moreLine}`;
 }
 
 /**
@@ -110,6 +113,10 @@ function parseRecommendResponse(response: string): RecommendedDish[] {
       name: String(item.name || ""),
       reason: String(item.reason || ""),
       confidence: Math.min(1, Math.max(0, Number(item.confidence) || 0.5)),
+      category: item.category || undefined,
+      difficulty: item.difficulty || undefined,
+      cookingTime: item.cookingTime ? Number(item.cookingTime) : undefined,
+      season: item.season || undefined,
     })).filter((item) => item.name.length > 0);
   } catch (error) {
     console.error("解析 AI 推荐响应失败:", error);
@@ -126,13 +133,58 @@ export async function recommendDishes(
   count: number = 10
 ): Promise<RecommendedDish[]> {
   try {
-    const provider = getTextProvider();
-    const prompt = buildRecommendPrompt(context, count);
+    const provider = await getTextProvider();
+
+    // 计算多样性配比
+    const classicCount = Math.ceil(count * 0.3);
+    const homeStyleCount = Math.ceil(count * 0.4);
+    const specialCount = count - classicCount - homeStyleCount;
+
+    // 计算难度分布
+    const easyCount = Math.ceil(count * 0.3);
+    const mediumCount = Math.ceil(count * 0.5);
+    const hardCount = count - easyCount - mediumCount;
+
+    // 获取季节指导
+    const seasonGuidance = getSeasonGuidance();
+    const season = getCurrentSeason();
+
+    // 获取类型差异化指导
+    const typeGuidance = getTypeGuidance(context.collectionType);
+
+    const applied = await getAppliedPrompt("dish_recommend", {
+      count: String(count),
+      collectionName: context.collectionName,
+      collectionType: context.collectionType,
+      cuisineLine: context.cuisineName ? `- 菜系：${context.cuisineName}` : "",
+      locationLine: context.locationName ? `- 地区：${context.locationName}` : "",
+      tagLine: context.tagName ? `- 标签：${context.tagName}` : "",
+      descriptionLine: context.description ? `- 描述：${context.description}` : "",
+      styleLine: context.style ? `- 风格要求：${context.style}` : "",
+      seasonLine: `- 当前季节：${season}`,
+      existingSection: buildExistingSection(context.existingTitles),
+      classicCount: String(classicCount),
+      homeStyleCount: String(homeStyleCount),
+      specialCount: String(specialCount),
+      easyCount: String(easyCount),
+      mediumCount: String(mediumCount),
+      hardCount: String(hardCount),
+      seasonGuidance,
+      typeGuidance,
+    });
+
+    if (!applied?.prompt) {
+      throw new Error("未找到可用的提示词配置");
+    }
+    const prompt = applied.prompt;
 
     const response = await provider.chat({
       messages: [
+        ...(applied?.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
         {
-          role: "user",
+          role: "user" as const,
           content: prompt,
         },
       ],

@@ -18,6 +18,7 @@ import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { getContentLocales } from "@/lib/i18n/content";
 import type { Locale } from "@/lib/i18n/config";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/config";
+import type { SeoConfig } from "@/lib/types/collection";
 import {
   ChevronRight,
   Home,
@@ -73,14 +74,29 @@ export async function generateMetadata({
     .map((loc) => scene.translations.find((t) => t.locale === loc))
     .find(Boolean);
   const name = translation?.name || scene.name;
+  const collection = await prisma.collection.findFirst({
+    where: {
+      type: "scene",
+      tagId: scene.id,
+      status: "published",
+    },
+    select: { seo: true },
+  });
+  const seo = (collection?.seo as SeoConfig) || undefined;
 
   return {
-    title: isEn
-      ? `${name} Recipes - Recipe Zen`
-      : `${name}食谱大全 - Recipe Zen`,
-    description: isEn
-      ? `Discover perfect ${name.toLowerCase()} recipes. Step-by-step guides for every cooking moment.`
-      : `精选${name}相关食谱，步骤详细，适合各种烹饪场景。`,
+    title:
+      (isEn ? seo?.titleEn : seo?.titleZh) ||
+      (isEn
+        ? `${name} Recipes - Recipe Zen`
+        : `${name}食谱大全 - Recipe Zen`),
+    description:
+      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
+      (isEn
+        ? `Discover perfect ${name.toLowerCase()} recipes. Step-by-step guides for every cooking moment.`
+        : `精选${name}相关食谱，步骤详细，适合各种烹饪场景。`),
+    keywords: seo?.keywords,
+    robots: seo?.noIndex ? { index: false, follow: true } : undefined,
     alternates: {
       canonical: `/${locale}/recipe/scene/${slug}`,
       languages: Object.fromEntries(
@@ -111,6 +127,25 @@ export default async function ScenePage({
   // Tag model doesn't have description, use empty string
   const sceneDescription = "";
   const sceneIcon = SCENE_ICONS[slug] || "🍽️";
+  const collection = await prisma.collection.findFirst({
+    where: {
+      type: "scene",
+      tagId: scene.id,
+      status: "published",
+    },
+    select: { seo: true },
+  });
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const headerTitle = isEn
+    ? seo?.h1En || `${sceneName} Recipes`
+    : seo?.h1Zh || `${sceneName}食谱`;
+  const headerSubtitle =
+    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (sceneDescription ||
+      (isEn
+        ? `Discover perfect recipes for ${sceneName.toLowerCase()}. Curated collection with step-by-step instructions.`
+        : `精选${sceneName}相关食谱，步骤详细，让每个烹饪时刻都充满美味。`));
+  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
 
   // 通过 RecipeTag 关联查询食谱
   const [recipes, total] = await Promise.all([
@@ -216,16 +251,12 @@ export default async function ScenePage({
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">{sceneIcon}</span>
                 <h1 className="text-4xl lg:text-5xl font-serif font-medium text-white">
-                  {sceneName}
-                  {isEn ? " Recipes" : "食谱"}
+                  {headerTitle}
                 </h1>
               </div>
 
               <p className="text-white/90 text-lg leading-relaxed max-w-2xl mb-6">
-                {sceneDescription ||
-                  (isEn
-                    ? `Discover perfect recipes for ${sceneName.toLowerCase()}. Curated collection with step-by-step instructions.`
-                    : `精选${sceneName}相关食谱，步骤详细，让每个烹饪时刻都充满美味。`)}
+                {headerSubtitle}
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -498,6 +529,14 @@ export default async function ScenePage({
                   })}
                 </div>
               </div>
+            </div>
+          </section>
+        )}
+
+        {footerText && (
+          <section className="mt-12">
+            <div className="bg-white rounded-2xl border border-cream p-6 text-sm text-textGray leading-relaxed">
+              {footerText}
             </div>
           </section>
         )}

@@ -19,7 +19,7 @@ import {
   calculateQualifiedStatus,
   CollectionTypePath,
 } from "@/lib/types/collection";
-import { buildRuleWhereClause } from "@/lib/collection/rule-engine";
+import { buildRuleWhereClause, validateRuleConfig } from "@/lib/collection/rule-engine";
 import type { RuleConfig } from "@/lib/types/collection";
 import type {
   CollectionDetail,
@@ -44,6 +44,7 @@ async function countMatchedRecipesRealtime(collection: {
   locationId: string | null;
   tagId: string | null;
   excludedRecipeIds: string[];
+  pinnedRecipeIds: string[];
 }): Promise<{ matched: number; published: number; pending: number; draft: number }> {
   // 使用规则引擎构建查询条件
   const baseWhere = buildRuleWhereClause(collection.rules as RuleConfig, {
@@ -53,11 +54,23 @@ async function countMatchedRecipesRealtime(collection: {
     excludedRecipeIds: collection.excludedRecipeIds,
   });
 
+  const pinnedIds = collection.pinnedRecipeIds || [];
+  const excludedIds = collection.excludedRecipeIds || [];
+  const matchWhere =
+    pinnedIds.length > 0
+      ? {
+          AND: [
+            { OR: [baseWhere, { id: { in: pinnedIds } }] },
+            excludedIds.length > 0 ? { id: { notIn: excludedIds } } : {},
+          ],
+        }
+      : baseWhere;
+
   // 分别统计各状态数量
   const [published, pending, draft] = await Promise.all([
-    prisma.recipe.count({ where: { ...baseWhere, status: "published" } }),
-    prisma.recipe.count({ where: { ...baseWhere, status: "pending" } }),
-    prisma.recipe.count({ where: { ...baseWhere, status: "draft" } }),
+    prisma.recipe.count({ where: { AND: [matchWhere, { status: "published" }] } }),
+    prisma.recipe.count({ where: { AND: [matchWhere, { status: "pending" }] } }),
+    prisma.recipe.count({ where: { AND: [matchWhere, { status: "draft" }] } }),
   ]);
 
   return {
@@ -116,6 +129,60 @@ export async function GET(request: NextRequest, context: RouteContext) {
       locationId: collection.locationId,
       tagId: collection.tagId,
       excludedRecipeIds: collection.excludedRecipeIds,
+      pinnedRecipeIds: collection.pinnedRecipeIds,
+    });
+
+    // 获取已加入的食谱列表（限制100个，避免过大）
+    const baseWhere = buildRuleWhereClause(collection.rules as RuleConfig, {
+      cuisineId: collection.cuisineId,
+      locationId: collection.locationId,
+      tagId: collection.tagId,
+      excludedRecipeIds: collection.excludedRecipeIds,
+    });
+
+    const pinnedIds = collection.pinnedRecipeIds || [];
+    const excludedIds = collection.excludedRecipeIds || [];
+    const matchWhere =
+      pinnedIds.length > 0
+        ? {
+            AND: [
+              { OR: [baseWhere, { id: { in: pinnedIds } }] },
+              excludedIds.length > 0 ? { id: { notIn: excludedIds } } : {},
+            ],
+          }
+        : baseWhere;
+
+    const recipes = await prisma.recipe.findMany({
+      where: matchWhere,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+      },
+      take: 100,
+      orderBy: [
+        { status: "desc" }, // published first
+        { createdAt: "desc" },
+      ],
+    });
+
+    // 判断每个食谱的加入方式
+    const recipesWithMethod = recipes.map((r) => {
+      let addMethod: "rule" | "manual" | "ai" = "rule";
+
+      // 如果在 pinnedRecipeIds 中，说明是手动添加或 AI 生成
+      if (pinnedIds.includes(r.id)) {
+        // TODO: 未来可以通过 Recipe 表的字段判断是否为 AI 生成
+        // 暂时统一标记为手动添加
+        addMethod = "manual";
+      }
+
+      return {
+        id: r.id,
+        title: r.title,
+        status: r.status,
+        addMethod,
+      };
     });
 
     // 获取关联实体名称
@@ -172,6 +239,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         collection.minRequired,
         collection.targetCount
       ),
+      // 已加入的食谱列表
+      recipes: recipesWithMethod,
       createdAt: collection.createdAt.toISOString(),
       updatedAt: collection.updatedAt.toISOString(),
     };
@@ -241,6 +310,27 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       // 合并现有 SEO 配置和新配置
       const existingSeo = (existing.seo as Record<string, unknown>) || {};
       updateData.seo = { ...existingSeo, ...body.seo };
+    }
+
+    if (body.rules !== undefined || body.ruleType !== undefined) {
+      const rules = body.rules ?? existing.rules;
+      const validation = validateRuleConfig(rules as RuleConfig);
+      if (!validation.valid) {
+        return NextResponse.json<ApiError>(
+          {
+            success: false,
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "规则配置无效",
+              details: { rules: validation.errors },
+            },
+          },
+          { status: 400 }
+        );
+      }
+
+      updateData.ruleType = body.ruleType ?? existing.ruleType;
+      updateData.rules = rules;
     }
 
     // 如果修改了 slug，需要同步更新 path

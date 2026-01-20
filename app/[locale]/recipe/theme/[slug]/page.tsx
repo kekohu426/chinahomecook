@@ -12,8 +12,11 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
+import { buildRuleWhereClause } from "@/lib/collection/rule-engine";
+import type { RuleConfig, SeoConfig } from "@/lib/types/collection";
 import type { Locale } from "@/lib/i18n/config";
 import { ChevronRight, Home, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -31,20 +34,45 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const isEn = locale === "en";
 
-  // 查找主题标签
-  const tag = await prisma.tag.findFirst({
-    where: { slug, type: "theme" },
+  // 优先使用合集名称，其次使用主题标签
+  const collection = await prisma.collection.findFirst({
+    where: {
+      slug,
+      type: { in: ["theme", "topic"] },
+      status: "published",
+    },
+    select: { name: true, nameEn: true, seo: true },
   });
 
-  const themeName = tag?.name || decodeURIComponent(slug);
+  const tag = collection
+    ? null
+    : await prisma.tag.findFirst({
+        where: { slug, type: "theme" },
+        select: { name: true },
+      });
+
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const themeName =
+    (isEn ? seo?.h1En || seo?.titleEn : seo?.h1Zh || seo?.titleZh) ||
+    (collection
+      ? isEn
+        ? collection.nameEn || collection.name
+        : collection.name
+      : tag?.name || decodeURIComponent(slug));
 
   return {
-    title: isEn
-      ? `${themeName} Recipes - Recipe Zen`
-      : `${themeName}食谱 - Recipe Zen`,
-    description: isEn
-      ? `Explore ${themeName} recipes, curated for home cooking.`
-      : `精选${themeName}相关食谱，家常易做。`,
+    title:
+      (isEn ? seo?.titleEn : seo?.titleZh) ||
+      (isEn
+        ? `${themeName} Recipes - Recipe Zen`
+        : `${themeName}食谱 - Recipe Zen`),
+    description:
+      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
+      (isEn
+        ? `Explore ${themeName} recipes, curated for home cooking.`
+        : `精选${themeName}相关食谱，家常易做。`),
+    keywords: seo?.keywords,
+    robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -59,42 +87,123 @@ export default async function ThemePage({
   const page = parseInt(queryParams.page || "1");
   const limit = 12;
 
-  // 查找主题标签
-  const tag = await prisma.tag.findFirst({
-    where: { slug, type: "theme" },
-    include: {
-      translations: { where: { locale: { in: locales } } },
+  // 优先使用合集配置
+  const collection = await prisma.collection.findFirst({
+    where: {
+      slug,
+      type: { in: ["theme", "topic"] },
+      status: "published",
+    },
+    select: {
+      id: true,
+      name: true,
+      nameEn: true,
+      description: true,
+      descriptionEn: true,
+      seo: true,
+      rules: true,
+      cuisineId: true,
+      locationId: true,
+      tagId: true,
+      pinnedRecipeIds: true,
+      excludedRecipeIds: true,
     },
   });
 
-  if (!tag) notFound();
+  const tag = collection
+    ? null
+    : await prisma.tag.findFirst({
+        where: { slug, type: "theme" },
+        include: {
+          translations: { where: { locale: { in: locales } } },
+        },
+      });
 
-  const translation = tag.translations.find((t) => t.locale === locale);
-  const themeName = isEn ? (translation?.name || tag.name) : tag.name;
+  if (!collection && !tag) notFound();
 
-  // 查询该主题下的食谱
-  const [recipes, total] = await Promise.all([
-    prisma.recipe.findMany({
-      where: {
-        status: "published",
-        tags: { some: { tagId: tag.id } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        cuisine: { select: { id: true, name: true, slug: true } },
-        location: { select: { id: true, name: true, slug: true } },
-        translations: { where: { locale: { in: locales }, isReviewed: true } },
-      },
-    }),
-    prisma.recipe.count({
-      where: {
-        status: "published",
-        tags: { some: { tagId: tag.id } },
-      },
-    }),
+  const translation = tag?.translations.find((t) => t.locale === locale);
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const themeName = collection
+    ? (isEn ? seo?.h1En || collection.nameEn || collection.name : seo?.h1Zh || collection.name)
+    : isEn
+      ? seo?.h1En || translation?.name || tag!.name
+      : seo?.h1Zh || tag!.name;
+  const subtitle =
+    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (collection?.description || collection?.descriptionEn
+      ? isEn
+        ? collection.descriptionEn || collection.description
+        : collection.description || collection.descriptionEn
+      : null);
+  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+
+  const baseWhere = collection
+    ? buildRuleWhereClause(collection.rules as RuleConfig, {
+        cuisineId: collection.cuisineId,
+        locationId: collection.locationId,
+        tagId: collection.tagId,
+        excludedRecipeIds: collection.excludedRecipeIds,
+      })
+    : {
+        tags: { some: { tagId: tag!.id } },
+      };
+
+  const pinnedIds = collection?.pinnedRecipeIds || [];
+  const excludedIds = collection?.excludedRecipeIds || [];
+  const matchWhere =
+    pinnedIds.length > 0
+      ? {
+          AND: [
+            { OR: [baseWhere, { id: { in: pinnedIds } }] },
+            excludedIds.length > 0 ? { id: { notIn: excludedIds } } : {},
+          ],
+        }
+      : baseWhere;
+
+  const hasPinned = page === 1 && pinnedIds.length > 0;
+  const mainLimit = hasPinned ? Math.max(0, limit - pinnedIds.length) : limit;
+  const mainWhere = hasPinned
+    ? { AND: [matchWhere, { id: { notIn: pinnedIds } }, { status: "published" }] }
+    : { AND: [matchWhere, { status: "published" }] };
+
+  const pinnedWhere = hasPinned
+    ? { AND: [{ id: { in: pinnedIds } }, { status: "published" }] }
+    : null;
+
+  const [pinnedRecipes, mainRecipes, total] = await Promise.all([
+    hasPinned
+      ? prisma.recipe.findMany({
+          where: pinnedWhere!,
+          include: {
+            cuisine: { select: { id: true, name: true, slug: true } },
+            location: { select: { id: true, name: true, slug: true } },
+            translations: { where: { locale: { in: locales }, isReviewed: true } },
+          },
+        })
+      : Promise.resolve([]),
+    mainLimit > 0
+      ? prisma.recipe.findMany({
+          where: mainWhere,
+          orderBy: { createdAt: "desc" },
+          skip: hasPinned ? 0 : (page - 1) * limit,
+          take: mainLimit,
+          include: {
+            cuisine: { select: { id: true, name: true, slug: true } },
+            location: { select: { id: true, name: true, slug: true } },
+            translations: { where: { locale: { in: locales }, isReviewed: true } },
+          },
+        })
+      : Promise.resolve([]),
+    prisma.recipe.count({ where: { AND: [matchWhere, { status: "published" }] } }),
   ]);
+
+  const sortedPinned = hasPinned
+    ? pinnedIds
+        .map((id) => pinnedRecipes.find((recipe) => recipe.id === id))
+        .filter((recipe): recipe is NonNullable<typeof recipe> => recipe !== undefined)
+    : [];
+
+  const recipes = [...sortedPinned, ...mainRecipes];
 
   const totalPages = Math.ceil(total / limit);
   const buildPageUrl = (pageNum: number) =>
@@ -102,6 +211,7 @@ export default async function ThemePage({
 
   return (
     <div className="min-h-screen bg-cream">
+      {collection && <PageViewTracker collectionId={collection.id} />}
       <Header />
 
       <div className="bg-white border-b border-cream">
@@ -124,9 +234,10 @@ export default async function ThemePage({
             </h1>
           </div>
           <p className="text-textGray text-lg max-w-3xl">
-            {isEn
-              ? `${themeName} recipes, curated for home cooking.`
-              : `${themeName}相关食谱合集，适合家庭烹饪。`}
+            {subtitle ||
+              (isEn
+                ? `${themeName} recipes, curated for home cooking.`
+                : `${themeName}相关食谱合集，适合家庭烹饪。`)}
           </p>
         </div>
       </div>
@@ -204,6 +315,12 @@ export default async function ThemePage({
                 {isEn ? "Next" : "下一页"}
               </Link>
             )}
+          </div>
+        )}
+
+        {footerText && (
+          <div className="mt-16 bg-white rounded-2xl border border-cream p-6 text-sm text-textGray leading-relaxed">
+            {footerText}
           </div>
         )}
       </main>

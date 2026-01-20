@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       // 菜谱统计
       prisma.recipe.count(),
       prisma.recipe.count({ where: { status: "published" } }),
-      prisma.recipe.count({ where: { reviewStatus: "pending" } }),
+      prisma.recipe.count({ where: { reviewStatus: "pending", status: "pending" } }),
       prisma.recipe.count({ where: { status: "draft" } }),
       prisma.recipe.count({
         where: {
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
         },
       }),
 
-      // 各合集进度
+      // 各合集进度（需要单独查询已发布食谱数）
       prisma.collection.findMany({
         where: { status: { in: ["active", "draft"] } },
         orderBy: { updatedAt: "desc" },
@@ -102,7 +102,13 @@ export async function GET(request: NextRequest) {
           status: true,
           minRequired: true,
           targetCount: true,
-          _count: { select: { recipes: true } },
+          _count: {
+            select: {
+              recipes: {
+                where: { status: "published" },
+              },
+            },
+          },
         },
       }),
     ]);

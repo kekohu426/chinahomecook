@@ -11,25 +11,26 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Eye,
-  Check,
-  X,
-  AlertTriangle,
-  Clock,
-  ChevronDown,
-  FileText,
-  Utensils,
-  ListOrdered,
-} from "lucide-react";
+import { Eye, Check, X, AlertTriangle, Clock, ChevronDown, Utensils } from "lucide-react";
+import { DEFAULT_LOCALE } from "@/lib/i18n/config";
+import { localizePath } from "@/lib/i18n/utils";
 
 interface QualityScores {
-  content: number;      // 内容质量
-  seo: number;          // SEO分数
-  readability: number;  // 可读性
-  originality: number;  // 原创度
-  accuracy: number;     // 准确性
-  overall: number;      // 综合分
+  content: number | null;      // 内容质量
+  seo: number | null;          // SEO分数
+  readability: number | null;  // 可读性
+  originality: number | null;  // 原创度
+  accuracy: number | null;     // 准确性
+  overall: number | null;      // 综合分
+}
+
+type QualityLevel = "high" | "medium" | "low";
+
+interface ReviewStats {
+  total: number;
+  high: number;
+  medium: number;
+  low: number;
 }
 
 interface Recipe {
@@ -38,6 +39,9 @@ interface Recipe {
   slug: string;
   status: string;
   reviewStatus: string;
+  qualityLevel?: QualityLevel;
+  overallScore?: number | null;
+  qualityScore?: Record<string, number> | null;
   coverImage: string | null;
   createdAt: string;
   cuisine: { id: string; name: string } | null;
@@ -48,7 +52,6 @@ interface Recipe {
   servings: number | null;
   ingredients: any[];
   steps: any[];
-  qualityScores?: QualityScores;
 }
 
 type QualityFilter = "all" | "high" | "medium" | "low";
@@ -60,15 +63,46 @@ const QUALITY_THRESHOLDS = {
   medium: 0.70,
 };
 
-// 模拟质量评分（实际应从后端获取）
-function generateQualityScores(): QualityScores {
-  const content = 0.7 + Math.random() * 0.3;
-  const seo = 0.7 + Math.random() * 0.3;
-  const readability = 0.7 + Math.random() * 0.3;
-  const originality = 0.7 + Math.random() * 0.3;
-  const accuracy = 0.7 + Math.random() * 0.3;
-  const overall = (content + seo + readability + originality + accuracy) / 5;
-  return { content, seo, readability, originality, accuracy, overall };
+const QUALITY_KEYS = ["content", "seo", "readability", "originality", "accuracy"] as const;
+type QualityKey = (typeof QUALITY_KEYS)[number];
+
+const resolveScore = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+function buildQualityScores(recipe: Recipe): QualityScores | null {
+  if (!recipe.qualityScore) {
+    return null;
+  }
+
+  const byKey = QUALITY_KEYS.reduce<Record<QualityKey, number | null>>(
+    (acc, key) => {
+      acc[key] = resolveScore(recipe.qualityScore?.[key]);
+      return acc;
+    },
+    {
+      content: null,
+      seo: null,
+      readability: null,
+      originality: null,
+      accuracy: null,
+    }
+  );
+
+  const numericScores = QUALITY_KEYS.map((key) => byKey[key]).filter(
+    (value): value is number => value !== null
+  );
+  if (numericScores.length === 0) {
+    return null;
+  }
+
+  const overall =
+    resolveScore(recipe.overallScore) ??
+    numericScores.reduce((sum, value) => sum + value, 0) / numericScores.length;
+
+  return {
+    ...byKey,
+    overall,
+  };
 }
 
 // 获取质量等级
@@ -79,9 +113,17 @@ function getQualityLevel(score: number): "high" | "medium" | "low" {
 }
 
 // 质量分数条
-function QualityBar({ label, score, showWarning = false }: { label: string; score: number; showWarning?: boolean }) {
-  const percentage = Math.round(score * 100);
-  const isLow = score < 0.85;
+function QualityBar({
+  label,
+  score,
+  showWarning = false,
+}: {
+  label: string;
+  score: number | null;
+  showWarning?: boolean;
+}) {
+  const percentage = score !== null ? Math.round(score * 100) : 0;
+  const isLow = score !== null && score < 0.85;
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -92,13 +134,21 @@ function QualityBar({ label, score, showWarning = false }: { label: string; scor
       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${
-            score >= 0.9 ? "bg-green-500" : score >= 0.85 ? "bg-green-400" : score >= 0.7 ? "bg-amber-400" : "bg-red-400"
+            score === null
+              ? "bg-gray-300"
+              : score >= 0.9
+              ? "bg-green-500"
+              : score >= 0.85
+              ? "bg-green-400"
+              : score >= 0.7
+              ? "bg-amber-400"
+              : "bg-red-400"
           }`}
           style={{ width: `${percentage}%` }}
         />
       </div>
       <span className={`w-12 text-right ${isLow && showWarning ? "text-amber-600" : "text-textGray"}`}>
-        {score.toFixed(2)}
+        {score === null ? "--" : score.toFixed(2)}
       </span>
     </div>
   );
@@ -120,8 +170,9 @@ function RecipeCard({
   onApprove: () => void;
   onReject: () => void;
 }) {
-  const scores = recipe.qualityScores || generateQualityScores();
-  const qualityLevel = getQualityLevel(scores.overall);
+  const scores = buildQualityScores(recipe);
+  const overallScore = scores?.overall ?? recipe.overallScore ?? null;
+  const qualityLevel = getQualityLevel(overallScore ?? 0);
   const timeSince = getTimeSince(recipe.createdAt);
 
   return (
@@ -171,17 +222,23 @@ function RecipeCard({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-textGray">AI质量分:</span>
-              <span className={`font-bold ${
-                qualityLevel === "high" ? "text-green-600" : qualityLevel === "medium" ? "text-amber-600" : "text-red-600"
-              }`}>
-                {scores.overall.toFixed(2)}
+              <span
+                className={`font-bold ${
+                  qualityLevel === "high"
+                    ? "text-green-600"
+                    : qualityLevel === "medium"
+                    ? "text-amber-600"
+                    : "text-red-600"
+                }`}
+              >
+                {overallScore === null ? "--" : overallScore.toFixed(2)}
               </span>
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
                     className={`w-2 h-4 rounded-sm ${
-                      i <= Math.round(scores.overall * 5)
+                      overallScore !== null && i <= Math.round(overallScore * 5)
                         ? qualityLevel === "high" ? "bg-green-500" : qualityLevel === "medium" ? "bg-amber-500" : "bg-red-500"
                         : "bg-gray-200"
                     }`}
@@ -196,13 +253,25 @@ function RecipeCard({
       {/* 质量分析 */}
       <div className="p-4 border-b border-sage-100">
         <h4 className="text-sm font-medium text-textDark mb-3">质量分析:</h4>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-          <QualityBar label="内容质量" score={scores.content} />
-          <QualityBar label="SEO分数" score={scores.seo} />
-          <QualityBar label="可读性" score={scores.readability} showWarning={scores.readability < 0.85} />
-          <QualityBar label="原创度" score={scores.originality} showWarning={scores.originality < 0.85} />
-          <QualityBar label="准确性" score={scores.accuracy} />
-        </div>
+        {scores ? (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            <QualityBar label="内容质量" score={scores.content} />
+            <QualityBar label="SEO分数" score={scores.seo} />
+            <QualityBar
+              label="可读性"
+              score={scores.readability}
+              showWarning={scores.readability !== null && scores.readability < 0.85}
+            />
+            <QualityBar
+              label="原创度"
+              score={scores.originality}
+              showWarning={scores.originality !== null && scores.originality < 0.85}
+            />
+            <QualityBar label="准确性" score={scores.accuracy} />
+          </div>
+        ) : (
+          <div className="text-sm text-textGray">暂无质量评分</div>
+        )}
       </div>
 
       {/* 操作按钮 */}
@@ -227,13 +296,6 @@ function RecipeCard({
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center gap-1 text-amber-600 border-amber-300 hover:bg-amber-50"
-        >
-          修改后通过
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
           onClick={onReject}
           className="flex items-center gap-1 text-red-600 border-red-300 hover:bg-red-50"
         >
@@ -246,124 +308,6 @@ function RecipeCard({
 }
 
 // 快速预览弹窗
-function PreviewModal({
-  recipe,
-  onClose,
-  onApprove,
-  onReject,
-}: {
-  recipe: Recipe;
-  onClose: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* 弹窗头部 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h3 className="text-lg font-medium text-textDark">
-            {recipe.title} - 快速预览
-          </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* 弹窗内容 */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* 成品图 */}
-          <div className="w-full aspect-video bg-sage-100 rounded-lg overflow-hidden mb-6">
-            {recipe.coverImage ? (
-              <img
-                src={recipe.coverImage}
-                alt={recipe.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-sage-400">
-                [成品图]
-              </div>
-            )}
-          </div>
-
-          {/* 一句话简介 */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 text-sm text-textGray mb-1">
-              <FileText className="w-4 h-4" />
-              一句话:
-            </div>
-            <p className="text-textDark">
-              {recipe.description || "经典川菜，麻辣鲜香..."}
-            </p>
-          </div>
-
-          {/* 食材 */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 text-sm text-textGray mb-1">
-              <Utensils className="w-4 h-4" />
-              食材:
-            </div>
-            <p className="text-textDark">
-              {recipe.ingredients?.length > 0
-                ? recipe.ingredients.slice(0, 5).map((i: any) => `${i.name} ${i.amount || ""}`).join(", ") + "..."
-                : "鸡胸肉 300g, 花生米 50g, 干辣椒 10个..."}
-            </p>
-          </div>
-
-          {/* 步骤 */}
-          <div>
-            <div className="flex items-center gap-2 text-sm text-textGray mb-2">
-              <ListOrdered className="w-4 h-4" />
-              步骤:
-            </div>
-            <ol className="list-decimal list-inside space-y-1 text-textDark">
-              {recipe.steps?.length > 0 ? (
-                recipe.steps.slice(0, 3).map((step: any, index: number) => (
-                  <li key={index} className="truncate">
-                    {step.description || step.content || `步骤 ${index + 1}`}
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li>鸡肉切丁，腌制...</li>
-                  <li>热锅凉油...</li>
-                </>
-              )}
-              {(recipe.steps?.length || 0) > 3 && (
-                <li className="text-textGray">...</li>
-              )}
-            </ol>
-          </div>
-        </div>
-
-        {/* 弹窗底部 */}
-        <div className="px-6 py-4 border-t bg-gray-50 flex items-center gap-3">
-          <Link href={`/recipe/${recipe.id}`}>
-            <Button variant="outline">查看完整内容</Button>
-          </Link>
-          <div className="flex-1" />
-          <Button
-            onClick={onApprove}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Check className="w-4 h-4 mr-1" />
-            通过
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onReject}
-            className="text-red-600 border-red-300 hover:bg-red-50"
-          >
-            <X className="w-4 h-4 mr-1" />
-            拒绝
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // 时间格式化
 function getTimeSince(dateString: string): string {
   const now = new Date();
@@ -384,24 +328,20 @@ export default function ReviewPage() {
   const [qualityFilter, setQualityFilter] = useState<QualityFilter>("all");
   const [sortOption, setSortOption] = useState<SortOption>("createdAt");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [previewRecipe, setPreviewRecipe] = useState<Recipe | null>(null);
   const [batchLoading, setBatchLoading] = useState(false);
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
 
   // 加载待审核菜谱
   const loadPendingRecipes = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/review");
+      const response = await fetch("/api/admin/review", { cache: "no-store" });
       const data = await response.json();
 
       if (data.success) {
-        // 为每个菜谱生成质量分数（实际应从后端获取）
-        const recipesWithScores = data.data.map((recipe: Recipe) => ({
-          ...recipe,
-          qualityScores: generateQualityScores(),
-        }));
-        setRecipes(recipesWithScores);
+        setRecipes(data.data);
         setSelectedIds(new Set());
+        setReviewStats(data.stats || null);
       }
     } catch (error) {
       console.error("加载待审核菜谱失败:", error);
@@ -414,6 +354,43 @@ export default function ReviewPage() {
     loadPendingRecipes();
   }, []);
 
+  const getRecipeQualityLevel = (recipe: Recipe): QualityLevel => {
+    if (recipe.qualityLevel) return recipe.qualityLevel;
+    const scores = buildQualityScores(recipe);
+    const overall = scores?.overall ?? recipe.overallScore ?? null;
+    return getQualityLevel(overall ?? 0);
+  };
+
+  const removeRecipesFromState = (ids: string[]) => {
+    if (ids.length === 0) return;
+    const idSet = new Set(ids);
+
+    setRecipes((prev) => {
+      const removed = prev.filter((recipe) => idSet.has(recipe.id));
+      if (removed.length > 0) {
+        setReviewStats((stats) => {
+          if (!stats) return stats;
+          const next = { ...stats };
+          removed.forEach((recipe) => {
+            next.total = Math.max(0, next.total - 1);
+            const level = getRecipeQualityLevel(recipe);
+            if (level === "high") next.high = Math.max(0, next.high - 1);
+            else if (level === "low") next.low = Math.max(0, next.low - 1);
+            else next.medium = Math.max(0, next.medium - 1);
+          });
+          return next;
+        });
+      }
+      return prev.filter((recipe) => !idSet.has(recipe.id));
+    });
+
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.delete(id));
+      return next;
+    });
+  };
+
   // 按质量等级筛选
   const filteredRecipes = useMemo(() => {
     let filtered = [...recipes];
@@ -421,15 +398,16 @@ export default function ReviewPage() {
     // 质量筛选
     if (qualityFilter !== "all") {
       filtered = filtered.filter((recipe) => {
-        const level = getQualityLevel(recipe.qualityScores?.overall || 0);
-        return level === qualityFilter;
+        return getRecipeQualityLevel(recipe) === qualityFilter;
       });
     }
 
     // 排序
     filtered.sort((a, b) => {
       if (sortOption === "quality") {
-        return (b.qualityScores?.overall || 0) - (a.qualityScores?.overall || 0);
+        const aScore = a.overallScore ?? 0;
+        const bScore = b.overallScore ?? 0;
+        return bScore - aScore;
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
@@ -439,13 +417,21 @@ export default function ReviewPage() {
 
   // 统计各质量等级数量
   const qualityCounts = useMemo(() => {
+    if (reviewStats) {
+      return {
+        all: reviewStats.total,
+        high: reviewStats.high,
+        medium: reviewStats.medium,
+        low: reviewStats.low,
+      };
+    }
     const counts = { all: recipes.length, high: 0, medium: 0, low: 0 };
     recipes.forEach((recipe) => {
-      const level = getQualityLevel(recipe.qualityScores?.overall || 0);
+      const level = getRecipeQualityLevel(recipe);
       counts[level]++;
     });
     return counts;
-  }, [recipes]);
+  }, [recipes, reviewStats]);
 
   // 切换选择
   const toggleSelect = (id: string) => {
@@ -484,8 +470,8 @@ export default function ReviewPage() {
       const data = await response.json();
       console.log("审核响应:", data); // 添加调试日志
       if (data.success) {
+        removeRecipesFromState([id]);
         loadPendingRecipes();
-        setPreviewRecipe(null);
       } else {
         alert(data.error || data.message || "操作失败");
       }
@@ -512,8 +498,8 @@ export default function ReviewPage() {
       });
       const data = await response.json();
       if (data.success) {
+        removeRecipesFromState([id]);
         loadPendingRecipes();
-        setPreviewRecipe(null);
       } else {
         alert(data.error || "操作失败");
       }
@@ -542,6 +528,7 @@ export default function ReviewPage() {
       const data = await response.json();
       if (data.success) {
         alert(data.message || "批量通过成功");
+        removeRecipesFromState(Array.from(selectedIds));
         loadPendingRecipes();
       } else {
         alert(data.error || "操作失败");
@@ -574,6 +561,7 @@ export default function ReviewPage() {
       const data = await response.json();
       if (data.success) {
         alert(data.message || "批量拒绝成功");
+        removeRecipesFromState(Array.from(selectedIds));
         loadPendingRecipes();
       } else {
         alert(data.error || "操作失败");
@@ -634,7 +622,7 @@ export default function ReviewPage() {
       {/* 待审核统计 */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-6">
         <span className="text-amber-800 font-medium">
-          待审核菜谱: {filteredRecipes.length} 道
+          待审核菜谱: {reviewStats?.total ?? recipes.length} 道
         </span>
       </div>
 
@@ -692,22 +680,16 @@ export default function ReviewPage() {
               recipe={recipe}
               isSelected={selectedIds.has(recipe.id)}
               onSelect={() => toggleSelect(recipe.id)}
-              onPreview={() => setPreviewRecipe(recipe)}
+              onPreview={() => {
+                const idOrSlug = recipe.slug || recipe.id;
+                const href = `${localizePath(`/recipe/${idOrSlug}`, DEFAULT_LOCALE)}?preview=1`;
+                window.open(href, "_blank", "noopener,noreferrer");
+              }}
               onApprove={() => handleApprove(recipe.id)}
               onReject={() => handleReject(recipe.id)}
             />
           ))}
         </div>
-      )}
-
-      {/* 快速预览弹窗 */}
-      {previewRecipe && (
-        <PreviewModal
-          recipe={previewRecipe}
-          onClose={() => setPreviewRecipe(null)}
-          onApprove={() => handleApprove(previewRecipe.id)}
-          onReject={() => handleReject(previewRecipe.id)}
-        />
       )}
     </div>
   );

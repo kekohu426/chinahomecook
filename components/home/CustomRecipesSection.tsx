@@ -27,11 +27,19 @@ const SCENE_TAGS: Record<string, { emoji: string; label: string; labelEn: string
 interface CustomRecipesSectionProps {
   recipes: CustomRecipe[];
   locale?: Locale;
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
 }
 
 export function CustomRecipesSection({
   recipes,
   locale = DEFAULT_LOCALE,
+  title,
+  subtitle,
+  ctaLabel,
+  ctaHref,
 }: CustomRecipesSectionProps) {
   const hasRecipes = recipes && recipes.length > 0;
   const isEn = locale === "en";
@@ -72,14 +80,16 @@ export function CustomRecipesSection({
         {/* 标题区 */}
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark">
-            {locale === "en"
-              ? "See What Others Have Customized"
-              : "看看别人都定制了什么"}
+            {title ||
+              (locale === "en"
+                ? "See What Others Have Customized"
+                : "看看别人都定制了什么")}
           </h2>
           <p className="text-textGray mt-2">
-            {locale === "en"
-              ? "From diet meals to quick dishes, AI has helped 10,000+ people find answers."
-              : "从减脂餐到快手菜，AI 已帮助 10,000+ 人找到答案。"}
+            {subtitle ||
+              (locale === "en"
+                ? "From diet meals to quick dishes, AI has helped 10,000+ people find answers."
+                : "从减脂餐到快手菜，AI 已帮助 10,000+ 人找到答案。")}
           </p>
         </div>
 
@@ -144,10 +154,10 @@ export function CustomRecipesSection({
             {/* CTA 按钮 */}
             <div className="mt-10 flex justify-center">
               <LocalizedLink
-                href="/ai-custom"
+                href={ctaHref || "/ai-custom"}
                 className="px-8 py-4 border-2 border-brownWarm text-brownWarm rounded-lg font-medium hover:bg-brownWarm hover:text-white transition-colors"
               >
-                {locale === "en" ? "I Want to Customize Too →" : "我也要定制 →"}
+                {ctaLabel || (locale === "en" ? "I Want to Customize Too →" : "我也要定制 →")}
               </LocalizedLink>
             </div>
           </>

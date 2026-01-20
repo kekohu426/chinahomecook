@@ -14,6 +14,8 @@ type BrowseItem = {
 };
 
 interface QuickBrowseTabsProps {
+  title?: string;
+  subtitle?: string;
   regions: BrowseItem[];
   cuisines: BrowseItem[];
   ingredients: BrowseItem[];
@@ -23,6 +25,8 @@ interface QuickBrowseTabsProps {
 type TabKey = "region" | "cuisine" | "ingredient" | "scene";
 
 export function QuickBrowseTabs({
+  title,
+  subtitle,
   regions,
   cuisines,
   ingredients,
@@ -62,14 +66,16 @@ export function QuickBrowseTabs({
         {/* 标题区 */}
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark">
-            {locale === "en"
-              ? "Browse by Cuisine / Region / Ingredient / Scene"
-              : "按菜系 / 地域 / 食材 / 场景找菜谱"}
+            {title ||
+              (locale === "en"
+                ? "Browse by Cuisine / Region / Ingredient / Scene"
+                : "按菜系 / 地域 / 食材 / 场景找菜谱")}
           </h2>
           <p className="text-textGray mt-2 max-w-2xl mx-auto">
-            {locale === "en"
-              ? "From Sichuan to Cantonese, from quick meals to low-calorie diets, find what you want to cook today."
-              : "从川菜到粤菜，从快手菜到减脂餐，按你的需求快速找到今天想做的菜。"}
+            {subtitle ||
+              (locale === "en"
+                ? "From Sichuan to Cantonese, from quick meals to low-calorie diets, find what you want to cook today."
+                : "从川菜到粤菜，从快手菜到减脂餐，按你的需求快速找到今天想做的菜。")}
           </p>
         </div>
 

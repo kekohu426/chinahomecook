@@ -40,6 +40,7 @@ async function countPublishedRecipes(collection: {
   locationId: string | null;
   tagId: string | null;
   excludedRecipeIds: string[];
+  pinnedRecipeIds: string[];
 }): Promise<number> {
   const baseWhere = buildRuleWhereClause(collection.rules as RuleConfig, {
     cuisineId: collection.cuisineId,
@@ -48,8 +49,20 @@ async function countPublishedRecipes(collection: {
     excludedRecipeIds: collection.excludedRecipeIds,
   });
 
+  const pinnedIds = collection.pinnedRecipeIds || [];
+  const excludedIds = collection.excludedRecipeIds || [];
+  const matchWhere =
+    pinnedIds.length > 0
+      ? {
+          AND: [
+            { OR: [baseWhere, { id: { in: pinnedIds } }] },
+            excludedIds.length > 0 ? { id: { notIn: excludedIds } } : {},
+          ],
+        }
+      : baseWhere;
+
   return prisma.recipe.count({
-    where: { ...baseWhere, status: "published" },
+    where: { AND: [matchWhere, { status: "published" }] },
   });
 }
 
@@ -115,6 +128,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       locationId: collection.locationId,
       tagId: collection.tagId,
       excludedRecipeIds: collection.excludedRecipeIds,
+      pinnedRecipeIds: collection.pinnedRecipeIds,
     });
 
     // 计算达标状态

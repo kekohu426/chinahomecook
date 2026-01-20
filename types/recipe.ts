@@ -204,6 +204,7 @@ export interface RecipeStep {
   // 图片相关
   imagePrompt?: string;
   negativePrompt?: string;
+  imageUrl?: string;
 
   // 关联
   ingredientRefs?: string[];

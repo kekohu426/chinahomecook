@@ -8,9 +8,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/guard";
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "@/lib/ai/provider";
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
+  LOCALE_NAMES_EN,
   type Locale,
 } from "@/lib/i18n/config";
 
@@ -18,6 +20,17 @@ const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
   hero: {
     title: "做饭，可以更简单",
     subtitle: "专业团队审核 · 语音+计时辅助 · 让每一步更安心",
+    placeholder: "从查找食谱到完成烹饪，我们把步骤与工具都准备好",
+    chips: ["团队审核把关", "智能推荐菜谱", "免费好用"],
+    primaryCta: { label: "浏览全部食谱 →", href: "/recipe" },
+    secondaryCta: { label: "或试试 AI定制你的专属菜谱 →", href: "/ai-custom" },
+    imageFloatingText: "专业团队审核 · 步骤可复现",
+    statsLabels: {
+      generated: "已生成",
+      recipes: "菜谱",
+      collected: "已收藏",
+      times: "次",
+    },
   },
 };
 
@@ -79,22 +92,23 @@ export async function POST(request: NextRequest) {
       sourceContent = DEFAULT_CONFIGS[section] || {};
     }
 
+    const targetLangName = LOCALE_NAMES_EN[targetLocale] || targetLocale;
+    const applied = await getAppliedPrompt("translate_home_config", {
+      targetLangName,
+      sourceData: JSON.stringify(sourceContent, null, 2),
+    });
+    if (!applied?.prompt) {
+      return NextResponse.json({ success: false, error: "未找到可用的提示词配置" }, { status: 500 });
+    }
+
     const provider = await getTextProvider();
-    const prompt = `你是一位专业的翻译。请将以下 JSON 中的所有文本翻译为目标语言，保持 JSON 结构和键名不变。
-
-要求：
-1. 不要翻译 URL、数字、品牌名 Recipe Zen
-2. 仅返回 JSON，不要包含其他文字
-
-目标语言：${targetLocale}
-
-JSON:
-${JSON.stringify(sourceContent, null, 2)}`;
 
     const response = await provider.chat({
       messages: [
-        { role: "system", content: "你是严格的 JSON 翻译器，只返回 JSON。" },
-        { role: "user", content: prompt },
+        ...(applied.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied.prompt },
       ],
       temperature: 0.2,
       maxTokens: 2000,

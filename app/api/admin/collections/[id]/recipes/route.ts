@@ -87,19 +87,34 @@ export async function GET(request: NextRequest, context: RouteContext) {
       excludedRecipeIds: collection.excludedRecipeIds,
     });
 
-    // 添加状态筛选
-    const where: Record<string, unknown> = { ...baseWhere };
-    if (status && status !== "all") {
-      where.status = status;
+    const pinnedIds = collection.pinnedRecipeIds || [];
+    const excludedIds = collection.excludedRecipeIds || [];
+    const conditions: Record<string, unknown>[] = [];
+
+    let baseCondition: Record<string, unknown> = baseWhere;
+    if (pinnedIds.length > 0) {
+      baseCondition = { OR: [baseWhere, { id: { in: pinnedIds } }] };
+    }
+    conditions.push(baseCondition);
+
+    if (excludedIds.length > 0) {
+      conditions.push({ id: { notIn: excludedIds } });
     }
 
-    // 添加搜索
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { slug: { contains: search, mode: "insensitive" } },
-      ];
+    if (status && status !== "all") {
+      conditions.push({ status });
     }
+
+    if (search) {
+      conditions.push({
+        OR: [
+          { title: { contains: search, mode: "insensitive" } },
+          { slug: { contains: search, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    const where = conditions.length > 1 ? { AND: conditions } : conditions[0];
 
     // 获取总数
     const total = await prisma.recipe.count({ where });

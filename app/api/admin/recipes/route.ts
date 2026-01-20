@@ -116,9 +116,14 @@ async function requireAdmin(): Promise<NextResponse | null> {
  * - search: 搜索关键词
  * - status: 发布状态（draft/pending/published/archived）
  * - reviewStatus: 审核状态（pending/approved/rejected）
- * - location: 地点筛选
- * - cuisine: 菜系筛选
+ * - locationId: 地点 ID 筛选
+ * - cuisineId: 菜系 ID 筛选
  * - collectionId: 合集筛选
+ * - sceneId: 场景标签 ID 筛选
+ * - methodId: 烹饪方法标签 ID 筛选
+ * - tasteId: 口味标签 ID 筛选
+ * - crowdId: 人群标签 ID 筛选
+ * - occasionId: 场合标签 ID 筛选
  * - aiGenerated: 是否 AI 生成（true/false）
  * - includeTranslations: 是否包含翻译状态（true/false）
  */
@@ -133,9 +138,15 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status");
     const reviewStatus = searchParams.get("reviewStatus");
-    const location = searchParams.get("location");
-    const cuisine = searchParams.get("cuisine");
+    const locationId = searchParams.get("locationId");
+    const cuisineId = searchParams.get("cuisineId");
     const collectionId = searchParams.get("collectionId");
+    // 标签筛选
+    const sceneId = searchParams.get("sceneId");
+    const methodId = searchParams.get("methodId");
+    const tasteId = searchParams.get("tasteId");
+    const crowdId = searchParams.get("crowdId");
+    const occasionId = searchParams.get("occasionId");
     const aiGeneratedParam = searchParams.get("aiGenerated");
     const includeTranslations = searchParams.get("includeTranslations") === "true";
 
@@ -144,7 +155,15 @@ export async function GET(request: NextRequest) {
 
     // 搜索
     if (search) {
-      where.title = { contains: search, mode: "insensitive" };
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { slug: { contains: search, mode: "insensitive" } },
+        {
+          translations: {
+            some: { title: { contains: search, mode: "insensitive" } },
+          },
+        },
+      ];
     }
 
     // 状态筛选
@@ -157,25 +176,35 @@ export async function GET(request: NextRequest) {
       where.reviewStatus = reviewStatus;
     }
 
-    // 地点筛选
-    if (location) {
-      const locationId = await resolveLocationId(location);
-      if (locationId) {
-        where.locationId = locationId;
-      }
+    // 地点筛选（直接使用 ID）
+    if (locationId) {
+      where.locationId = locationId;
     }
 
-    // 菜系筛选
-    if (cuisine) {
-      const cuisineId = await resolveCuisineId(cuisine);
-      if (cuisineId) {
-        where.cuisineId = cuisineId;
-      }
+    // 菜系筛选（直接使用 ID）
+    if (cuisineId) {
+      where.cuisineId = cuisineId;
     }
 
     // 合集筛选
     if (collectionId) {
       where.collectionId = collectionId;
+    }
+
+    // 标签筛选 - 通过 tags 关联表筛选
+    const tagFilters: string[] = [];
+    if (sceneId) tagFilters.push(sceneId);
+    if (methodId) tagFilters.push(methodId);
+    if (tasteId) tagFilters.push(tasteId);
+    if (crowdId) tagFilters.push(crowdId);
+    if (occasionId) tagFilters.push(occasionId);
+
+    if (tagFilters.length > 0) {
+      where.tags = {
+        some: {
+          tagId: { in: tagFilters },
+        },
+      };
     }
 
     // AI 生成筛选

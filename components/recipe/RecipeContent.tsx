@@ -117,7 +117,7 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
                             key={step.id}
                             step={step}
                             stepNumber={index + 1}
-                            imageUrl={imageShot?.imageUrl}
+                            imageUrl={step.imageUrl || imageShot?.imageUrl}
                         />
                     );
                 })}

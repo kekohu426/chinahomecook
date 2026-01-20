@@ -32,6 +32,7 @@ import {
   Upload,
   X,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import type { CollectionDetail } from "@/lib/types/collection-api";
 import {
@@ -40,19 +41,10 @@ import {
   getQualifiedStatusInfo,
   calculateProgress,
 } from "@/lib/types/collection";
-import RulesTab from "@/components/admin/RulesTab";
-import AIGenerateTab from "@/components/admin/AIGenerateTab";
-
-interface MatchedRecipe {
-  id: string;
-  title: string;
-  titleZh?: string;
-  coverImage: string | null;
-  status: string;
-  isPinned: boolean;
-  isExcluded: boolean;
-  pinnedOrder?: number;
-}
+import ModeSelector, { type ContentMode } from "@/components/admin/ModeSelector";
+import SmartMatchMode from "@/components/admin/SmartMatchMode";
+import ManualSelectMode from "@/components/admin/ManualSelectMode";
+import AIGenerateMode from "@/components/admin/AIGenerateMode";
 
 const STATUS_OPTIONS = [
   { value: "draft", label: "草稿" },
@@ -60,7 +52,7 @@ const STATUS_OPTIONS = [
   { value: "archived", label: "已归档" },
 ];
 
-type TabType = "basic" | "rules" | "content" | "ai" | "seo";
+type TabType = "basic" | "rules-content" | "seo";
 
 export default function CollectionEditPage() {
   const params = useParams();
@@ -71,8 +63,7 @@ export default function CollectionEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("basic");
-  const [recipes, setRecipes] = useState<MatchedRecipe[]>([]);
-  const [recipesLoading, setRecipesLoading] = useState(false);
+  const [contentMode, setContentMode] = useState<ContentMode | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -162,30 +153,9 @@ export default function CollectionEditPage() {
     }
   }, [id]);
 
-  const loadRecipes = useCallback(async () => {
-    setRecipesLoading(true);
-    try {
-      const response = await fetch(`/api/admin/collections/${id}/recipes?pageSize=50`);
-      const data = await response.json();
-      if (data.success) {
-        setRecipes(data.data?.recipes || []);
-      }
-    } catch (error) {
-      console.error("加载食谱列表失败:", error);
-    } finally {
-      setRecipesLoading(false);
-    }
-  }, [id]);
-
   useEffect(() => {
     loadCollection();
   }, [loadCollection]);
-
-  useEffect(() => {
-    if (activeTab === "content") {
-      loadRecipes();
-    }
-  }, [activeTab, loadRecipes]);
 
   const handleSave = async () => {
     // 验证表单
@@ -233,54 +203,6 @@ export default function CollectionEditPage() {
       alert("保存失败");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handlePinRecipe = async (recipeId: string) => {
-    try {
-      const response = await fetch(`/api/admin/collections/${id}/pin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeIds: [recipeId], position: "end" }),
-      });
-      if (response.ok) {
-        await loadCollection();
-        await loadRecipes();
-      }
-    } catch (error) {
-      console.error("置顶失败:", error);
-    }
-  };
-
-  const handleUnpinRecipe = async (recipeId: string) => {
-    try {
-      const response = await fetch(`/api/admin/collections/${id}/pin`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeIds: [recipeId] }),
-      });
-      if (response.ok) {
-        await loadCollection();
-        await loadRecipes();
-      }
-    } catch (error) {
-      console.error("取消置顶失败:", error);
-    }
-  };
-
-  const handleExcludeRecipe = async (recipeId: string) => {
-    try {
-      const response = await fetch(`/api/admin/collections/${id}/exclude`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeIds: [recipeId] }),
-      });
-      if (response.ok) {
-        await loadCollection();
-        await loadRecipes();
-      }
-    } catch (error) {
-      console.error("排除失败:", error);
     }
   };
 
@@ -513,9 +435,7 @@ export default function CollectionEditPage() {
 
   const tabs = [
     { id: "basic" as TabType, label: "基本信息", icon: Settings },
-    { id: "rules" as TabType, label: "匹配规则", icon: Filter },
-    { id: "content" as TabType, label: "内容管理", icon: FileText },
-    { id: "ai" as TabType, label: "AI生成菜谱", icon: Sparkles },
+    { id: "rules-content" as TabType, label: "规则与内容", icon: Filter },
     { id: "seo" as TabType, label: "SEO 设置", icon: Search },
   ];
 
@@ -613,10 +533,10 @@ export default function CollectionEditPage() {
       </div>
 
       {/* 状态概览卡片 */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-card p-4">
           <div className="text-sm text-textGray mb-1">已发布</div>
-          <div className="text-2xl font-bold text-textDark">
+          <div className="text-2xl font-bold text-green-600">
             {collection.publishedCount}
           </div>
         </div>
@@ -633,9 +553,18 @@ export default function CollectionEditPage() {
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-card p-4">
+          <div className="text-sm text-textGray mb-1">草稿</div>
+          <div className="text-2xl font-bold text-gray-500">
+            {collection.draftCount}
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-card p-4">
           <div className="text-sm text-textGray mb-1">缺口</div>
           <div className="text-2xl font-bold text-red-600">
-            {Math.max(0, collection.minRequired - collection.publishedCount)}
+            {Math.max(0, collection.targetCount - collection.publishedCount)}
+          </div>
+          <div className="text-xs text-textGray mt-1">
+            距离目标还需 {Math.max(0, collection.targetCount - collection.publishedCount)} 个
           </div>
         </div>
       </div>
@@ -909,148 +838,119 @@ export default function CollectionEditPage() {
             </div>
           )}
 
-          {/* 匹配规则 Tab */}
-          {activeTab === "rules" && (
-            <RulesTab
-              collection={collection}
-              onRefresh={loadCollection}
-            />
-          )}
-
-          {/* 内容管理 Tab */}
-          {activeTab === "content" && (
+          {/* 规则与内容 Tab - 3 种模式 */}
+          {activeTab === "rules-content" && (
             <div className="space-y-6">
-              {/* 置顶食谱 */}
-              <div>
-                <h3 className="text-sm font-medium text-textDark mb-3">
-                  置顶食谱 ({collection.pinnedRecipeIds.length})
-                </h3>
-                {collection.pinnedRecipeIds.length === 0 ? (
-                  <p className="text-sm text-textGray">暂无置顶食谱</p>
-                ) : (
-                  <div className="space-y-2">
-                    {recipes
-                      .filter((r) => r.isPinned)
-                      .sort((a, b) => (a.pinnedOrder || 0) - (b.pinnedOrder || 0))
-                      .map((recipe) => (
-                        <div
-                          key={recipe.id}
-                          className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg"
-                        >
-                          <GripVertical className="h-4 w-4 text-amber-400 cursor-move" />
-                          <span className="flex-1 text-sm text-textDark">{recipe.titleZh || recipe.title}</span>
-                          <button
-                            onClick={() => handleUnpinRecipe(recipe.id)}
-                            className="text-xs text-red-600 hover:underline"
-                          >
-                            取消置顶
-                          </button>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
+              {/* 模式选择 */}
+              <ModeSelector
+                currentMode={contentMode}
+                onModeChange={setContentMode}
+              />
 
-              {/* 已匹配食谱列表 */}
-              <div>
-                <h3 className="text-sm font-medium text-textDark mb-3">
-                  已匹配食谱 ({recipes.length})
-                </h3>
-                {recipesLoading ? (
-                  <p className="text-sm text-textGray">加载中...</p>
-                ) : (
-                  <div className="border border-cream rounded-lg overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-textGray">标题</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-textGray">状态</th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-textGray">操作</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-cream">
-                        {recipes.slice(0, 20).map((recipe) => (
-                          <tr key={recipe.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-2">
-                              <div className="flex items-center gap-2">
-                                {recipe.isPinned && (
-                                  <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-                                    置顶
-                                  </span>
-                                )}
-                                <span className="text-sm text-textDark">{recipe.titleZh || recipe.title}</span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-2">
-                              {recipe.status === "published" ? (
-                                <span className="inline-flex items-center gap-1 text-xs text-green-600">
-                                  <CheckCircle className="h-3 w-3" />
-                                  已发布
-                                </span>
-                              ) : recipe.status === "pending" ? (
-                                <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-                                  <AlertCircle className="h-3 w-3" />
-                                  待审核
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                                  <AlertCircle className="h-3 w-3" />
-                                  草稿
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-2 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {!recipe.isPinned && (
-                                  <button
-                                    onClick={() => handlePinRecipe(recipe.id)}
-                                    className="text-xs text-blue-600 hover:underline"
-                                  >
-                                    置顶
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => handleExcludeRecipe(recipe.id)}
-                                  className="text-xs text-red-600 hover:underline"
-                                >
-                                  排除
-                                </button>
-                                <Link
-                                  href={`/admin/recipes/${recipe.id}/edit`}
-                                  className="text-xs text-brownWarm hover:underline"
-                                >
-                                  编辑
-                                </Link>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {recipes.length > 20 && (
-                      <div className="px-4 py-2 bg-gray-50 text-center">
-                        <span className="text-xs text-textGray">
-                          仅显示前 20 条，共 {recipes.length} 条
-                        </span>
+              {/* 智能匹配模式 */}
+              {contentMode === "smart-match" && (
+                <SmartMatchMode
+                  collection={collection}
+                  onRefresh={loadCollection}
+                />
+              )}
+
+              {/* 手动选择模式 */}
+              {contentMode === "manual-select" && (
+                <ManualSelectMode
+                  collection={collection}
+                  onRefresh={loadCollection}
+                />
+              )}
+
+              {/* AI 生成模式 */}
+              {contentMode === "ai-generate" && (
+                <AIGenerateMode
+                  collection={collection}
+                  onRefresh={loadCollection}
+                />
+              )}
+
+              {/* 已加入的食谱列表 */}
+              <div className="mt-8 border-t border-cream pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-medium text-textDark">已加入的食谱</h3>
+                    <p className="text-sm text-textGray mt-1">
+                      通过规则匹配、手动添加或 AI 生成加入的食谱
+                    </p>
+                  </div>
+                  <div className="text-sm text-textGray">
+                    共 {collection.publishedCount + collection.pendingCount + collection.draftCount} 个
+                  </div>
+                </div>
+
+                {/* 食谱列表 */}
+                {collection.recipes && collection.recipes.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {collection.recipes.map((recipe: any) => (
+                      <div
+                        key={recipe.id}
+                        className="bg-white border border-cream rounded-lg p-4 hover:border-brownWarm transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-sm font-medium text-textDark mb-1">
+                              {recipe.title}
+                            </h4>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                  recipe.status === "published"
+                                    ? "bg-green-100 text-green-700"
+                                    : recipe.status === "pending"
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {recipe.status === "published"
+                                  ? "已发布"
+                                  : recipe.status === "pending"
+                                  ? "待审核"
+                                  : "草稿"}
+                              </span>
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                  recipe.addMethod === "manual"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : recipe.addMethod === "ai"
+                                    ? "bg-purple-100 text-purple-700"
+                                    : "bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                {recipe.addMethod === "manual"
+                                  ? "手动添加"
+                                  : recipe.addMethod === "ai"
+                                  ? "AI生成"
+                                  : "规则匹配"}
+                              </span>
+                            </div>
+                          </div>
+                          <Link
+                            href={`/admin/recipes/${recipe.id}`}
+                            className="text-brownWarm hover:text-brownDark text-sm"
+                          >
+                            查看
+                          </Link>
+                        </div>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <p className="text-textGray">暂无食谱</p>
+                    <p className="text-sm text-textGray mt-2">
+                      请使用上方的模式添加食谱
+                    </p>
                   </div>
                 )}
               </div>
             </div>
-          )}
-
-          {/* AI 生成 Tab */}
-          {activeTab === "ai" && (
-            <AIGenerateTab
-              collectionId={collection.id}
-              collectionName={collection.name}
-              cuisineName={collection.linkedEntityType === "cuisine" ? collection.linkedEntityName : undefined}
-              onRecipesGenerated={() => {
-                loadCollection();
-                loadRecipes();
-              }}
-            />
           )}
 
           {/* SEO 设置 Tab */}

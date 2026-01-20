@@ -7,13 +7,24 @@ interface ThemeCard {
   title: string;
   imageUrl: string;
   tag: string;
+  href?: string | null;
 }
 
 interface ThemeCardsSectionProps {
   cards: ThemeCard[];
+  title?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
 }
 
-export function ThemeCardsSection({ cards }: ThemeCardsSectionProps) {
+export function ThemeCardsSection({
+  cards,
+  title,
+  subtitle,
+  ctaLabel,
+  ctaHref,
+}: ThemeCardsSectionProps) {
   return (
     <section className="py-16 bg-cream">
       <div className="max-w-7xl mx-auto px-8">
@@ -21,25 +32,27 @@ export function ThemeCardsSection({ cards }: ThemeCardsSectionProps) {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-serif font-medium text-textDark">
-              热门主题
+              {title || "热门主题"}
             </h2>
-            <p className="text-textGray mt-1">精选食谱主题，找到你想要的</p>
+            <p className="text-textGray mt-1">
+              {subtitle || "精选食谱主题，找到你想要的"}
+            </p>
           </div>
           <LocalizedLink
-            href="/recipe"
+            href={ctaHref || "/recipe"}
             className="text-brownWarm hover:text-brownDark flex items-center gap-1 font-medium"
           >
-            查看全部
+            {ctaLabel || "查看全部"}
             <ArrowRight className="w-4 h-4" />
           </LocalizedLink>
         </div>
 
         {/* 卡片网格 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          {cards.map((card) => (
+          {cards.filter(card => card.imageUrl).map((card) => (
             <LocalizedLink
               key={card.id}
-              href={`/recipe?tag=${encodeURIComponent(card.tag)}`}
+              href={card.href || `/recipe?tag=${encodeURIComponent(card.tag)}`}
               className="group relative aspect-[4/3] rounded-xl overflow-hidden shadow-card hover:shadow-lg transition-shadow"
             >
               {/* 背景图 */}

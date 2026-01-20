@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/guard";
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "@/lib/ai/provider";
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -68,17 +69,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       try {
         const langName = LOCALE_NAMES_EN[locale];
-        const prompt = `Translate the following cuisine information into ${langName}. Keep the JSON structure:
-{
-  "name": "${cuisine.name}",
-  "description": "${cuisine.description || ""}"
-}
-Return only valid JSON with the same keys.`;
+        const applied = await getAppliedPrompt("translate_cuisine", {
+          targetLangName: langName,
+          name: cuisine.name,
+          description: cuisine.description || "",
+        });
+        if (!applied?.prompt) {
+          throw new Error("未找到可用的提示词配置");
+        }
 
         const response = await provider.chat({
           messages: [
-            { role: "system", content: "You are a translator. Return only valid JSON, no explanations." },
-            { role: "user", content: prompt },
+            ...(applied.systemPrompt
+              ? [{ role: "system" as const, content: applied.systemPrompt }]
+              : []),
+            { role: "user" as const, content: applied.prompt },
           ],
           temperature: 0.3,
           maxTokens: 400,

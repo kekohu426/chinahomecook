@@ -27,9 +27,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    // 基础条件：待审核状态
+    // 基础条件：待发布且待审核
     const where: Record<string, unknown> = {
       reviewStatus: "pending",
+      status: "pending",
     };
 
     // 质量筛选（基于 qualityScore JSON 字段）
@@ -57,9 +58,14 @@ export async function GET(request: NextRequest) {
 
     // 格式化数据
     const formatted = recipes.map((recipe) => {
-      const qualityScore = recipe.qualityScore as Record<string, number> | null;
-      const overallScore = qualityScore
-        ? Object.values(qualityScore).reduce((a, b) => a + b, 0) / Object.keys(qualityScore).length
+      const qualityScore = recipe.qualityScore as Record<string, unknown> | null;
+      const numericScores = qualityScore
+        ? Object.values(qualityScore).filter(
+            (value): value is number => typeof value === "number" && Number.isFinite(value)
+          )
+        : [];
+      const overallScore = numericScores.length
+        ? numericScores.reduce((a, b) => a + b, 0) / numericScores.length
         : null;
 
       let qualityLevel = "medium";
@@ -89,7 +95,7 @@ export async function GET(request: NextRequest) {
 
     // 统计各质量等级数量
     const allPending = await prisma.recipe.findMany({
-      where: { reviewStatus: "pending" },
+      where: { reviewStatus: "pending", status: "pending" },
       select: { qualityScore: true },
     });
 
@@ -101,9 +107,14 @@ export async function GET(request: NextRequest) {
     };
 
     allPending.forEach((r) => {
-      const qs = r.qualityScore as Record<string, number> | null;
-      if (qs) {
-        const avg = Object.values(qs).reduce((a, b) => a + b, 0) / Object.keys(qs).length;
+      const qs = r.qualityScore as Record<string, unknown> | null;
+      const numericScores = qs
+        ? Object.values(qs).filter(
+            (value): value is number => typeof value === "number" && Number.isFinite(value)
+          )
+        : [];
+      if (numericScores.length) {
+        const avg = numericScores.reduce((a, b) => a + b, 0) / numericScores.length;
         if (avg >= 0.9) stats.high++;
         else if (avg < 0.7) stats.low++;
         else stats.medium++;
@@ -191,17 +202,24 @@ export async function POST(request: NextRequest) {
 
       // 如果通过且需要自动翻译
       if (action === "approve" && autoTranslate) {
-        await prisma.translationJob.create({
-          data: {
-            entityType: "recipe",
-            entityId: recipeId,
-            targetLang: "en",
-            priority: 5,
-            status: "pending",
-            retryCount: 0,
-            maxRetries: 3,
-          },
-        });
+        try {
+          await prisma.translationJob.createMany({
+            data: [
+              {
+                entityType: "recipe",
+                entityId: recipeId,
+                targetLang: "en",
+                priority: 5,
+                status: "pending",
+                retryCount: 0,
+                maxRetries: 3,
+              },
+            ],
+            skipDuplicates: true,
+          });
+        } catch (error) {
+          console.error("创建翻译任务失败:", error);
+        }
       }
 
       return NextResponse.json({
@@ -243,18 +261,22 @@ export async function POST(request: NextRequest) {
 
       // 如果通过且需要自动翻译
       if (isApprove && autoTranslate) {
-        await prisma.translationJob.createMany({
-          data: recipeIds.map((id: string) => ({
-            entityType: "recipe",
-            entityId: id,
-            targetLang: "en",
-            priority: 5,
-            status: "pending",
-            retryCount: 0,
-            maxRetries: 3,
-          })),
-          skipDuplicates: true,
-        });
+        try {
+          await prisma.translationJob.createMany({
+            data: recipeIds.map((id: string) => ({
+              entityType: "recipe",
+              entityId: id,
+              targetLang: "en",
+              priority: 5,
+              status: "pending",
+              retryCount: 0,
+              maxRetries: 3,
+            })),
+            skipDuplicates: true,
+          });
+        } catch (error) {
+          console.error("批量创建翻译任务失败:", error);
+        }
       }
 
       return NextResponse.json({

@@ -13,6 +13,7 @@ import { Footer } from "@/components/layout/Footer";
 import { prisma } from "@/lib/db/prisma";
 import type { Recipe } from "@/types/recipe";
 import { RecipeDetailClient } from "@/components/recipe/RecipeDetailClient";
+import { RecipeDetailClientV2 } from "@/components/recipe/RecipeDetailClient.v2";
 import { ChevronRight, Home } from "lucide-react";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { getContentLocales } from "@/lib/i18n/content";
@@ -21,6 +22,7 @@ import { LOCALE_ISO_CODES } from "@/lib/i18n/config";
 import type { Metadata } from "next";
 import { generateAlternates } from "@/lib/seo/alternates";
 import { localizePath } from "@/lib/i18n/utils";
+import { auth } from "@/lib/auth";
 
 /**
  * 通过 slug 或 ID 查找食谱
@@ -77,12 +79,22 @@ async function findRecipeBySlugOrId(
 
 interface RecipePageProps {
   params: Promise<{ id: string; locale: Locale }>;
+  searchParams?: Promise<{ preview?: string; version?: string }>;
+}
+
+async function canPreview(searchParams?: { preview?: string }) {
+  const previewFlag = searchParams?.preview;
+  if (previewFlag !== "1" && previewFlag !== "true") return false;
+  const session = await auth();
+  return session?.user?.role === "ADMIN";
 }
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: RecipePageProps): Promise<Metadata> {
   const { id: rawId, locale } = await params;
+  const previewAllowed = await canPreview(await searchParams);
   // URL 解码，处理中文 slug
   const idOrSlug = decodeURIComponent(rawId);
   const locales = getContentLocales(locale);
@@ -91,7 +103,7 @@ export async function generateMetadata({
   try {
     const recipe = await findRecipeBySlugOrId(idOrSlug, { locales });
 
-    if (!recipe || recipe.status !== "published") {
+    if (!recipe || (recipe.status !== "published" && !previewAllowed)) {
       return { title: isEn ? "Recipe not found" : "食谱不存在" };
     }
 
@@ -128,16 +140,21 @@ export async function generateMetadata({
   }
 }
 
-export default async function RecipePage({ params }: RecipePageProps) {
+export default async function RecipePage({ params, searchParams }: RecipePageProps) {
   const { id: rawId, locale } = await params;
+  const resolvedSearchParams = await searchParams;
   // URL 解码，处理中文 slug
   const idOrSlug = decodeURIComponent(rawId);
   const locales = getContentLocales(locale);
+  const previewAllowed = await canPreview(resolvedSearchParams);
+
+  // 检查版本参数，默认使用 v2
+  const version = resolvedSearchParams?.version || "v2";
 
   // 从数据库获取食谱（支持 slug 或 ID）
   const recipeData = await findRecipeBySlugOrId(idOrSlug, { locales });
 
-  if (!recipeData || recipeData.status !== "published") {
+  if (!recipeData || (recipeData.status !== "published" && !previewAllowed)) {
     notFound();
   }
 
@@ -203,9 +220,17 @@ export default async function RecipePage({ params }: RecipePageProps) {
       (translation?.styleGuide as any) || (recipeData.styleGuide as any),
     imageShots:
       (translation?.imageShots as any) || (recipeData.imageShots as any),
+    nutrition: (recipeData.nutrition as any) || undefined,
+    faq: (recipeData.faq as any) || undefined,
+    tips: (recipeData.tips as any) || undefined,
+    troubleshooting: (recipeData.troubleshooting as any) || undefined,
+    relatedRecipes: (recipeData.relatedRecipes as any) || undefined,
+    pairing: (recipeData.pairing as any) || undefined,
+    seo: (recipeData.seo as any) || undefined,
+    notes: (recipeData.notes as any) || undefined,
   };
 
-  // 构建步骤图片映射
+  // 构建步骤图片映射（优先步骤内 imageUrl，其次配图方案）
   const stepImages = (recipe.imageShots || []).reduce<Record<string, string | undefined>>((acc, shot) => {
     const url = (shot as any).imageUrl;
     if (shot.key) {
@@ -218,13 +243,40 @@ export default async function RecipePage({ params }: RecipePageProps) {
     }
     return acc;
   }, {});
+  (recipe.steps || []).forEach((step: any) => {
+    if (step?.id && step?.imageUrl) {
+      stepImages[step.id] = step.imageUrl;
+      const digits = String(step.id).replace(/\D/g, "");
+      if (digits) {
+        stepImages[`step${digits}`] = step.imageUrl;
+        stepImages[digits] = step.imageUrl;
+      }
+    }
+  });
 
-  // 封面图
-  const coverImage =
-    recipeData.coverImage ||
-    stepImages["cover"] ||
-    stepImages["hero"] ||
-    stepImages["final"];
+  // 封面图 - 收集所有封面图用于轮播
+  const coverImages: string[] = [];
+
+  // 优先使用 imageShots 中的封面图
+  const coverKeys = ["cover_main", "cover_detail", "cover_inside", "cover", "hero", "final"];
+  coverKeys.forEach((key) => {
+    if (stepImages[key]) {
+      coverImages.push(stepImages[key]!);
+    }
+  });
+
+  // 如果有 coverImage 字段且不在列表中，添加到开头
+  if (recipeData.coverImage && !coverImages.includes(recipeData.coverImage)) {
+    coverImages.unshift(recipeData.coverImage);
+  }
+
+  // 如果没有封面图，使用第一张步骤图
+  if (coverImages.length === 0 && recipe.steps?.[0]) {
+    const firstStepImage = (recipe.steps[0] as any).imageUrl;
+    if (firstStepImage) {
+      coverImages.push(firstStepImage);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#FDF8F3]">
@@ -258,11 +310,19 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </nav>
       </div>
 
-      <RecipeDetailClient
-        recipe={recipe}
-        coverImage={coverImage}
-        stepImages={stepImages}
-      />
+      {version === "v2" ? (
+        <RecipeDetailClientV2
+          recipe={recipe}
+          coverImages={coverImages}
+          stepImages={stepImages}
+        />
+      ) : (
+        <RecipeDetailClient
+          recipe={recipe}
+          coverImage={coverImages[0]}
+          stepImages={stepImages}
+        />
+      )}
 
       {/* 相关食谱推荐 */}
       {relatedRecipes.length > 0 && (

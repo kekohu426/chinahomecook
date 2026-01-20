@@ -14,6 +14,7 @@ import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
+import type { SeoConfig } from "@/lib/types/collection";
 import type { Locale } from "@/lib/i18n/config";
 import { ChevronRight, Home } from "lucide-react";
 
@@ -46,11 +47,26 @@ export async function generateMetadata({
   const isEn = locale === "en";
   const translation = location.translations.find((t) => t.locale === locale);
   const name = translation?.name || location.name;
+  const collection = await prisma.collection.findFirst({
+    where: {
+      type: "region",
+      locationId: location.id,
+      status: "published",
+    },
+    select: { seo: true },
+  });
+  const seo = (collection?.seo as SeoConfig) || undefined;
   return {
-    title: isEn ? `${name} Recipes - Recipe Zen` : `${name}风味食谱 - Recipe Zen`,
-    description: isEn
-      ? `Explore recipes inspired by ${name} flavors.`
-      : `精选${name}风味家常菜谱。`,
+    title:
+      (isEn ? seo?.titleEn : seo?.titleZh) ||
+      (isEn ? `${name} Recipes - Recipe Zen` : `${name}风味食谱 - Recipe Zen`),
+    description:
+      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
+      (isEn
+        ? `Explore recipes inspired by ${name} flavors.`
+        : `精选${name}风味家常菜谱。`),
+    keywords: seo?.keywords,
+    robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -67,6 +83,23 @@ export default async function RegionPage({
   const translation = location.translations.find((t) => t.locale === locale);
   const name = translation?.name || location.name;
   const description = translation?.description || location.description || "";
+  const collection = await prisma.collection.findFirst({
+    where: {
+      type: "region",
+      locationId: location.id,
+      status: "published",
+    },
+    select: { seo: true },
+  });
+  const seo = (collection?.seo as SeoConfig) || undefined;
+  const headerTitle = isEn ? seo?.h1En || name : seo?.h1Zh || name;
+  const headerSubtitle =
+    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (description ||
+      (isEn
+        ? `Regional recipes inspired by ${name}.`
+        : `精选${name}风味家常菜谱。`));
+  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
   const queryParams = await searchParams;
   const page = parseInt(queryParams.page || "1");
   const limit = 12;
@@ -113,13 +146,10 @@ export default async function RegionPage({
             <span className="text-textDark">{name}</span>
           </nav>
           <h1 className="text-3xl md:text-4xl font-serif font-medium text-textDark mb-3">
-            {name}
+            {headerTitle}
           </h1>
           <p className="text-textGray text-lg max-w-3xl">
-            {description ||
-              (isEn
-                ? `Regional recipes inspired by ${name}.`
-                : `精选${name}风味家常菜谱。`)}
+            {headerSubtitle}
           </p>
         </div>
       </div>
@@ -188,6 +218,12 @@ export default async function RegionPage({
                 {isEn ? "Next" : "下一页"}
               </LocalizedLink>
             )}
+          </div>
+        )}
+
+        {footerText && (
+          <div className="mt-16 bg-white rounded-2xl border border-cream p-6 text-sm text-textGray leading-relaxed">
+            {footerText}
           </div>
         )}
       </main>

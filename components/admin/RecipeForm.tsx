@@ -171,6 +171,16 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
   const [imageGenLoading, setImageGenLoading] = useState<Record<number, boolean>>({});
   const [exporting, setExporting] = useState(false);
 
+  const stepImageMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    imageShots.forEach((shot) => {
+      if (shot.key && shot.imageUrl) {
+        map[shot.key] = shot.imageUrl;
+      }
+    });
+    return map;
+  }, [imageShots]);
+
   const mainIngredients = useMemo(() => {
     return mainIngredientsInput
       .split(",")
@@ -570,12 +580,16 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
     const submitter = (e.nativeEvent as SubmitEvent).submitter as
       | HTMLButtonElement
       | null;
-    const publishValue =
-      submitter?.dataset.publish === "true"
-        ? true
-        : submitter?.dataset.publish === "false"
-          ? false
-          : isPublished;
+
+    // 编辑模式下，保存后状态变为待审核（pending），除非点击的是"发布"按钮
+    let status: string;
+    if (submitter?.dataset.publish === "true") {
+      status = "published";
+    } else if (mode === "edit") {
+      status = "pending"; // 编辑后变为待审核
+    } else {
+      status = "draft";
+    }
 
     try {
       const data = {
@@ -608,7 +622,7 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         cuisine: cuisine || undefined,
         mainIngredients,
         coverImage: coverImage || undefined,
-        isPublished: publishValue,
+        status, // 使用计算出的状态
         // 标签
         scenes,
         cookingMethods,
@@ -655,11 +669,28 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
           <p className="text-sm text-textGray mt-1">
             当前状态：{isPublished ? "已发布" : "草稿"}
           </p>
-          <p className="text-xs text-textGray mt-1">
-            发布后将立即在前台可见
-          </p>
+          {mode === "edit" && (
+            <p className="text-xs text-amber-600 mt-1">
+              编辑保存后将变为待审核状态
+            </p>
+          )}
         </div>
         <div className="flex gap-3">
+          {mode === "edit" && initialData?.id && (
+            <a
+              href={`/admin/recipes/${initialData.id}/preview`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-full px-5"
+              >
+                预览效果
+              </Button>
+            </a>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -672,20 +703,14 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
           <Button
             type="submit"
             disabled={loading}
-            onClick={() => {
-              setIsPublished(false);
-            }}
             className="bg-lightGray text-textDark hover:bg-cream rounded-full px-5"
             data-publish="false"
           >
-            {loading ? "保存中..." : "保存草稿"}
+            {loading ? "保存中..." : mode === "edit" ? "保存并提交审核" : "保存草稿"}
           </Button>
           <Button
             type="submit"
             disabled={loading}
-            onClick={() => {
-              setIsPublished(true);
-            }}
             className="bg-brownWarm hover:bg-brownWarm/90 rounded-full px-6 text-base font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.1)]"
             data-publish="true"
           >
@@ -847,7 +872,7 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
             <img
               src={coverImage}
               alt="封面图"
-              className="w-full h-48 object-cover rounded-md border border-lightGray cursor-pointer"
+              className="w-full h-56 md:h-64 object-contain bg-[#F7F3EF] rounded-md border border-lightGray cursor-pointer"
               onClick={() => setCoverPreviewOpen(true)}
               loading="lazy"
             />
@@ -1194,6 +1219,11 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                   onChange={(e) => updateStepField(index, "photoBrief", e.target.value)}
                   placeholder="配图说明"
                 />
+                <Input
+                  value={step.imageUrl || ""}
+                  onChange={(e) => updateStepField(index, "imageUrl", e.target.value)}
+                  placeholder="操作图 URL（可选）"
+                />
               </div>
               <div className="mt-4">
                 <textarea
@@ -1203,6 +1233,23 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                   className="w-full px-3 py-2 border border-lightGray rounded-sm"
                   placeholder="详细操作描述"
                 />
+              </div>
+              <div className="mt-4">
+                <p className="text-xs text-textGray mb-2">
+                  操作图预览（优先使用步骤内图片，若为空则使用配图方案 key={step.id}）
+                </p>
+                {step.imageUrl || stepImageMap[step.id] ? (
+                  <img
+                    src={step.imageUrl || stepImageMap[step.id]}
+                    alt={`${step.title || step.id} 操作图`}
+                    className="w-full max-h-64 object-contain bg-[#F7F3EF] rounded-md border border-lightGray"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-32 rounded-md border border-dashed border-lightGray flex items-center justify-center text-textGray text-sm">
+                    暂无操作图
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -1318,7 +1365,7 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                       <img
                         src={shot.imageUrl}
                         alt={shot.key}
-                        className="w-full h-40 object-cover rounded-md border border-lightGray"
+                        className="w-full h-52 object-contain bg-[#F7F3EF] rounded-md border border-lightGray"
                       />
                     </div>
                   )}

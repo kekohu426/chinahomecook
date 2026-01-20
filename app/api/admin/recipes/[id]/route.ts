@@ -253,6 +253,10 @@ export async function PUT(
         cuisineId: cuisineId !== undefined ? cuisineId : existing.cuisineId,
         locationId: locationId !== undefined ? locationId : existing.locationId,
         collectionId: body.collectionId !== undefined ? body.collectionId : existing.collectionId,
+        // 支持 status 字段更新
+        status: body.status !== undefined ? body.status : existing.status,
+        // 如果发布，记录发布时间
+        publishedAt: body.status === "published" && !existing.publishedAt ? new Date() : existing.publishedAt,
         ...tagOperations,
       },
       include: {

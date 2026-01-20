@@ -19,6 +19,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { requireAdmin } from "@/lib/auth/guard";
 
@@ -180,6 +181,12 @@ export async function PUT(request: NextRequest) {
         },
       });
     }
+
+    // 清除前端缓存
+    revalidateTag("recipe-page-config");
+    revalidatePath("/[locale]/recipe", "page");
+    revalidatePath("/zh/recipe");
+    revalidatePath("/en/recipe");
 
     return NextResponse.json({
       success: true,

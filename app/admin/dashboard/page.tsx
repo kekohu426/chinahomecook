@@ -493,12 +493,6 @@ export default function DashboardPage() {
         >
           聚合页管理
         </Link>
-        <Link
-          href="/admin/tasks/unknown-tags"
-          className="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 text-sm rounded-lg transition-colors"
-        >
-          标签审核
-        </Link>
       </div>
 
       {/* 待办事项 & 聚合页状态 & 任务进度 */}

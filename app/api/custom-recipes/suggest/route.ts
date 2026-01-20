@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getTextProvider } from "@/lib/ai/provider";
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,26 +22,16 @@ export async function POST(request: NextRequest) {
 
     const provider = await getTextProvider();
 
-    const systemPrompt = `你是一位专业的中国美食顾问，精通各地菜系和健康饮食。
-用户会告诉你他们的饮食需求或限制，你需要推荐3-5个合适的中国菜谱名称。
-
-要求：
-1. 菜谱名称要具体、地道，是真实存在的中国菜
-2. 考虑用户的健康需求（如糖尿病、减肥、低盐等）
-3. 提供简短的推荐理由（1-2句话）
-4. 返回纯 JSON 格式，不要包含其他文字
-
-返回格式：
-{
-  "suggestions": [
-    { "name": "菜谱名称", "reason": "推荐理由" }
-  ]
-}`;
+    const applied = await getAppliedPrompt("custom_recipe_suggest", {
+      userPrompt: prompt.trim(),
+    });
 
     const response = await provider.chat({
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: `用户需求：${prompt.trim()}` },
+        ...(applied?.systemPrompt
+          ? [{ role: "system" as const, content: applied.systemPrompt }]
+          : []),
+        { role: "user" as const, content: applied?.prompt || `用户需求：${prompt.trim()}` },
       ],
       temperature: 0.7,
       maxTokens: 1024,

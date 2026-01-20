@@ -7,20 +7,7 @@
 
 import { NextRequest } from "next/server";
 import { chatStream } from "@/lib/ai";
-
-const CHEF_SYSTEM_PROMPT = `你是一位经验丰富的中国美食主厨，专注于帮助用户理解和制作中国菜肴。
-
-你的特点：
-- 专业但亲切，像朋友一样温柔地解答问题
-- 提供实用的烹饪技巧和替代方案
-- 关注食材的特性和烹饪原理
-- 用简单易懂的语言解释复杂的烹饪概念
-
-回答要求：
-- 简洁明了，控制在 100-200 字
-- 如果涉及替代食材，说明可能的味道差异
-- 如果涉及技巧，解释背后的原理
-- 保持温暖治愈的语气`;
+import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,16 +21,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 构建完整的提示词
-    let fullPrompt = question;
-
+    let fullQuestion = question;
     if (recipeTitle) {
-      fullPrompt = `关于《${recipeTitle}》这道菜的问题：\n\n${question}`;
+      fullQuestion = `关于《${recipeTitle}》这道菜的问题：\n\n${question}`;
+    }
+    if (recipeContext) {
+      fullQuestion += `\n\n相关信息：${recipeContext}`;
     }
 
-    if (recipeContext) {
-      fullPrompt += `\n\n相关信息：${recipeContext}`;
-    }
+    const applied = await getAppliedPrompt("chef_chat", {
+      question: fullQuestion,
+      recipeTitle,
+      recipeContext,
+    });
 
     // 创建可读流
     const encoder = new TextEncoder();
@@ -51,13 +41,13 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         try {
           await chatStream(
-            fullPrompt,
+            applied?.prompt || fullQuestion,
             (chunk) => {
               // 将每个文本块发送给客户端
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
             },
             {
-              systemPrompt: CHEF_SYSTEM_PROMPT,
+              systemPrompt: applied?.systemPrompt || undefined,
               temperature: 0.7,
               maxTokens: 500,
             }

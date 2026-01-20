@@ -29,6 +29,7 @@ interface GenerateResult {
   status: "success" | "failed";
   recipeId?: string;
   error?: string;
+  warning?: string;
 }
 
 interface JobDetail {
@@ -187,6 +188,20 @@ export default function JobDetailPage() {
   const progress = job.totalCount > 0
     ? Math.round(((job.successCount + job.failedCount) / job.totalCount) * 100)
     : 0;
+  const completedCount = job.successCount + job.failedCount;
+  const remainingCount = Math.max(0, job.totalCount - completedCount);
+  const sourceLabel = job.sourceType === "collection" ? "聚合页自动生成" : "手动创建";
+  const taskHint = job.status === "pending"
+    ? "任务尚未开始，点击右上角“启动任务”开始执行。"
+    : job.status === "running"
+      ? "任务执行中，系统会按顺序生成并写入食谱。"
+      : job.status === "completed"
+        ? "任务已完成，可在下方查看生成结果。"
+        : job.status === "partial"
+          ? "任务部分成功，可查看失败原因后重试。"
+          : job.status === "failed"
+            ? "任务失败，请检查失败原因后重试。"
+            : "任务已取消。";
 
   return (
     <div>
@@ -256,6 +271,9 @@ export default function JobDetailPage() {
                 {statusConfig.label}
               </span>
             </div>
+            <p className="text-sm text-textGray mb-4">
+              {sourceLabel} · 目标生成 {job.totalCount} 道 · {taskHint}
+            </p>
 
             {/* 进度条 */}
             <div className="mb-4">
@@ -275,6 +293,10 @@ export default function JobDetailPage() {
                   />
                 </div>
               </div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-textGray mb-4">
+              <span>已完成 {completedCount}/{job.totalCount}</span>
+              <span>剩余 {remainingCount}</span>
             </div>
 
             {/* 统计数据 */}
@@ -324,6 +346,11 @@ export default function JobDetailPage() {
                           <ExternalLink className="h-3 w-3" />
                         </Link>
                       )}
+                      {result.status === "success" && result.warning && (
+                        <span className="text-xs text-amber-700 max-w-xs truncate" title={result.warning}>
+                          {result.warning}
+                        </span>
+                      )}
                       {result.status === "failed" && result.error && (
                         <span className="text-xs text-red-600 max-w-xs truncate" title={result.error}>
                           {result.error}
@@ -347,6 +374,12 @@ export default function JobDetailPage() {
                 <dt className="text-xs text-textGray mb-1">来源类型</dt>
                 <dd className="text-sm text-textDark">
                   {job.sourceType === "collection" ? "聚合页" : "手动创建"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-textGray mb-1">任务目标</dt>
+                <dd className="text-sm text-textDark">
+                  生成 {job.totalCount} 道食谱
                 </dd>
               </div>
               {job.collectionId && (
