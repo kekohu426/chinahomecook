@@ -15,6 +15,9 @@ import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
 import type { SeoConfig } from "@/lib/types/collection";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, titleFromSlug, toEnglishLabel } from "@/lib/i18n/english";
+import { LOCATION_LABELS_EN } from "@/lib/i18n/labels";
 import type { Locale } from "@/lib/i18n/config";
 import { ChevronRight, Home } from "lucide-react";
 
@@ -46,7 +49,14 @@ export async function generateMetadata({
   if (!location) return { title: "Not Found" };
   const isEn = locale === "en";
   const translation = location.translations.find((t) => t.locale === locale);
-  const name = translation?.name || location.name;
+  const nameRaw = translation?.name || location.name;
+  const name = isEn
+    ? toEnglishLabel(
+        nameRaw,
+        LOCATION_LABELS_EN,
+        ensureEnglish(titleFromSlug(location.slug || slug), "Region")
+      )
+    : nameRaw;
   const collection = await prisma.collection.findFirst({
     where: {
       type: "region",
@@ -56,15 +66,21 @@ export async function generateMetadata({
     select: { seo: true },
   });
   const seo = (collection?.seo as SeoConfig) || undefined;
+  const metaTitleFallback = t("recipe.region.metaTitle", locale).replace(
+    "{name}",
+    name
+  );
+  const metaDescriptionFallback = t("recipe.region.metaDescription", locale).replace(
+    "{name}",
+    name
+  );
   return {
     title:
-      (isEn ? seo?.titleEn : seo?.titleZh) ||
-      (isEn ? `${name} Recipes - Recipe Zen` : `${name}风味食谱 - Recipe Zen`),
+      (isEn ? ensureEnglish(seo?.titleEn, "") : seo?.titleZh) ||
+      metaTitleFallback,
     description:
-      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
-      (isEn
-        ? `Explore recipes inspired by ${name} flavors.`
-        : `精选${name}风味家常菜谱。`),
+      (isEn ? ensureEnglish(seo?.descriptionEn, "") : seo?.descriptionZh) ||
+      metaDescriptionFallback,
     keywords: seo?.keywords,
     robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
@@ -81,8 +97,16 @@ export default async function RegionPage({
   const locales = getContentLocales(locale);
   const isEn = locale === "en";
   const translation = location.translations.find((t) => t.locale === locale);
-  const name = translation?.name || location.name;
-  const description = translation?.description || location.description || "";
+  const nameRaw = translation?.name || location.name;
+  const name = isEn
+    ? toEnglishLabel(
+        nameRaw,
+        LOCATION_LABELS_EN,
+        ensureEnglish(titleFromSlug(location.slug || slug), "Region")
+      )
+    : nameRaw;
+  const descriptionRaw = translation?.description || location.description || "";
+  const description = isEn ? ensureEnglish(descriptionRaw, "") : descriptionRaw;
   const collection = await prisma.collection.findFirst({
     where: {
       type: "region",
@@ -92,14 +116,14 @@ export default async function RegionPage({
     select: { seo: true },
   });
   const seo = (collection?.seo as SeoConfig) || undefined;
-  const headerTitle = isEn ? seo?.h1En || name : seo?.h1Zh || name;
+  const headerTitle = isEn
+    ? ensureEnglish(seo?.h1En, "") || name
+    : seo?.h1Zh || name;
   const headerSubtitle =
-    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (isEn ? ensureEnglish(seo?.subtitleEn, "") : seo?.subtitleZh) ||
     (description ||
-      (isEn
-        ? `Regional recipes inspired by ${name}.`
-        : `精选${name}风味家常菜谱。`));
-  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+      t("recipe.region.headerSubtitle", locale).replace("{name}", name));
+  const footerText = isEn ? ensureEnglish(seo?.footerTextEn, "") : seo?.footerTextZh;
   const queryParams = await searchParams;
   const page = parseInt(queryParams.page || "1");
   const limit = 12;
@@ -140,7 +164,7 @@ export default async function RegionPage({
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <LocalizedLink href="/recipe" className="hover:text-brownWarm transition-colors">
-              {isEn ? "Recipes" : "食谱"}
+              {t("nav.recipes", locale)}
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <span className="text-textDark">{name}</span>
@@ -157,13 +181,13 @@ export default async function RegionPage({
       <main className="max-w-7xl mx-auto px-8 py-12">
         {recipes.length === 0 ? (
           <div className="text-center py-20 text-textGray">
-            {isEn ? "No recipes found yet." : "暂无相关食谱。"}
+            {t("common.noRecipesFound", locale)}
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-serif font-medium text-textDark">
-                {isEn ? "Latest Recipes" : "最新食谱"} ({total})
+                {t("common.latestRecipes", locale)} ({total})
               </h2>
             </div>
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-8 [column-fill:_balance]">
@@ -181,7 +205,7 @@ export default async function RegionPage({
                     id={recipe.id}
                     slug={recipe.slug}
                     titleZh={recipe.title}
-                    title={translation?.title || recipe.title}
+                    titleEn={translation?.title || null}
                     summary={(translation?.summary as any) || summary}
                     location={recipe.location?.name || null}
                     cuisine={recipe.cuisine?.name || null}
@@ -202,12 +226,12 @@ export default async function RegionPage({
                 href={buildPageUrl(page - 1)}
                 className="px-4 py-2 bg-white border border-sage-200 rounded-lg hover:border-sage-400 transition-colors"
               >
-                {isEn ? "Prev" : "上一页"}
+                {t("common.previous", locale)}
               </LocalizedLink>
             )}
 
             <span className="px-4 py-2 text-sage-600">
-              {isEn ? `Page ${page} / ${totalPages}` : `第 ${page} / ${totalPages} 页`}
+              {t("common.pageOf", locale).replace("{current}", String(page)).replace("{total}", String(totalPages))}
             </span>
 
             {page < totalPages && (
@@ -215,7 +239,7 @@ export default async function RegionPage({
                 href={buildPageUrl(page + 1)}
                 className="px-4 py-2 bg-white border border-sage-200 rounded-lg hover:border-sage-400 transition-colors"
               >
-                {isEn ? "Next" : "下一页"}
+                {t("common.nextPage", locale)}
               </LocalizedLink>
             )}
           </div>

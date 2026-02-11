@@ -237,6 +237,7 @@ export async function PUT(
       data: {
         title: body.title !== undefined ? body.title : existing.title,
         slug: body.slug !== undefined ? body.slug : existing.slug,
+        author: body.author !== undefined ? (body.author || null) : existing.author,
         description: body.description !== undefined ? body.description : existing.description,
         difficulty: body.difficulty !== undefined ? body.difficulty : existing.difficulty,
         prepTime: body.prepTime !== undefined ? body.prepTime : existing.prepTime,
@@ -248,8 +249,6 @@ export async function PUT(
         steps: body.steps !== undefined ? body.steps : existing.steps,
         nutrition: body.nutrition !== undefined ? body.nutrition : existing.nutrition,
         coverImage: body.coverImage !== undefined ? body.coverImage : existing.coverImage,
-        styleGuide: body.styleGuide !== undefined ? body.styleGuide : existing.styleGuide,
-        imageShots: body.imageShots !== undefined ? body.imageShots : existing.imageShots,
         cuisineId: cuisineId !== undefined ? cuisineId : existing.cuisineId,
         locationId: locationId !== undefined ? locationId : existing.locationId,
         collectionId: body.collectionId !== undefined ? body.collectionId : existing.collectionId,

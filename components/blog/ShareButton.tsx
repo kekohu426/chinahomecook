@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Share2, Copy, Twitter, Check, Link2 } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTranslations } from "@/lib/i18n/translations";
 
 interface ShareButtonProps {
   title: string;
@@ -10,7 +11,7 @@ interface ShareButtonProps {
 
 export function ShareButton({ title }: ShareButtonProps) {
   const locale = useLocale();
-  const isEn = locale === "en";
+  const { t } = useTranslations();
   const [copied, setCopied] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
 
@@ -80,7 +81,7 @@ export function ShareButton({ title }: ShareButtonProps) {
         <button
           onClick={handleCopyLink}
           className="p-2 rounded-full bg-lightGray hover:bg-brownWarm/10 transition-colors"
-          title={isEn ? "Copy link" : "复制链接"}
+          title={t("share.copyLink")}
         >
           {copied ? (
             <Check className="w-5 h-5 text-green-600" />
@@ -93,7 +94,7 @@ export function ShareButton({ title }: ShareButtonProps) {
         <button
           onClick={handleTwitterShare}
           className="p-2 rounded-full bg-lightGray hover:bg-brownWarm/10 transition-colors"
-          title={isEn ? "Share to X" : "分享到 Twitter"}
+          title={t("share.shareToX")}
         >
           <Twitter className="w-5 h-5 text-textGray" />
         </button>
@@ -102,7 +103,7 @@ export function ShareButton({ title }: ShareButtonProps) {
         <button
           onClick={handleWeiboShare}
           className="p-2 rounded-full bg-lightGray hover:bg-brownWarm/10 transition-colors"
-          title={isEn ? "Share to Weibo" : "分享到微博"}
+          title={t("share.shareToWeibo")}
         >
           <svg
             className="w-5 h-5 text-textGray"
@@ -120,7 +121,7 @@ export function ShareButton({ title }: ShareButtonProps) {
           <button
             onClick={handleNativeShare}
             className="p-2 rounded-full bg-lightGray hover:bg-brownWarm/10 transition-colors"
-            title={isEn ? "More share options" : "更多分享"}
+            title={t("share.moreOptions")}
           >
             <Share2 className="w-5 h-5 text-textGray" />
           </button>
@@ -130,7 +131,7 @@ export function ShareButton({ title }: ShareButtonProps) {
       {/* 复制成功提示 */}
       {copied && (
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-textDark text-white text-xs px-3 py-1 rounded whitespace-nowrap">
-          {isEn ? "Link copied" : "链接已复制"}
+          {t("share.linkCopied")}
         </div>
       )}
     </div>

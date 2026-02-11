@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 import {
   executeTranslationJob,
   executeTranslationJobAsync,
@@ -22,6 +23,9 @@ interface RouteContext {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
 
     const job = await prisma.translationJob.findUnique({
@@ -62,6 +66,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
     const body = await request.json();
     const { action, priority } = body;
@@ -175,6 +182,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
 
     const job = await prisma.translationJob.findUnique({ where: { id } });

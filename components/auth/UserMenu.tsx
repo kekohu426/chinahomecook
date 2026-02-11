@@ -4,6 +4,7 @@ import { signOut } from "next-auth/react";
 import Image from "next/image";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { localizePath } from "@/lib/i18n/utils";
+import { useTranslations } from "@/lib/i18n/translations";
 
 interface UserMenuProps {
   user: {
@@ -15,13 +16,13 @@ interface UserMenuProps {
 
 export function UserMenu({ user }: UserMenuProps) {
   const locale = useLocale();
-  const isEn = locale === "en";
+  const { t } = useTranslations();
   return (
     <div className="flex items-center gap-3">
       {user.image && (
         <Image
           src={user.image}
-          alt={user.name || (isEn ? "User" : "用户")}
+          alt={user.name || t("auth.user")}
           width={32}
           height={32}
           className="rounded-full"
@@ -36,7 +37,7 @@ export function UserMenu({ user }: UserMenuProps) {
         onClick={() => signOut({ callbackUrl: localizePath("/", locale) })}
         className="px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors whitespace-nowrap"
       >
-        {isEn ? "Sign out" : "登出"}
+        {t("auth.signOut")}
       </button>
     </div>
   );

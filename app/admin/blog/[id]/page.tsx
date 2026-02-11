@@ -1,10 +1,11 @@
 /**
  * 管理端 - 博客编辑页
+ * 优化版：更好的用户体验
  */
 
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,6 +22,11 @@ import {
   Loader2,
   Languages,
   X,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Wand2,
+  Zap,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
@@ -98,6 +104,7 @@ interface BlogPost {
   authorName: string | null;
   translations: Translation[];
   imageAssets: ImageAsset[];
+  coverImage?: string;
 }
 
 interface Translation {
@@ -128,13 +135,13 @@ interface ImageAsset {
   position: number;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "草稿",
-  OUTLINE_READY: "大纲就绪",
-  CONTENT_READY: "内容就绪",
-  REVIEW_PENDING: "待审核",
-  SCHEDULED: "已排期",
-  PUBLISHED: "已发布",
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  DRAFT: { label: "草稿", color: "bg-gray-100 text-gray-600" },
+  OUTLINE_READY: { label: "大纲就绪", color: "bg-blue-100 text-blue-600" },
+  CONTENT_READY: { label: "内容就绪", color: "bg-purple-100 text-purple-600" },
+  REVIEW_PENDING: { label: "待审核", color: "bg-yellow-100 text-yellow-600" },
+  SCHEDULED: { label: "已排期", color: "bg-orange-100 text-orange-600" },
+  PUBLISHED: { label: "已发布", color: "bg-green-100 text-green-600" },
 };
 
 // 支持的语言
@@ -151,6 +158,55 @@ const SUPPORTED_LOCALES: Record<string, string> = {
   "ru": "Русский",
 };
 
+// Toast 通知组件
+function Toast({ message, type, onClose }: { message: string; type: "success" | "error" | "info"; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const bgColor = type === "success" ? "bg-green-600" : type === "error" ? "bg-red-600" : "bg-blue-600";
+  const Icon = type === "success" ? CheckCircle2 : type === "error" ? AlertCircle : Loader2;
+
+  return (
+    <div className={`fixed bottom-4 right-4 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 animate-slide-up`}>
+      <Icon className={`w-5 h-5 ${type === "info" ? "animate-spin" : ""}`} />
+      <span>{message}</span>
+      <button onClick={onClose} className="ml-2 hover:opacity-80">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+// 生成进度组件
+function GenerationProgress({ steps, currentStep }: { steps: string[]; currentStep: number }) {
+  return (
+    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+      <div className="flex items-center gap-2 mb-3">
+        <Wand2 className="w-5 h-5 text-purple-600 animate-pulse" />
+        <span className="font-medium text-purple-900">AI 正在生成内容...</span>
+      </div>
+      <div className="space-y-2">
+        {steps.map((step, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            {idx < currentStep ? (
+              <CheckCircle2 className="w-4 h-4 text-green-600" />
+            ) : idx === currentStep ? (
+              <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+            ) : (
+              <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+            )}
+            <span className={`text-sm ${idx <= currentStep ? "text-gray-900" : "text-gray-400"}`}>
+              {step}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function BlogEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -158,6 +214,7 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // 当前编辑的语言
   const [locale, setLocale] = useState("zh-CN");
@@ -177,7 +234,12 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
   // AI 生成状态
   const [generating, setGenerating] = useState(false);
-  const [generateProgress, setGenerateProgress] = useState("");
+  const [generationStep, setGenerationStep] = useState(0);
+  const generationSteps = ["连接 AI 服务", "生成标题和大纲", "撰写正文内容", "优化 SEO 信息", "生成封面图", "生成文章插图"];
+
+  // 封面图生成状态
+  const [generatingCover, setGeneratingCover] = useState(false);
+  const [coverImagePrompt, setCoverImagePrompt] = useState("");
 
   // 翻译状态
   const [translating, setTranslating] = useState(false);
@@ -187,6 +249,13 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
   // 发布设置
   const [publishAt, setPublishAt] = useState("");
+
+  // Toast 通知
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+
+  const showToast = useCallback((message: string, type: "success" | "error" | "info") => {
+    setToast({ message, type });
+  }, []);
 
   // 加载博客
   const fetchPost = async () => {
@@ -212,12 +281,19 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
           metaDescription: translation.metaDescription || "",
           slug: translation.slug || "",
           tags: translation.tags?.join(", ") || "",
-          ogImage: translation.ogImage || "",
+          ogImage: translation.ogImage || data.post.coverImage || "",
         });
       }
+
+      // 加载封面图提示词
+      if (data.post.imageAssets?.[0]?.prompt) {
+        setCoverImagePrompt(data.post.imageAssets[0].prompt);
+      }
+
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error("Failed to fetch post:", error);
-      alert("加载失败");
+      showToast("加载失败", "error");
     } finally {
       setLoading(false);
     }
@@ -242,7 +318,7 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
         metaDescription: translation.metaDescription || "",
         slug: translation.slug || "",
         tags: translation.tags?.join(", ") || "",
-        ogImage: translation.ogImage || "",
+        ogImage: translation.ogImage || post.coverImage || "",
       });
     } else {
       setEditingContent({
@@ -258,6 +334,12 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
       });
     }
   }, [locale, post]);
+
+  // 更新内容时标记未保存
+  const updateContent = (updates: Partial<typeof editingContent>) => {
+    setEditingContent(prev => ({ ...prev, ...updates }));
+    setHasUnsavedChanges(true);
+  };
 
   // 保存内容
   const handleSave = async () => {
@@ -284,82 +366,84 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
         const data = await res.json();
         throw new Error(data.error || "保存失败");
       }
-      alert("保存成功");
+      showToast("保存成功", "success");
+      setHasUnsavedChanges(false);
       fetchPost();
     } catch (error) {
       console.error("Failed to save:", error);
-      alert("保存失败");
+      showToast("保存失败: " + (error as Error).message, "error");
     } finally {
       setSaving(false);
     }
   };
 
-  // 一键生成（大纲 + 正文）
+  // 一键生成
   const handleGenerate = async () => {
-    const langName = locale === "zh-CN" ? "中文" : "英文";
-    if (!confirm(`确定要为 ${langName} 版本一键生成博客内容吗？\n\n将自动生成：大纲、正文、插图提示词`)) return;
-
     try {
       setGenerating(true);
+      setGenerationStep(0);
 
-      // 第一步：生成大纲
-      setGenerateProgress("正在生成大纲...");
-      const outlineRes = await fetch(`/api/admin/blog/${id}/generate-outline`, {
+      // 模拟进度
+      const progressTimer = setInterval(() => {
+        setGenerationStep(prev => Math.min(prev + 1, 3));
+      }, 8000);
+
+      const res = await fetch(`/api/admin/blog/${id}/generate-all`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ locale }),
       });
 
-      if (!outlineRes.ok) {
-        const data = await outlineRes.json();
-        throw new Error(data.error || "大纲生成失败");
+      clearInterval(progressTimer);
+      setGenerationStep(4);
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "生成失败");
       }
 
-      // 第二步：生成正文
-      setGenerateProgress("大纲已生成，正在生成正文...");
-      const contentRes = await fetch(`/api/admin/blog/${id}/generate-content`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale }),
+      // 自动填充所有字段
+      setEditingContent({
+        title: data.data.title || "",
+        summary: data.data.excerpt || "",
+        contentMarkdown: data.data.content || "",
+        contentHtml: markdownToHtml(data.data.content || ""),
+        metaTitle: data.data.metaTitle || "",
+        metaDescription: data.data.metaDescription || "",
+        slug: data.data.slug || "",
+        tags: data.data.tags?.join(", ") || "",
+        ogImage: editingContent.ogImage || "",
       });
 
-      if (!contentRes.ok) {
-        const data = await contentRes.json();
-        throw new Error(data.error || "正文生成失败");
+      // 设置封面图提示词
+      if (data.data.coverImagePrompt) {
+        setCoverImagePrompt(data.data.coverImagePrompt);
       }
 
-      // 第三步：自动审核通过并发布
-      setGenerateProgress("正在发布...");
-      await fetch(`/api/admin/blog/${id}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "approve", locale }),
-      });
-      await fetch(`/api/admin/blog/${id}/publish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "publish_now" }),
-      });
+      showToast("内容生成成功！", "success");
+      setHasUnsavedChanges(true);
 
-      setGenerateProgress("完成！");
-      alert(`${langName}版本已生成并发布！`);
-      fetchPost();
+      // 自动保存
+      setTimeout(() => {
+        handleSave();
+      }, 500);
+
     } catch (error) {
       console.error("Failed to generate:", error);
-      alert("生成失败: " + (error as Error).message);
+      showToast("生成失败: " + (error as Error).message, "error");
     } finally {
       setGenerating(false);
-      setGenerateProgress("");
+      setGenerationStep(0);
     }
   };
 
-  // 保留单独生成正文的功能（用于重新生成）
+  // 重新生成正文
   const handleRegenerateContent = async () => {
-    if (!confirm(`确定要重新生成 ${locale === "zh-CN" ? "中文" : "英文"} 正文吗？`)) return;
-
     try {
       setGenerating(true);
-      setGenerateProgress("正在重新生成正文...");
+      showToast("正在重新生成正文...", "info");
+
       const res = await fetch(`/api/admin/blog/${id}/generate-content`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -371,14 +455,49 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
         throw new Error(data.error || "生成失败");
       }
 
-      alert("正文生成成功！");
+      showToast("正文生成成功！", "success");
       fetchPost();
     } catch (error) {
       console.error("Failed to generate content:", error);
-      alert("生成失败: " + (error as Error).message);
+      showToast("生成失败: " + (error as Error).message, "error");
     } finally {
       setGenerating(false);
-      setGenerateProgress("");
+    }
+  };
+
+  // 生成封面图
+  const handleGenerateCover = async () => {
+    const promptToUse = coverImagePrompt || post?.imageAssets?.[0]?.prompt;
+    if (!promptToUse) {
+      showToast("请先生成内容以获取封面图提示词", "error");
+      return;
+    }
+
+    try {
+      setGeneratingCover(true);
+      showToast("正在生成封面图...", "info");
+
+      const res = await fetch(`/api/admin/blog/${id}/generate-cover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: promptToUse, locale }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "封面图生成失败");
+      }
+
+      // 更新封面图 URL
+      updateContent({ ogImage: data.data.imageUrl });
+      showToast("封面图生成成功！", "success");
+      fetchPost();
+    } catch (error) {
+      console.error("Failed to generate cover:", error);
+      showToast("封面图生成失败: " + (error as Error).message, "error");
+    } finally {
+      setGeneratingCover(false);
     }
   };
 
@@ -392,10 +511,10 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
       });
 
       if (!res.ok) throw new Error("操作失败");
-      alert("审核通过！");
+      showToast("审核通过！", "success");
       fetchPost();
     } catch (error) {
-      alert("操作失败");
+      showToast("操作失败", "error");
     }
   };
 
@@ -409,17 +528,17 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
       });
 
       if (!res.ok) throw new Error("操作失败");
-      alert("已提交审核！");
+      showToast("已提交审核！", "success");
       fetchPost();
     } catch (error) {
-      alert("操作失败");
+      showToast("操作失败", "error");
     }
   };
 
   // 排期发布
   const handleSchedule = async () => {
     if (!publishAt) {
-      alert("请选择发布时间");
+      showToast("请选择发布时间", "error");
       return;
     }
 
@@ -431,17 +550,15 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
       });
 
       if (!res.ok) throw new Error("操作失败");
-      alert("已排期！");
+      showToast("排期设置成功！", "success");
       fetchPost();
     } catch (error) {
-      alert("操作失败");
+      showToast("操作失败", "error");
     }
   };
 
   // 立即发布
   const handlePublishNow = async () => {
-    if (!confirm("确定要立即发布吗？")) return;
-
     try {
       const res = await fetch(`/api/admin/blog/${id}/publish`, {
         method: "POST",
@@ -451,17 +568,17 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "操作失败");
-      alert("发布成功！");
+      showToast("发布成功！", "success");
       fetchPost();
     } catch (error) {
-      alert((error as Error).message);
+      showToast((error as Error).message, "error");
     }
   };
 
   // 复制提示词
   const copyPrompt = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert("已复制到剪贴板");
+    showToast("已复制到剪贴板", "success");
   };
 
   useEffect(() => {
@@ -473,12 +590,14 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
   // 批量翻译
   const handleTranslate = async () => {
     if (selectedLocales.length === 0) {
-      alert("请选择目标语言");
+      showToast("请选择目标语言", "error");
       return;
     }
 
     try {
       setTranslating(true);
+      showToast(`正在翻译到 ${selectedLocales.length} 种语言...`, "info");
+
       const res = await fetch(`/api/admin/blog/${id}/translate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -493,24 +612,14 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
         throw new Error(data.error || "翻译失败");
       }
 
-      // 显示结果
       const successCount = Object.values(data.results).filter((r: any) => r.success).length;
-      const failedLocales = Object.entries(data.results)
-        .filter(([_, r]: [string, any]) => !r.success)
-        .map(([locale, r]: [string, any]) => `${SUPPORTED_LOCALES[locale]}: ${r.error}`)
-        .join("\n");
-
-      if (failedLocales) {
-        alert(`翻译完成：${successCount} 成功\n\n失败：\n${failedLocales}`);
-      } else {
-        alert(`翻译完成：${successCount} 种语言全部成功！`);
-      }
+      showToast(`翻译完成：${successCount} 种语言成功`, "success");
 
       setShowTranslateModal(false);
       setSelectedLocales([]);
       fetchPost();
     } catch (error) {
-      alert("翻译失败: " + (error as Error).message);
+      showToast("翻译失败: " + (error as Error).message, "error");
     } finally {
       setTranslating(false);
     }
@@ -518,12 +627,14 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
   const handleQuickTranslate = async () => {
     if (!quickTranslateLocale || quickTranslateLocale === locale) {
-      alert("请选择目标语言");
+      showToast("请选择目标语言", "error");
       return;
     }
 
     try {
       setTranslating(true);
+      showToast(`正在翻译到 ${SUPPORTED_LOCALES[quickTranslateLocale]}...`, "info");
+
       const res = await fetch(`/api/admin/blog/${id}/translate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -540,14 +651,14 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
       const result = data.results?.[quickTranslateLocale];
       if (result?.success) {
-        alert(`${SUPPORTED_LOCALES[quickTranslateLocale]} 翻译完成`);
+        showToast(`${SUPPORTED_LOCALES[quickTranslateLocale]} 翻译完成`, "success");
       } else {
         throw new Error(result?.error || "翻译失败");
       }
 
       fetchPost();
     } catch (error) {
-      alert("翻译失败: " + (error as Error).message);
+      showToast("翻译失败: " + (error as Error).message, "error");
     } finally {
       setTranslating(false);
     }
@@ -555,523 +666,568 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-purple-600 mx-auto mb-4" />
+          <p className="text-gray-600">加载中...</p>
+        </div>
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-gray-500">博客不存在</p>
-        <Link href="/admin/blog" className="text-orange-600 hover:underline mt-2 inline-block">
-          返回列表
-        </Link>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 mb-4">博客不存在</p>
+          <Link href="/admin/blog" className="text-purple-600 hover:underline">
+            返回列表
+          </Link>
+        </div>
       </div>
     );
   }
 
   const currentTranslation = post.translations.find((t) => t.locale === locale);
-  const imageAssets = post.imageAssets.filter((img) => img.locale === locale);
+  const imageAssets = post.imageAssets?.filter((img) => img.locale === locale) || [];
+  const statusInfo = STATUS_LABELS[post.status] || STATUS_LABELS.DRAFT;
+  const hasContent = !!currentTranslation?.contentMarkdown;
 
   return (
-    <div className="p-6">
-      {/* 头部 */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/admin/blog"
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">
-              {editingContent.title || post.primaryKeyword}
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-gray-500">
-                状态：{STATUS_LABELS[post.status]}
-              </span>
-              <span className="text-sm text-gray-400">|</span>
-              <span className="text-sm text-gray-500">
-                关键词：{post.primaryKeyword}
-              </span>
+    <div className="min-h-screen bg-gray-50">
+      {/* 顶部固定导航 */}
+      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-16">
+            {/* 左侧：返回和标题 */}
+            <div className="flex items-center gap-4">
+              <Link
+                href="/admin/blog"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-lg font-semibold text-gray-900 truncate max-w-md">
+                    {editingContent.title || post.primaryKeyword || "未命名博客"}
+                  </h1>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                    {statusInfo.label}
+                  </span>
+                  {hasUnsavedChanges && (
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-600">
+                      未保存
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  关键词：{post.primaryKeyword}
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          {/* 语言切换 */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            {["zh-CN", "en"].map((loc) => (
+            {/* 右侧：操作按钮 */}
+            <div className="flex items-center gap-3">
+              {/* 语言切换 */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                {["zh-CN", "en"].map((loc) => (
+                  <button
+                    key={loc}
+                    onClick={() => setLocale(loc)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      locale === loc
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {loc === "zh-CN" ? "中文" : "English"}
+                  </button>
+                ))}
+              </div>
+
+              {/* 保存按钮 */}
               <button
-                key={loc}
-                onClick={() => setLocale(loc)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  locale === loc
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                onClick={handleSave}
+                disabled={saving || !hasUnsavedChanges}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                  hasUnsavedChanges
+                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {loc === "zh-CN" ? "中文" : "English"}
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                保存
               </button>
-            ))}
+            </div>
           </div>
-
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            保存
-          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* 左侧：编辑区 */}
-        <div className="col-span-2 space-y-6">
-          {/* AI 生成按钮 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="font-medium text-gray-900 mb-3">AI 生成</h3>
-            <div className="flex flex-wrap gap-3">
-              {!currentTranslation?.contentMarkdown ? (
-                <button
-                  onClick={handleGenerate}
-                  disabled={generating}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 font-medium"
-                >
-                  {generating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-4 h-4" />
-                  )}
-                  {generating ? generateProgress : "一键生成"}
-                </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 左侧：主编辑区 */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* AI 生成卡片 */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              {generating ? (
+                <div className="p-6">
+                  <GenerationProgress steps={generationSteps} currentStep={generationStep} />
+                </div>
+              ) : !hasContent ? (
+                <div className="p-8 text-center bg-gradient-to-br from-purple-50 via-white to-blue-50">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <Wand2 className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">AI 一键生成</h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    基于关键词「{post.primaryKeyword}」自动生成标题、正文、SEO 信息和封面图提示词
+                  </p>
+                  <button
+                    onClick={handleGenerate}
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 font-medium shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                  >
+                    <Zap className="w-5 h-5" />
+                    开始生成
+                  </button>
+                </div>
               ) : (
-                <>
-                  <button
-                    onClick={handleRegenerateContent}
-                    disabled={generating}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {generating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <FileText className="w-4 h-4" />
-                    )}
-                    {generating ? generateProgress : "重新生成正文"}
-                  </button>
-                  <button
-                    onClick={() => setShowTranslateModal(true)}
-                    disabled={translating}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {translating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
+                <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    内容已生成
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGenerate}
+                      disabled={generating}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      重新生成全部
+                    </button>
+                    <button
+                      onClick={() => setShowTranslateModal(true)}
+                      disabled={translating}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                    >
                       <Languages className="w-4 h-4" />
-                    )}
-                    批量翻译
-                  </button>
-                </>
+                      翻译
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
-            {!currentTranslation?.contentMarkdown && (
-              <p className="text-sm text-gray-500 mt-2">点击「一键生成」自动生成大纲、正文和插图提示词</p>
-            )}
-            {currentTranslation?.contentMarkdown && (
-              <p className="text-sm text-gray-500 mt-2">点击「批量翻译」可将当前语言内容翻译到其他语言</p>
-            )}
-          </div>
 
-          {/* 标题和摘要 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
-              <input
-                type="text"
-                value={editingContent.title}
-                onChange={(e) => setEditingContent({ ...editingContent, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">摘要</label>
-              <textarea
-                value={editingContent.summary}
-                onChange={(e) => setEditingContent({ ...editingContent, summary: e.target.value })}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-          </div>
-
-          {/* 富文本编辑器 */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <RichTextEditor
-              content={editingContent.contentHtml || ""}
-              onChange={(html, markdown) => {
-                setEditingContent({
-                  ...editingContent,
-                  contentHtml: html,
-                  contentMarkdown: markdown,
-                });
-              }}
-              placeholder="开始编辑博客内容，可直接粘贴图片..."
-            />
-          </div>
-
-          {/* 封面图片 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-            <h3 className="font-medium text-gray-900 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" />
-              封面图片
-            </h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">图片 URL</label>
-              <input
-                type="text"
-                value={editingContent.ogImage}
-                onChange={(e) => setEditingContent({ ...editingContent, ogImage: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">粘贴图片URL，将作为博客封面和社交分享图片</p>
-            </div>
-            {editingContent.ogImage && (
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                <img
-                  src={editingContent.ogImage}
-                  alt="封面预览"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><text x="50%" y="50%" text-anchor="middle" fill="gray">图片加载失败</text></svg>';
-                  }}
+            {/* 标题和摘要 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">标题</label>
+                <input
+                  type="text"
+                  value={editingContent.title}
+                  onChange={(e) => updateContent({ title: e.target.value })}
+                  placeholder="输入博客标题..."
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
                 />
               </div>
-            )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">摘要</label>
+                <textarea
+                  value={editingContent.summary}
+                  onChange={(e) => updateContent({ summary: e.target.value })}
+                  placeholder="输入博客摘要..."
+                  rows={2}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow resize-none"
+                />
+              </div>
+            </div>
+
+            {/* 富文本编辑器 */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="border-b border-gray-100 px-4 py-3 bg-gray-50">
+                <span className="text-sm font-medium text-gray-700">正文内容</span>
+              </div>
+              <RichTextEditor
+                content={editingContent.contentHtml || ""}
+                onChange={(html, markdown) => {
+                  updateContent({
+                    contentHtml: html,
+                    contentMarkdown: markdown,
+                  });
+                }}
+                placeholder="开始编辑博客内容，可直接粘贴图片..."
+              />
+            </div>
+
+            {/* SEO 设置 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+              <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gray-400" />
+                SEO 设置
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">URL Slug</label>
+                  <input
+                    type="text"
+                    value={editingContent.slug}
+                    onChange={(e) => updateContent({ slug: e.target.value })}
+                    placeholder="url-friendly-slug"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">标签</label>
+                  <input
+                    type="text"
+                    value={editingContent.tags}
+                    onChange={(e) => updateContent({ tags: e.target.value })}
+                    placeholder="标签1, 标签2, 标签3"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Meta 标题</label>
+                <input
+                  type="text"
+                  value={editingContent.metaTitle}
+                  onChange={(e) => updateContent({ metaTitle: e.target.value })}
+                  placeholder="SEO 标题（50-60字符）"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow"
+                />
+                <p className="text-xs text-gray-400 mt-1">{editingContent.metaTitle.length}/60 字符</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Meta 描述</label>
+                <textarea
+                  value={editingContent.metaDescription}
+                  onChange={(e) => updateContent({ metaDescription: e.target.value })}
+                  placeholder="SEO 描述（150-160字符）"
+                  rows={2}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow resize-none"
+                />
+                <p className="text-xs text-gray-400 mt-1">{editingContent.metaDescription.length}/160 字符</p>
+              </div>
+            </div>
           </div>
 
-          {/* SEO 设置 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-            <h3 className="font-medium text-gray-900">SEO 设置</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug</label>
-              <input
-                type="text"
-                value={editingContent.slug}
-                onChange={(e) => setEditingContent({ ...editingContent, slug: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Meta 标题</label>
-              <input
-                type="text"
-                value={editingContent.metaTitle}
-                onChange={(e) => setEditingContent({ ...editingContent, metaTitle: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Meta 描述</label>
-              <textarea
-                value={editingContent.metaDescription}
-                onChange={(e) =>
-                  setEditingContent({ ...editingContent, metaDescription: e.target.value })
-                }
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                标签（逗号分隔）
-              </label>
-              <input
-                type="text"
-                value={editingContent.tags}
-                onChange={(e) => setEditingContent({ ...editingContent, tags: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500"
-              />
-            </div>
-          </div>
-        </div>
+          {/* 右侧：侧边栏 */}
+          <div className="space-y-6">
+            {/* 封面图片 */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-gray-400" />
+                  封面图片
+                </h3>
+              </div>
+              <div className="p-4 space-y-4">
+                {/* 封面图预览 */}
+                {editingContent.ogImage ? (
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 group">
+                    <img
+                      src={editingContent.ogImage}
+                      alt="封面预览"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f3f4f6" width="100" height="100"/><text x="50%" y="50%" text-anchor="middle" fill="%239ca3af" font-size="12">加载失败</text></svg>';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button
+                        onClick={() => updateContent({ ogImage: "" })}
+                        className="px-3 py-1.5 bg-white/90 text-gray-900 rounded-lg text-sm font-medium"
+                      >
+                        移除图片
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="aspect-video rounded-lg bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-200">
+                    <div className="text-center">
+                      <ImageIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">暂无封面图</p>
+                    </div>
+                  </div>
+                )}
 
-        {/* 右侧：操作面板 */}
-        <div className="space-y-6">
-          {/* 发布控制 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="font-medium text-gray-900 mb-3">发布控制</h3>
+                {/* 封面图提示词 */}
+                {(coverImagePrompt || imageAssets[0]?.prompt) && (
+                  <div className="bg-purple-50 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-purple-700">AI 提示词</span>
+                      <button
+                        onClick={() => copyPrompt(coverImagePrompt || imageAssets[0]?.prompt || "")}
+                        className="p-1 text-purple-400 hover:text-purple-600 transition-colors"
+                        title="复制提示词"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-xs text-purple-600 line-clamp-2">
+                      {coverImagePrompt || imageAssets[0]?.prompt}
+                    </p>
+                  </div>
+                )}
 
-            {/* 审核状态 */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-600">
-                  {locale === "zh-CN" ? "中文" : "英文"}审核状态
-                </span>
+                {/* 生成封面图按钮 */}
+                <button
+                  onClick={handleGenerateCover}
+                  disabled={generatingCover || (!coverImagePrompt && !imageAssets[0]?.prompt)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all"
+                >
+                  {generatingCover ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      生成中...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      生成封面图
+                    </>
+                  )}
+                </button>
+
+                {/* 手动输入 URL */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">或手动输入图片 URL</label>
+                  <input
+                    type="text"
+                    value={editingContent.ogImage}
+                    onChange={(e) => updateContent({ ogImage: e.target.value })}
+                    placeholder="https://..."
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 发布控制 */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+              <h3 className="font-medium text-gray-900">发布控制</h3>
+
+              {/* 审核状态 */}
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600">审核状态</span>
                 {currentTranslation?.isApproved ? (
-                  <span className="flex items-center gap-1 text-sm text-green-600">
+                  <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
                     <Check className="w-4 h-4" />
                     已通过
                   </span>
                 ) : (
-                  <span className="text-sm text-yellow-600">待审核</span>
+                  <span className="text-sm text-amber-600 font-medium">待审核</span>
                 )}
               </div>
 
-              {!currentTranslation?.isApproved && currentTranslation && (
-                <button
-                  onClick={handleApprove}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
-                >
-                  <Check className="w-4 h-4" />
-                  审核通过
-                </button>
+              {/* 操作按钮 */}
+              <div className="space-y-2">
+                {!currentTranslation?.isApproved && currentTranslation && (
+                  <button
+                    onClick={handleApprove}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    审核通过
+                  </button>
+                )}
+
+                {post.status === "CONTENT_READY" && (
+                  <button
+                    onClick={handleSubmitReview}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                    提交审核
+                  </button>
+                )}
+
+                {(post.status === "REVIEW_PENDING" || post.status === "SCHEDULED" || post.status === "CONTENT_READY") && (
+                  <button
+                    onClick={handlePublishNow}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                    立即发布
+                  </button>
+                )}
+
+                {post.status === "PUBLISHED" && currentTranslation?.slug && (
+                  <Link
+                    href={`/zh/blog/${currentTranslation.slug}`}
+                    target="_blank"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                    查看文章
+                  </Link>
+                )}
+              </div>
+
+              {/* 定时发布 */}
+              {(post.status === "REVIEW_PENDING" || post.status === "SCHEDULED") && (
+                <div className="pt-3 border-t border-gray-100">
+                  <label className="block text-sm text-gray-600 mb-2">定时发布</label>
+                  <input
+                    type="datetime-local"
+                    value={publishAt}
+                    onChange={(e) => setPublishAt(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mb-2"
+                  />
+                  <button
+                    onClick={handleSchedule}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                  >
+                    <Clock className="w-4 h-4" />
+                    设置排期
+                  </button>
+                </div>
+              )}
+
+              {/* 快速翻译 */}
+              {hasContent && (
+                <div className="pt-3 border-t border-gray-100">
+                  <label className="block text-sm text-gray-600 mb-2">快速翻译</label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={quickTranslateLocale}
+                      onChange={(e) => setQuickTranslateLocale(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                    >
+                      {Object.entries(SUPPORTED_LOCALES)
+                        .filter(([key]) => key !== locale)
+                        .map(([key, name]) => (
+                          <option key={key} value={key}>
+                            {name}
+                          </option>
+                        ))}
+                    </select>
+                    <button
+                      onClick={handleQuickTranslate}
+                      disabled={translating}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50 transition-colors"
+                    >
+                      {translating ? <Loader2 className="w-4 h-4 animate-spin" /> : "翻译"}
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 
-            {/* 提交审核 */}
-            {post.status === "CONTENT_READY" && (
-              <button
-                onClick={handleSubmitReview}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm mb-3"
-              >
-                <Send className="w-4 h-4" />
-                提交审核
-              </button>
-            )}
-
-            {/* 排期发布 */}
-            {(post.status === "REVIEW_PENDING" || post.status === "SCHEDULED") && (
-              <div className="mb-3">
-                <label className="block text-sm text-gray-600 mb-1">定时发布</label>
-                <input
-                  type="datetime-local"
-                  value={publishAt}
-                  onChange={(e) => setPublishAt(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm mb-2"
-                />
-                <button
-                  onClick={handleSchedule}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
-                >
-                  <Clock className="w-4 h-4" />
-                  设置排期
-                </button>
-              </div>
-            )}
-
-            {/* 立即发布 */}
-            {(post.status === "REVIEW_PENDING" || post.status === "SCHEDULED") && (
-              <button
-                onClick={handlePublishNow}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
-              >
-                <Send className="w-4 h-4" />
-                立即发布
-              </button>
-            )}
-
-            {/* 快速翻译 */}
-            {currentTranslation?.contentMarkdown && (
-              <div className="mt-4">
-                <label className="block text-sm text-gray-600 mb-1">翻译到目标语言</label>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={quickTranslateLocale}
-                    onChange={(e) => setQuickTranslateLocale(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                  >
-                    {Object.entries(SUPPORTED_LOCALES)
-                      .filter(([key]) => key !== locale)
-                      .map(([key, name]) => (
-                        <option key={key} value={key}>
-                          {name}
-                        </option>
-                      ))}
-                  </select>
-                  <button
-                    onClick={handleQuickTranslate}
-                    disabled={translating}
-                    className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm disabled:opacity-50"
-                  >
-                    启动
-                  </button>
-                </div>
-                <button
-                  onClick={() => setShowTranslateModal(true)}
-                  disabled={translating}
-                  className="mt-2 text-sm text-blue-600 hover:underline"
-                >
-                  批量翻译
-                </button>
-              </div>
-            )}
-
-            {/* 已发布状态 */}
-            {post.status === "PUBLISHED" && currentTranslation?.slug && (
-              <Link
-                href={`/blog/${currentTranslation.slug}`}
-                target="_blank"
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-              >
-                <Eye className="w-4 h-4" />
-                查看文章
-              </Link>
-            )}
-          </div>
-
-          {/* 插图提示词 */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" />
-              插图提示词
-            </h3>
-
-            {imageAssets.length === 0 ? (
-              <p className="text-sm text-gray-500">生成大纲后会自动生成插图提示词</p>
-            ) : (
-              <div className="space-y-3">
-                {imageAssets.map((img, idx) => (
-                  <div key={img.id} className="border border-gray-100 rounded-lg p-3">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-xs text-gray-500">
-                        图片 {idx + 1}
-                        {img.sectionHeading && ` - ${img.sectionHeading}`}
-                      </span>
-                      <button
-                        onClick={() => copyPrompt(img.prompt)}
-                        className="p-1 text-gray-400 hover:text-orange-600"
-                        title="复制提示词"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
+            {/* 大纲预览 */}
+            {currentTranslation?.outline && Array.isArray(currentTranslation.outline) && (
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="font-medium text-gray-900 mb-3">文章大纲</h3>
+                <div className="space-y-1.5">
+                  {(currentTranslation.outline as any[]).map((item, idx) => (
+                    <div
+                      key={idx}
+                      className={`text-sm ${item.level === 3 ? "ml-4 text-gray-500" : "text-gray-700 font-medium"}`}
+                    >
+                      {item.level === 2 ? "📍 " : "  · "}
+                      {item.heading}
                     </div>
-                    <p className="text-xs text-gray-700 line-clamp-3">{img.prompt}</p>
-                    {img.aspectRatio && (
-                      <span className="text-xs text-gray-400 mt-1 inline-block">
-                        比例：{img.aspectRatio}
-                      </span>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
-
-          {/* 大纲预览 */}
-          {currentTranslation?.outline && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="font-medium text-gray-900 mb-3">大纲</h3>
-              <div className="space-y-2 text-sm">
-                {(currentTranslation.outline as any[]).map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`${item.level === 3 ? "ml-4" : ""} text-gray-700`}
-                  >
-                    {item.level === 2 ? "## " : "### "}
-                    {item.heading}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {/* 翻译弹窗 */}
       {showTranslateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                <Languages className="w-5 h-5" />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Languages className="w-5 h-5 text-green-600" />
                 批量翻译
               </h3>
               <button
                 onClick={() => setShowTranslateModal(false)}
-                className="p-1 text-gray-400 hover:text-gray-600"
+                className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
-              将 <strong>{SUPPORTED_LOCALES[locale]}</strong> 内容翻译到以下语言：
-            </p>
+            <div className="p-5">
+              <p className="text-sm text-gray-600 mb-4">
+                将 <strong>{SUPPORTED_LOCALES[locale]}</strong> 内容翻译到：
+              </p>
 
-            <div className="grid grid-cols-2 gap-2 mb-6">
-              {Object.entries(SUPPORTED_LOCALES)
-                .filter(([key]) => key !== locale)
-                .map(([key, name]) => {
-                  const hasTranslation = post?.translations.some(
-                    (t) => t.locale === key && t.contentMarkdown
-                  );
-                  return (
-                    <label
-                      key={key}
-                      className={`flex items-center gap-2 p-2 border rounded-lg cursor-pointer transition-colors ${
-                        selectedLocales.includes(key)
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedLocales.includes(key)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedLocales([...selectedLocales, key]);
-                          } else {
-                            setSelectedLocales(selectedLocales.filter((l) => l !== key));
-                          }
-                        }}
-                        className="rounded text-green-600"
-                      />
-                      <span className="text-sm">{name}</span>
-                      {hasTranslation && (
-                        <span className="text-xs text-green-600 ml-auto">已有</span>
-                      )}
-                    </label>
-                  );
-                })}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {Object.entries(SUPPORTED_LOCALES)
+                  .filter(([key]) => key !== locale)
+                  .map(([key, name]) => {
+                    const hasTranslation = post?.translations.some(
+                      (t) => t.locale === key && t.contentMarkdown
+                    );
+                    return (
+                      <label
+                        key={key}
+                        className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-all ${
+                          selectedLocales.includes(key)
+                            ? "border-green-500 bg-green-50 ring-2 ring-green-200"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedLocales.includes(key)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedLocales([...selectedLocales, key]);
+                            } else {
+                              setSelectedLocales(selectedLocales.filter((l) => l !== key));
+                            }
+                          }}
+                          className="rounded text-green-600 focus:ring-green-500"
+                        />
+                        <span className="text-sm font-medium">{name}</span>
+                        {hasTranslation && (
+                          <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />
+                        )}
+                      </label>
+                    );
+                  })}
+              </div>
+
+              <div className="flex items-center gap-3 text-sm mb-4">
+                <button
+                  onClick={() => {
+                    const allLocales = Object.keys(SUPPORTED_LOCALES).filter((k) => k !== locale);
+                    setSelectedLocales(allLocales);
+                  }}
+                  className="text-blue-600 hover:underline"
+                >
+                  全选
+                </button>
+                <span className="text-gray-300">|</span>
+                <button
+                  onClick={() => setSelectedLocales([])}
+                  className="text-blue-600 hover:underline"
+                >
+                  取消全选
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-4">
-              <button
-                onClick={() => {
-                  const allLocales = Object.keys(SUPPORTED_LOCALES).filter((k) => k !== locale);
-                  setSelectedLocales(allLocales);
-                }}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                全选
-              </button>
-              <span className="text-gray-300">|</span>
-              <button
-                onClick={() => setSelectedLocales([])}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                取消全选
-              </button>
-            </div>
-
-            <div className="flex gap-3">
+            <div className="flex gap-3 p-5 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
               <button
                 onClick={() => setShowTranslateModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-white font-medium transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleTranslate}
                 disabled={translating || selectedLocales.length === 0}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 font-medium transition-colors"
               >
                 {translating ? (
                   <>
@@ -1086,15 +1242,35 @@ export default function BlogEditPage({ params }: { params: Promise<{ id: string 
                 )}
               </button>
             </div>
-
-            {selectedLocales.length > 3 && (
-              <p className="text-xs text-amber-600 mt-3">
-                提示：翻译 {selectedLocales.length} 种语言可能需要较长时间，请耐心等待
-              </p>
-            )}
           </div>
         </div>
       )}
+
+      {/* Toast 通知 */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* 添加动画样式 */}
+      <style jsx global>{`
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

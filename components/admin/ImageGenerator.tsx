@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getErrorMessage } from "@/lib/utils";
 
 interface ImageGeneratorProps {
   recipeName?: string;
@@ -54,7 +55,7 @@ export function ImageGenerator({
         setImageUrl(data.imageUrl);
         onImageGenerated?.(data.imageUrl);
       } else {
-        setError(data.error || "生成失败");
+        setError(getErrorMessage(data.error, "生成失败"));
       }
     } catch (err) {
       setError("生成失败，请稍后重试");

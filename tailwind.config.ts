@@ -45,8 +45,15 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ["Noto Serif SC", "Georgia", "serif"],
-        sans: ["Inter", "PingFang SC", "sans-serif"],
+        display: ["var(--font-display)", "Noto Serif SC", "STSong", "serif"],
+        serif: ["var(--font-display)", "Noto Serif SC", "STSong", "serif"],
+        sans: [
+          "var(--font-sans)",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          "sans-serif",
+        ],
       },
       fontSize: {
         'title-lg': '48px',     // 大标题（啤酒鸭）

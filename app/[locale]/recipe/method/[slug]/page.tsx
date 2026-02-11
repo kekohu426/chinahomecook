@@ -18,7 +18,9 @@ import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { getContentLocales } from "@/lib/i18n/content";
 import type { Locale } from "@/lib/i18n/config";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
 import type { SeoConfig } from "@/lib/types/collection";
+import { ensureEnglish, titleFromSlug } from "@/lib/i18n/english";
 import {
   ChevronRight,
   Home,
@@ -75,7 +77,10 @@ export async function generateMetadata({
   const translation = locales
     .map((loc) => method.translations.find((t) => t.locale === loc))
     .find(Boolean);
-  const name = translation?.name || method.name;
+  const nameRaw = translation?.name || method.name;
+  const name = isEn
+    ? ensureEnglish(nameRaw, ensureEnglish(titleFromSlug(slug), "Method"))
+    : nameRaw;
   const collection = await prisma.collection.findFirst({
     where: {
       type: "method",
@@ -86,17 +91,22 @@ export async function generateMetadata({
   });
   const seo = (collection?.seo as SeoConfig) || undefined;
 
+  const metaTitleFallback = t("recipe.method.metaTitle", locale).replace(
+    "{name}",
+    name
+  );
+  const metaDescriptionFallback = t("recipe.method.metaDescription", locale).replace(
+    "{name}",
+    isEn ? name.toLowerCase() : name
+  );
+
   return {
     title:
-      (isEn ? seo?.titleEn : seo?.titleZh) ||
-      (isEn
-        ? `${name} Recipes - Recipe Zen`
-        : `${name}菜谱大全 - Recipe Zen`),
+      (isEn ? ensureEnglish(seo?.titleEn, "") : seo?.titleZh) ||
+      metaTitleFallback,
     description:
-      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
-      (isEn
-        ? `Master ${name.toLowerCase()} cooking techniques. Step-by-step recipes for delicious results.`
-        : `精选${name}做法食谱，详细步骤指导，轻松掌握烹饪技巧。`),
+      (isEn ? ensureEnglish(seo?.descriptionEn, "") : seo?.descriptionZh) ||
+      metaDescriptionFallback,
     keywords: seo?.keywords,
     robots: seo?.noIndex ? { index: false, follow: true } : undefined,
     alternates: {
@@ -125,7 +135,13 @@ export default async function MethodPage({
   const translation = locales
     .map((loc) => method.translations.find((t) => t.locale === loc))
     .find(Boolean);
-  const methodName = translation?.name || method.name;
+  const methodNameRaw = translation?.name || method.name;
+  const methodName = isEn
+    ? ensureEnglish(
+        methodNameRaw,
+        ensureEnglish(titleFromSlug(slug), "Method")
+      )
+    : methodNameRaw;
   // Tag model doesn't have description, use empty string
   const methodDescription = "";
   const methodIcon = METHOD_ICONS[slug] || "👨‍🍳";
@@ -138,16 +154,20 @@ export default async function MethodPage({
     select: { seo: true },
   });
   const seo = (collection?.seo as SeoConfig) || undefined;
+  const methodNameDescription = isEn ? methodName.toLowerCase() : methodName;
   const headerTitle = isEn
-    ? seo?.h1En || `${methodName} Recipes`
-    : seo?.h1Zh || `${methodName}菜谱`;
+    ? ensureEnglish(seo?.h1En, "") ||
+      t("recipe.method.headerTitle", locale).replace("{name}", methodName)
+    : seo?.h1Zh ||
+      t("recipe.method.headerTitle", locale).replace("{name}", methodName);
   const headerSubtitle =
-    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
+    (isEn ? ensureEnglish(seo?.subtitleEn, "") : seo?.subtitleZh) ||
     (methodDescription ||
-      (isEn
-        ? `Master the art of ${methodName.toLowerCase()} with our curated recipe collection. Step-by-step guides for perfect results.`
-        : `精选${methodName}做法食谱，详细步骤指导，让你轻松掌握烹饪技巧。`));
-  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+      t("recipe.method.headerSubtitle", locale).replace(
+        "{name}",
+        methodNameDescription
+      ));
+  const footerText = isEn ? ensureEnglish(seo?.footerTextEn, "") : seo?.footerTextZh;
 
   // 通过 RecipeTag 关联查询食谱
   const [recipes, total] = await Promise.all([
@@ -239,7 +259,7 @@ export default async function MethodPage({
               href="/recipe"
               className="hover:text-white transition-colors"
             >
-              {isEn ? "Recipes" : "食谱"}
+              {t("nav.recipes", locale)}
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <span className="text-white">{methodName}</span>
@@ -261,14 +281,14 @@ export default async function MethodPage({
               <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur rounded-full text-white text-sm">
                   <Flame className="w-4 h-4" />
-                  {isEn ? `${total} recipes` : `共 ${total} 道菜谱`}
+                  {t("common.recipesCount", locale).replace("{count}", String(total))}
                 </span>
                 <LocalizedLink
                   href="/ai-custom"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white text-orange-600 rounded-full text-sm font-medium hover:bg-cream transition-colors"
                 >
                   <Sparkles className="w-4 h-4" />
-                  {isEn ? "AI Custom" : "AI 定制"}
+                  {t("common.aiCustom", locale)}
                 </LocalizedLink>
               </div>
             </div>
@@ -302,12 +322,10 @@ export default async function MethodPage({
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-serif font-medium text-textDark">
-                  {isEn ? "Top Picks" : "精选推荐"}
+                  {t("common.signaturePicks", locale)}
                 </h2>
                 <p className="text-sm text-textGray mt-1">
-                  {isEn
-                    ? "Most popular dishes using this technique"
-                    : "最受欢迎的做法食谱"}
+                  {t("common.popularDishes", locale)}
                 </p>
               </div>
             </div>
@@ -319,7 +337,10 @@ export default async function MethodPage({
                   )
                   .find(Boolean);
                 const summary = recipe.summary as any;
-                const displayTitle = recipeTranslation?.title || recipe.title;
+                const rawTitle = recipeTranslation?.title || recipe.title;
+                const displayTitle = isEn
+                  ? ensureEnglish(rawTitle, "Recipe")
+                  : rawTitle;
                 return (
                   <LocalizedLink
                     key={recipe.id}
@@ -350,7 +371,7 @@ export default async function MethodPage({
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {summary.timeTotalMin}
-                            {isEn ? "min" : "分钟"}
+                            {t("recipe.min", locale)}
                           </span>
                         )}
                       </div>
@@ -369,22 +390,20 @@ export default async function MethodPage({
           <div className="text-center py-20 bg-white rounded-2xl">
             <ChefHat className="w-16 h-16 mx-auto text-textGray/30 mb-4" />
             <p className="text-textGray text-lg mb-6">
-              {isEn
-                ? "No recipes found for this cooking method yet"
-                : "暂无该做法食谱"}
+              {t("common.noRecipesYet", locale)}
             </p>
             <div className="flex justify-center gap-4">
               <LocalizedLink
                 href="/ai-custom"
                 className="px-6 py-3 bg-orange-600 text-white rounded-full hover:bg-orange-700 transition-colors"
               >
-                {isEn ? "Try AI Custom" : "试试 AI 定制"}
+                {t("common.tryAiCustom", locale)}
               </LocalizedLink>
               <LocalizedLink
                 href="/recipe"
                 className="px-6 py-3 border border-orange-600 text-orange-600 rounded-full hover:bg-orange-600 hover:text-white transition-colors"
               >
-                {isEn ? "Browse All" : "浏览全部食谱"}
+                {t("common.browseAll", locale)}
               </LocalizedLink>
             </div>
           </div>
@@ -393,10 +412,10 @@ export default async function MethodPage({
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-2xl font-serif font-medium text-textDark">
-                  {isEn ? "All Recipes" : "全部食谱"}
+                  {t("common.allRecipes", locale)}
                 </h2>
                 <p className="text-sm text-textGray mt-1">
-                  {isEn ? `${total} dishes found` : `共找到 ${total} 道菜谱`}
+                  {t("common.recipesFound", locale).replace("{count}", String(total))}
                 </p>
               </div>
             </div>
@@ -409,7 +428,10 @@ export default async function MethodPage({
                   )
                   .find(Boolean);
                 const summary = recipe.summary as any;
-                const displayTitle = recipeTranslation?.title || recipe.title;
+                const rawTitle = recipeTranslation?.title || recipe.title;
+                const displayTitle = isEn
+                  ? ensureEnglish(rawTitle, "Recipe")
+                  : rawTitle;
                 return (
                   <LocalizedLink
                     key={recipe.id}
@@ -437,29 +459,23 @@ export default async function MethodPage({
                       </h3>
                       {summary?.tagline && (
                         <p className="text-sm text-textGray mt-1 line-clamp-1">
-                          {summary.tagline}
+                          {isEn ? ensureEnglish(summary.tagline, "") : summary.tagline}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-2 mt-3">
                         {summary?.timeTotalMin && (
                           <span className="flex items-center gap-1 text-xs text-textGray">
                             <Clock className="w-3 h-3" />
-                            {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+                            {summary.timeTotalMin} {t("recipe.min", locale)}
                           </span>
                         )}
                         {summary?.difficulty && (
                           <span className="text-xs text-textGray">
                             {summary.difficulty === "easy"
-                              ? isEn
-                                ? "Easy"
-                                : "简单"
+                              ? t("recipe.easy", locale)
                               : summary.difficulty === "medium"
-                              ? isEn
-                                ? "Medium"
-                                : "中等"
-                              : isEn
-                              ? "Hard"
-                              : "困难"}
+                              ? t("recipe.medium", locale)
+                              : t("recipe.hard", locale)}
                           </span>
                         )}
                       </div>
@@ -479,20 +495,18 @@ export default async function MethodPage({
                 href={buildPageUrl(page - 1)}
                 className="px-5 py-2.5 bg-white border border-lightGray rounded-lg hover:border-orange-500 transition-colors"
               >
-                {isEn ? "Previous" : "上一页"}
+                {t("common.previous", locale)}
               </Link>
             )}
             <span className="px-4 py-2 text-textGray">
-              {isEn
-                ? `Page ${page} / ${totalPages}`
-                : `第 ${page} / ${totalPages} 页`}
+              {t("common.pageOf", locale).replace("{current}", String(page)).replace("{total}", String(totalPages))}
             </span>
             {page < totalPages && (
               <Link
                 href={buildPageUrl(page + 1)}
                 className="px-5 py-2.5 bg-white border border-lightGray rounded-lg hover:border-orange-500 transition-colors"
               >
-                {isEn ? "Next" : "下一页"}
+                {t("common.nextPage", locale)}
               </Link>
             )}
           </div>
@@ -503,7 +517,7 @@ export default async function MethodPage({
           <section className="mt-12">
             <div className="max-w-4xl mx-auto">
               <h2 className="text-xl font-serif font-medium text-textDark mb-6">
-                {isEn ? "Explore More Techniques" : "探索更多做法"}
+                {t("common.exploreMore", locale)}
               </h2>
               <div className="bg-white rounded-xl border border-lightGray p-5">
                 <div className="flex flex-wrap gap-2">
@@ -511,6 +525,13 @@ export default async function MethodPage({
                     const t = m.translations.find((t) =>
                       locales.includes(t.locale)
                     );
+                    const relatedNameRaw = t?.name || m.name;
+                    const relatedName = isEn
+                      ? ensureEnglish(
+                          relatedNameRaw,
+                          ensureEnglish(titleFromSlug(m.slug), "Method")
+                        )
+                      : relatedNameRaw;
                     const icon = METHOD_ICONS[m.slug] || "👨‍🍳";
                     return (
                       <LocalizedLink
@@ -519,7 +540,7 @@ export default async function MethodPage({
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-cream text-sm text-textGray rounded-full hover:bg-orange-600 hover:text-white transition-colors"
                       >
                         <span>{icon}</span>
-                        {t?.name || m.name}
+                        {relatedName}
                       </LocalizedLink>
                     );
                   })}

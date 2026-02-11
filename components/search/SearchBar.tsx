@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Loader2 } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { localizePath } from "@/lib/i18n/utils";
+import { t } from "@/lib/i18n/translations";
 
 interface SearchBarProps {
   defaultValue?: string;
@@ -21,11 +22,7 @@ export function SearchBar({
   const locale = useLocale();
   const [query, setQuery] = useState(defaultValue);
   const [isSearching, setIsSearching] = useState(false);
-  const resolvedPlaceholder =
-    placeholder ||
-    (locale === "en"
-      ? "Search recipes... e.g. Kung Pao Chicken"
-      : "搜索菜谱...比如：啤酒鸭、宫保鸡丁");
+  const resolvedPlaceholder = placeholder || t("filter.searchPlaceholder", locale);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +70,7 @@ export function SearchBar({
 
         {/* 快速提示 */}
         <div className="mt-3 text-sm text-sage-500 text-center">
-          {locale === "en"
-            ? "💡 Can't find it? We'll generate one for you!"
-            : "💡 找不到菜谱？我们会为您智能生成！"}
+          💡 {t("recipe.searchHint", locale)}
         </div>
       </form>
 
@@ -86,19 +81,19 @@ export function SearchBar({
             type="button"
             className="px-4 py-2 rounded-full border border-sage-200 hover:border-sage-400 hover:bg-sage-50 transition-colors text-sm"
           >
-            {locale === "en" ? "By Region" : "按地点"}
+            {t("recipe.byRegion", locale)}
           </button>
           <button
             type="button"
             className="px-4 py-2 rounded-full border border-sage-200 hover:border-sage-400 hover:bg-sage-50 transition-colors text-sm"
           >
-            {locale === "en" ? "By Cuisine" : "按菜系"}
+            {t("recipe.byCuisine", locale)}
           </button>
           <button
             type="button"
             className="px-4 py-2 rounded-full border border-sage-200 hover:border-sage-400 hover:bg-sage-50 transition-colors text-sm"
           >
-            {locale === "en" ? "By Ingredient" : "按食材"}
+            {t("recipe.byIngredient", locale)}
           </button>
         </div>
       )}

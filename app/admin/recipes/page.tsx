@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye, Edit2, Trash2 } from "lucide-react";
 
 // tags 按类型分组的格式
@@ -20,6 +21,9 @@ interface Recipe {
   id: string;
   title: string;
   slug: string;
+  summary?: any;
+  coverImage?: string | null;
+  aiGenerated?: boolean | null;
   status: "draft" | "pending" | "published" | "archived";
   reviewStatus: "pending" | "approved" | "rejected";
   createdAt: string;
@@ -54,6 +58,13 @@ interface TagOption {
 }
 
 const PAGE_SIZE = 20;
+
+const STATUS_LABELS: Record<string, { text: string; color: string }> = {
+  published: { text: "已发布", color: "bg-green-100 text-green-700" },
+  archived: { text: "已归档", color: "bg-gray-300 text-gray-700" },
+  pending: { text: "待审核", color: "bg-amber-100 text-amber-700" },
+  draft: { text: "草稿", color: "bg-gray-100 text-gray-600" },
+};
 
 export default function RecipesListPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -521,171 +532,89 @@ export default function RecipesListPage() {
               </Button>
             </div>
           </div>
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark w-10">
-                  <input
-                    type="checkbox"
-                    checked={recipes.length > 0 && recipes.every((r) => selectedIds.has(r.id))}
-                    onChange={toggleSelectAll}
-                    className="h-4 w-4"
-                  />
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  食谱名称
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  分类/标签
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  聚合页
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  状态
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-textDark">
-                  创建时间
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-textDark">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {recipes.map((recipe) => (
-                <tr key={recipe.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(recipe.id)}
-                      onChange={() => toggleSelectOne(recipe.id)}
-                      className="h-4 w-4"
-                    />
-                  </td>
-                  <td className="px-4 py-4">
-                    <div>
-                      <div className="font-medium text-textDark">
-                        {recipe.title}
-                      </div>
-                      <div className="text-sm text-textGray">
-                        {recipe.slug}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex flex-wrap gap-1 max-w-xs">
-                      {recipe.cuisine && (
-                        <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">
-                          {recipe.cuisine.name}
-                        </span>
-                      )}
-                      {recipe.location && (
-                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">
-                          {recipe.location.name}
-                        </span>
-                      )}
-                      {/* 场景标签 */}
-                      {recipe.tags?.scene?.slice(0, 1).map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-blue-700"
-                        >
-                          {tag.name}
-                        </span>
-                      ))}
-                      {/* 烹饪方法标签 */}
-                      {recipe.tags?.method?.slice(0, 1).map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="px-1.5 py-0.5 text-xs rounded bg-green-100 text-green-700"
-                        >
-                          {tag.name}
-                        </span>
-                      ))}
-                      {/* 口味标签 */}
-                      {recipe.tags?.taste?.slice(0, 1).map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="px-1.5 py-0.5 text-xs rounded bg-pink-100 text-pink-700"
-                        >
-                          {tag.name}
-                        </span>
-                      ))}
-                      {/* 显示更多标签数量 */}
-                      {(() => {
-                        const totalTags = Object.values(recipe.tags || {}).flat().length;
-                        return totalTags > 3 ? (
-                          <span className="px-1.5 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
-                            +{totalTags - 3}
-                          </span>
-                        ) : null;
-                      })()}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    {recipe.collection ? (
-                      <Link
-                        href={`/admin/collections/${recipe.collection.id}`}
-                        className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded hover:bg-indigo-200"
-                      >
-                        {recipe.collection.name}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-400 text-xs">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex flex-col gap-1">
-                      {recipe.status === "published" ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-sm inline-block w-fit">
-                          已发布
-                        </span>
-                      ) : recipe.status === "archived" ? (
-                        <span className="px-2 py-1 bg-gray-300 text-gray-700 text-xs rounded-sm inline-block w-fit">
-                          已归档
-                        </span>
-                      ) : recipe.status === "pending" ? (
-                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-sm inline-block w-fit">
-                          待审核
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-sm inline-block w-fit">
-                          草稿
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-textGray">
-                    {new Date(recipe.createdAt).toLocaleDateString("zh-CN")}
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <div className="flex gap-2 justify-end">
-                      <Link href={`/admin/recipes/${recipe.id}/preview`} target="_blank">
-                        <Button variant="outline" size="sm" title="预览">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Link href={`/admin/recipes/${recipe.id}/edit`}>
-                        <Button variant="outline" size="sm" title="编辑">
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(recipe.id, recipe.title)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        title="删除"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+            <label className="flex items-center gap-2 text-sm text-textGray">
+              <input
+                type="checkbox"
+                checked={recipes.length > 0 && recipes.every((r) => selectedIds.has(r.id))}
+                onChange={toggleSelectAll}
+                className="h-4 w-4"
+                aria-label="全选"
+              />
+              全选
+            </label>
+            <div className="text-sm text-textGray">共 {total} 条</div>
+          </div>
+          <div className="bg-[#FDF8F3] p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {recipes.map((recipe) => {
+                const statusInfo = STATUS_LABELS[recipe.status] || STATUS_LABELS.draft;
+                return (
+                  <div key={recipe.id} className="relative">
+          <RecipeCard
+            id={recipe.id}
+            titleZh={recipe.title}
+            title={recipe.title}
+            summary={recipe.summary || undefined}
+            location={recipe.location?.name || null}
+            cuisine={recipe.cuisine?.name || null}
+            aiGenerated={recipe.aiGenerated}
+            coverImage={recipe.coverImage}
+            aspectClass="aspect-[4/3]"
+            href={`/admin/recipes/${recipe.id}/preview`}
+            disableLocalization
+            className="mb-0"
+          />
+          <div className="absolute top-3 left-3 z-10 pointer-events-none">
+            <label className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/90 px-2 py-1 shadow">
+              <input
+                type="checkbox"
+                checked={selectedIds.has(recipe.id)}
+                onChange={() => toggleSelectOne(recipe.id)}
+                className="h-4 w-4"
+                aria-label={recipe.title}
+              />
+              <span className="text-xs text-textGray">选择</span>
+            </label>
+          </div>
+          <div className="absolute top-3 right-3 z-10 flex gap-2 pointer-events-none">
+            <Link
+              href={`/admin/recipes/${recipe.id}/preview`}
+              target="_blank"
+              className="pointer-events-auto"
+            >
+              <Button variant="outline" size="sm" title="预览">
+                <Eye className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link
+              href={`/admin/recipes/${recipe.id}/edit`}
+              className="pointer-events-auto"
+            >
+              <Button variant="outline" size="sm" title="编辑">
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDelete(recipe.id, recipe.title)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 pointer-events-auto"
+              title="删除"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="absolute bottom-3 left-3 z-10 pointer-events-none">
+            <span className={`px-2 py-0.5 rounded-full text-xs ${statusInfo.color}`}>
+              {statusInfo.text}
+            </span>
+          </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {/* 分页控件 */}
           {totalPages > 1 && (

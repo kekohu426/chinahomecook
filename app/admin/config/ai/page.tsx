@@ -428,6 +428,7 @@ export default function AIConfigPage() {
                   className="w-full px-4 py-2 border border-lightGray rounded-lg"
                 >
                   <option value="evolink">Evolink</option>
+                  <option value="kie">Kie AI</option>
                 </select>
               </div>
               <div>
@@ -436,7 +437,7 @@ export default function AIConfigPage() {
                   value={config.imageModel || ""}
                   onChange={(e) => setConfig({ ...config, imageModel: e.target.value })}
                   className="w-full px-4 py-2 border border-lightGray rounded-lg"
-                  placeholder="z-image-turbo"
+                  placeholder="z-image"
                 />
               </div>
               <div>

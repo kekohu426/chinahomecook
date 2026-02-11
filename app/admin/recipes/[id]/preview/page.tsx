@@ -9,8 +9,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import type { Recipe } from "@/types/recipe";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { RecipeDetailClient } from "@/components/recipe/RecipeDetailClient";
-import { ChevronRight, Home, ArrowLeft, Edit2 } from "lucide-react";
+import { RecipeCard } from "@/components/recipe/RecipeCard";
+import { ChevronRight, Home, ArrowLeft, Edit2, Image } from "lucide-react";
 
 interface PreviewPageProps {
   params: Promise<{ id: string }>;
@@ -37,34 +40,80 @@ export default async function RecipePreviewPage({ params }: PreviewPageProps) {
     schemaVersion: "1.1.0",
     titleZh: recipeData.title,
     titleEn: undefined,
+    author: recipeData.author || undefined,
+    aiGenerated: recipeData.aiGenerated,
     summary: recipeData.summary as any,
     story: recipeData.story as any,
     ingredients: recipeData.ingredients as any,
     steps: recipeData.steps as any,
-    styleGuide: recipeData.styleGuide as any,
-    imageShots: recipeData.imageShots as any,
+    nutrition: (recipeData.nutrition as any) || undefined,
+    faq: (recipeData.faq as any) || undefined,
+    tips: (recipeData.tips as any) || undefined,
+    troubleshooting: (recipeData.troubleshooting as any) || undefined,
+    relatedRecipes: (recipeData.relatedRecipes as any) || undefined,
+    pairing: (recipeData.pairing as any) || undefined,
+    seo: (recipeData.seo as any) || undefined,
+    notes: (recipeData.notes as any) || undefined,
   };
 
-  // 构建步骤图片映射
-  const stepImages = (recipe.imageShots || []).reduce<Record<string, string | undefined>>((acc, shot) => {
-    const url = (shot as any).imageUrl;
-    if (shot.key) {
-      acc[shot.key] = url;
-      const digits = shot.key.replace(/\D/g, "");
+  // 构建步骤图片映射（从 steps 中提取 imageUrl）
+  const stepImages: Record<string, string | undefined> = {};
+  (recipe.steps || []).forEach((step: any) => {
+    if (step?.id && step?.imageUrl) {
+      stepImages[step.id] = step.imageUrl;
+      const digits = String(step.id).replace(/\D/g, "");
       if (digits) {
-        acc[`step${digits}`] = url;
-        acc[digits] = url;
+        stepImages[`step${digits}`] = step.imageUrl;
+        stepImages[digits] = step.imageUrl;
       }
     }
-    return acc;
-  }, {});
+  });
 
-  // 封面图
-  const coverImage =
-    recipeData.coverImage ||
-    stepImages["cover"] ||
-    stepImages["hero"] ||
-    stepImages["final"];
+  // 封面图集合（用于轮播）
+  const coverImages: string[] = [];
+  const coverKeys = ["cover_main", "cover_detail", "cover_inside", "cover", "hero", "final"];
+  coverKeys.forEach((key) => {
+    if (stepImages[key]) {
+      coverImages.push(stepImages[key]!);
+    }
+  });
+
+  if (recipeData.coverImage && !coverImages.includes(recipeData.coverImage)) {
+    coverImages.unshift(recipeData.coverImage);
+  }
+
+  if (coverImages.length === 0 && recipe.steps?.[0]) {
+    const firstStepImage = (recipe.steps[0] as any).imageUrl;
+    if (firstStepImage) {
+      coverImages.push(firstStepImage);
+    }
+  }
+
+  // 相关食谱推荐（用于模拟前台展示）
+  const relatedWhere: any = {
+    status: "published",
+    id: { not: recipeData.id },
+    OR: [] as any[],
+  };
+  if (recipeData.cuisineId) {
+    relatedWhere.OR.push({ cuisineId: recipeData.cuisineId });
+  }
+  if (recipeData.locationId) {
+    relatedWhere.OR.push({ locationId: recipeData.locationId });
+  }
+  if (relatedWhere.OR.length === 0) {
+    delete relatedWhere.OR;
+  }
+
+  const relatedRecipes = await prisma.recipe.findMany({
+    where: relatedWhere,
+    take: 4,
+    orderBy: { createdAt: "desc" },
+    include: {
+      cuisine: { select: { id: true, name: true, slug: true } },
+      location: { select: { id: true, name: true, slug: true } },
+    },
+  });
 
   // 状态标签
   const statusLabels: Record<string, { text: string; color: string }> = {
@@ -96,6 +145,13 @@ export default async function RecipePreviewPage({ params }: PreviewPageProps) {
           </div>
           <div className="flex items-center gap-3">
             <Link
+              href="/admin/tools/prompt-generator"
+              className="flex items-center gap-2 px-4 py-1.5 bg-purple-500 hover:bg-purple-600 rounded-full text-sm transition-colors"
+            >
+              <Image className="w-4 h-4" />
+              图片生成
+            </Link>
+            <Link
               href={`/admin/recipes/${id}/edit`}
               className="flex items-center gap-2 px-4 py-1.5 bg-brownWarm hover:bg-brownWarm/90 rounded-full text-sm transition-colors"
             >
@@ -113,6 +169,8 @@ export default async function RecipePreviewPage({ params }: PreviewPageProps) {
       </div>
 
       {/* 面包屑导航（模拟用户端） */}
+      <Header />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-6">
         <nav className="flex items-center gap-2 text-sm text-textGray">
           <span className="text-textGray">
@@ -136,30 +194,38 @@ export default async function RecipePreviewPage({ params }: PreviewPageProps) {
       {/* 食谱详情内容 */}
       <RecipeDetailClient
         recipe={recipe}
-        coverImage={coverImage}
+        coverImage={coverImages[0]}
         stepImages={stepImages}
       />
 
-      {/* 底部提示 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 text-center">
-        <p className="text-sm text-textGray">
-          这是预览模式，显示的是数据库中已保存的内容
-        </p>
-        <div className="mt-4 flex items-center justify-center gap-4">
-          <Link
-            href={`/admin/recipes/${id}/edit`}
-            className="px-6 py-2 bg-brownWarm text-white rounded-full hover:bg-brownWarm/90 transition-colors"
-          >
-            返回编辑
-          </Link>
-          <Link
-            href="/admin/recipes"
-            className="px-6 py-2 border border-brownWarm text-brownWarm rounded-full hover:bg-brownWarm/10 transition-colors"
-          >
-            返回列表
-          </Link>
-        </div>
-      </div>
+      {relatedRecipes.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12 border-t border-lightGray">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-serif font-medium text-textDark">
+              相关食谱推荐
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedRecipes.map((related) => (
+              <RecipeCard
+                key={related.id}
+                id={related.id}
+                slug={related.slug}
+                titleZh={related.title}
+                title={related.title}
+                summary={(related.summary as any) || undefined}
+                location={related.location?.name || null}
+                cuisine={related.cuisine?.name || null}
+                aiGenerated={related.aiGenerated}
+                coverImage={related.coverImage}
+                aspectClass="aspect-[4/3]"
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Footer />
     </div>
   );
 }

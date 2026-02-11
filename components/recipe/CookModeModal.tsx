@@ -1,11 +1,10 @@
-/**
- * CookModeModal 组件
+﻿/**
+ * CookModeModal 缁勪欢
  *
- * 完全复刻设计稿的烹饪模式弹窗：
- * - 居中白色卡片弹窗
- * - 背景模糊
- * - 步骤图片、标题、描述、计时器、状态检查、失败点
- * - 底部导航：上一步、步骤指示点、下一步/完成烹饪
+ * 瀹屽叏澶嶅埢璁捐绋跨殑鐑归オ妯″紡寮圭獥锛? * - 灞呬腑鐧借壊鍗＄墖寮圭獥
+ * - 鑳屾櫙妯＄硦
+ * - 姝ラ鍥剧墖銆佹爣棰樸€佹弿杩般€佽鏃跺櫒銆佺姸鎬佹鏌ャ€佸け璐ョ偣
+ * - 搴曢儴瀵艰埅锛氫笂涓€姝ャ€佹楠ゆ寚绀虹偣銆佷笅涓€姝?瀹屾垚鐑归オ
  */
 
 "use client";
@@ -27,6 +26,8 @@ import {
   Check,
 } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
+import { getSpeechLocale } from "@/lib/i18n/format";
 
 interface CookModeModalProps {
   open: boolean;
@@ -46,7 +47,7 @@ export function CookModeModal({
   const locale = useLocale();
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // 计时器状态
+  // Timer state.
   const [timerState, setTimerState] = useState<"idle" | "running" | "paused">("idle");
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -58,10 +59,10 @@ export function CookModeModal({
   const hasNext = currentIndex < totalSteps - 1;
   const isLastStep = currentIndex === totalSteps - 1;
 
-  // 获取当前步骤图片
+  // 鑾峰彇褰撳墠姝ラ鍥剧墖
   const currentImage = currentStep ? stepImages?.[currentStep.id] : undefined;
 
-  // 清理计时器
+  // Clear timer.
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -69,7 +70,7 @@ export function CookModeModal({
     }
   }, []);
 
-  // 关闭模态框时重置状态
+  // Reset state when closing modal.
   useEffect(() => {
     if (!open) {
       setCurrentIndex(0);
@@ -85,14 +86,14 @@ export function CookModeModal({
     }
   }, [open]);
 
-  // 切换步骤时重置计时器
+  // 鍒囨崲姝ラ鏃堕噸缃鏃跺櫒
   useEffect(() => {
     setTimerState("idle");
     setTimeLeft(0);
     clearTimer();
   }, [currentIndex, clearTimer]);
 
-  // 计时器逻辑
+  // 璁℃椂鍣ㄩ€昏緫
   useEffect(() => {
     if (timerState === "running" && timeLeft > 0) {
       timerRef.current = setInterval(() => {
@@ -100,7 +101,7 @@ export function CookModeModal({
           if (prev <= 1) {
             clearTimer();
             setTimerState("idle");
-            // 计时结束提示
+            // 璁℃椂缁撴潫鎻愮ず
             if (typeof window !== "undefined") {
               try {
                 new Audio("/sounds/timer-done.mp3").play().catch(() => {});
@@ -118,7 +119,7 @@ export function CookModeModal({
     return clearTimer;
   }, [timerState, clearTimer]);
 
-  // 开始计时
+  // Start timer.
   const startTimer = () => {
     const timerSec = currentStep?.timerSec ?? 0;
     if (!currentStep || timerSec <= 0) return;
@@ -128,32 +129,32 @@ export function CookModeModal({
     setTimerState("running");
   };
 
-  // 暂停计时
+  // 鏆傚仠璁℃椂
   const pauseTimer = () => {
     clearTimer();
     setTimerState("paused");
   };
 
-  // 重置计时
+  // 閲嶇疆璁℃椂
   const resetTimer = () => {
     clearTimer();
     setTimerState("idle");
     setTimeLeft(0);
   };
 
-  // 格式化时间
+  // Format duration.
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // 语音朗读
+  // 璇煶鏈楄
   const speakStep = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const text = currentStep?.speechText || currentStep?.action || "";
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = locale === "en" ? "en-US" : "zh-CN";
+    utterance.lang = getSpeechLocale(locale);
     utterance.rate = 0.9;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
@@ -162,16 +163,13 @@ export function CookModeModal({
   const requestClose = useCallback(() => {
     const shouldConfirm = timerState === "running" || currentIndex > 0;
     if (shouldConfirm) {
-      const message =
-        locale === "en"
-          ? "Exit cook mode? Your progress will be lost."
-          : "退出烹饪模式将丢失进度，确定退出？";
+      const message = t("recipe.exitConfirm", locale);
       if (!confirm(message)) return;
     }
     onClose();
   }, [timerState, currentIndex, locale, onClose]);
 
-  // 导航函数
+  // 瀵艰埅鍑芥暟
   const goToPrev = useCallback(() => {
     if (hasPrev) setCurrentIndex((prev) => prev - 1);
   }, [hasPrev]);
@@ -180,7 +178,7 @@ export function CookModeModal({
     if (hasNext) setCurrentIndex((prev) => prev + 1);
   }, [hasNext]);
 
-  // 键盘快捷键
+  // Keyboard shortcuts.
   useEffect(() => {
     if (!open) return;
 
@@ -218,7 +216,7 @@ export function CookModeModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [open, goToPrev, goToNext, timerState, onClose]);
 
-  // 锁定背景滚动
+  // 閿佸畾鑳屾櫙婊氬姩
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -234,178 +232,174 @@ export function CookModeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* 背景遮罩 + 模糊 */}
+      {/* 鑳屾櫙閬僵 + 妯＄硦 */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={requestClose}
       />
 
-      {/* 弹窗卡片 - 宽屏显示 */}
+      {/* 寮圭獥鍗＄墖 - 瀹藉睆鏄剧ず */}
       <div
-        className="relative w-full max-w-[900px] mx-4 bg-[#FFFBF7] rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-[900px] mx-4 bg-cream rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="cook-mode-title"
       >
-        {/* 顶部栏 */}
-        <div className="sticky top-0 z-10 bg-[#FFFBF7] px-8 py-4 flex items-center justify-between border-b border-stone-100">
-          <h3 id="cook-mode-title" className="text-lg font-medium text-stone-800">
+        {/* 椤堕儴鏍?*/}
+        <div className="sticky top-0 z-10 bg-cream px-8 py-4 flex items-center justify-between border-b border-lightGray">
+          <h3 id="cook-mode-title" className="text-lg font-medium text-textDark">
             {recipeTitle}
           </h3>
           <div className="flex items-center gap-6">
-            <span className="text-sm text-stone-500">
-              {locale === "en"
-                ? `Step ${currentIndex + 1}/${totalSteps}`
-                : `步骤 ${currentIndex + 1}/${totalSteps}`}
+            <span className="text-sm text-textGray">
+              {`${t("recipe.stepOf", locale)} ${currentIndex + 1}/${totalSteps}`}
             </span>
             <button
               ref={closeButtonRef}
               onClick={requestClose}
-              className="flex items-center gap-1 text-sm text-stone-500 hover:text-stone-700 transition-colors"
+              className="flex items-center gap-1 text-sm text-textGray hover:text-textDark transition-colors"
             >
               <X className="w-4 h-4" />
-              {locale === "en" ? "Exit" : "退出"}
+              {t("recipe.exit", locale)}
             </button>
           </div>
         </div>
 
-        {/* 内容区域 */}
+        {/* 鍐呭鍖哄煙 */}
         <div className="p-8">
-          {/* 步骤图片 - 宽屏比例 */}
-          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-stone-100 mb-6">
+          {/* 姝ラ鍥剧墖 - 瀹藉睆姣斾緥 */}
+          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-lightGray mb-6">
             <StepImage src={currentImage} alt={currentStep.title} />
           </div>
 
-          {/* 步骤标题（橙色菱形 + 标题） */}
+          {/* 姝ラ鏍囬锛堟鑹茶彵褰?+ 鏍囬锛?*/}
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-[#E86F2C] text-xl">◆</span>
-            <h4 className="text-xl font-medium text-stone-800">{currentStep.title}</h4>
+            <span className="text-orangeAccent text-xl">◆</span>
+            <h4 className="text-xl font-medium text-textDark">{currentStep.title}</h4>
           </div>
 
-          {/* 步骤描述 */}
-          <p className="text-base text-stone-600 leading-relaxed mb-5">
+          {/* 姝ラ鎻忚堪 */}
+          <p className="text-base text-textGray leading-relaxed mb-5">
             {currentStep.action}
           </p>
 
-          {/* 计时器（如果有） */}
+          {/* 璁℃椂鍣紙濡傛灉鏈夛級 */}
           {(currentStep.timerSec ?? 0) > 0 && (
-            <div className="bg-white border border-stone-200 rounded-2xl p-5 mb-5">
-              {/* 计时器显示 */}
+            <div className="bg-white border border-lightGray rounded-2xl p-5 mb-5">
+              {/* 璁℃椂鍣ㄦ樉绀?*/}
               <div className="flex items-center justify-center gap-2 mb-4">
                 <span
                   className={cn(
                     "text-5xl font-light tracking-wider",
-                    timerState === "running" ? "text-[#E86F2C]" : "text-stone-800"
+                    timerState === "running" ? "text-orangeAccent" : "text-textDark"
                   )}
                 >
                   {timerState === "idle"
                     ? formatTime(currentStep.timerSec ?? 0)
                     : formatTime(timeLeft)}
                 </span>
-                <span className="text-stone-400 text-2xl">⏱</span>
+                <span className="text-textGray/70 text-2xl">⏱</span>
               </div>
 
-              {/* 计时器按钮 */}
+              {/* 璁℃椂鍣ㄦ寜閽?*/}
               <div className="flex items-center justify-center gap-3">
-                {/* 开始按钮 */}
+                {/* 寮€濮嬫寜閽?*/}
                 <button
                   onClick={startTimer}
                   disabled={timerState === "running"}
                   className={cn(
                     "flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-colors",
                     timerState === "running"
-                      ? "bg-stone-100 text-stone-400 cursor-not-allowed"
-                      : "bg-[#E86F2C] hover:bg-[#D55F1C] text-white"
+                      ? "bg-lightGray text-textGray/70 cursor-not-allowed"
+                      : "bg-brownWarm hover:bg-brownDark text-white"
                   )}
                 >
                   <Play className="w-4 h-4 fill-current" />
-                  {locale === "en" ? "Start" : "开始"}
+                  {t("recipe.start", locale)}
                 </button>
 
-                {/* 暂停按钮 */}
+                {/* 鏆傚仠鎸夐挳 */}
                 <button
                   onClick={pauseTimer}
                   disabled={timerState !== "running"}
                   className={cn(
                     "flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-colors",
                     timerState === "running"
-                      ? "bg-stone-100 hover:bg-stone-200 text-stone-700"
-                      : "bg-stone-50 text-stone-300 cursor-not-allowed"
+                      ? "bg-lightGray hover:bg-lightGray text-textDark"
+                      : "bg-cream/70 text-textGray/50 cursor-not-allowed"
                   )}
                 >
                   <Pause className="w-4 h-4" />
-                  {locale === "en" ? "Pause" : "暂停"}
+                  {t("recipe.pause", locale)}
                 </button>
 
-                {/* 重置按钮 */}
+                {/* 閲嶇疆鎸夐挳 */}
                 <button
                   onClick={resetTimer}
-                  className="flex items-center gap-2 px-5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-5 py-2 bg-lightGray hover:bg-lightGray text-textDark rounded-full text-sm font-medium transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  {locale === "en" ? "Reset" : "重置"}
+                  {t("recipe.reset", locale)}
                 </button>
               </div>
             </div>
           )}
 
-          {/* 完成标准 */}
+          {/* 瀹屾垚鏍囧噯 */}
           {currentStep.visualCue && (
             <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4">
               <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <span className="text-green-700 font-medium">
-                  {locale === "en" ? "Done when:" : "完成标准："}
+                  {t("recipe.doneWhenLabel", locale)}
                 </span>
                 <span className="text-green-800">{currentStep.visualCue}</span>
               </div>
             </div>
           )}
 
-          {/* 失败点 */}
+          {/* 澶辫触鐐?*/}
           {currentStep.failPoint && (
             <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
               <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <span className="text-amber-700 font-medium">
-                  {locale === "en" ? "Pitfall:" : "失败点："}
+                  {t("recipe.pitfallLabel", locale)}
                 </span>
                 <span className="text-amber-800">{currentStep.failPoint}</span>
               </div>
             </div>
           )}
 
-          {/* 朗读按钮 */}
+          {/* 鏈楄鎸夐挳 */}
           <button
             onClick={speakStep}
-            className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-stone-200 rounded-xl text-stone-600 hover:bg-stone-50 transition-colors mb-6"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-white border border-lightGray rounded-xl text-textGray hover:bg-cream/70 transition-colors mb-6"
           >
             <Volume2 className="w-4 h-4" />
             <span>
-              {locale === "en"
-                ? "Read step (press R)"
-                : "朗读步骤（按R键）"}
+              {t("recipe.readStepKey", locale)}
             </span>
           </button>
 
-          {/* 底部导航 */}
+          {/* 搴曢儴瀵艰埅 */}
           <div className="flex items-center justify-between">
-            {/* 上一步 */}
+            {/* 涓婁竴姝?*/}
             <button
               onClick={goToPrev}
               disabled={!hasPrev}
               className={cn(
                 "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors",
                 hasPrev
-                  ? "bg-white border border-stone-200 text-stone-700 hover:bg-stone-50"
-                  : "bg-stone-50 text-stone-300 cursor-not-allowed"
+                  ? "bg-white border border-lightGray text-textDark hover:bg-cream/70"
+                  : "bg-cream/70 text-textGray/50 cursor-not-allowed"
               )}
             >
               <ChevronLeft className="w-4 h-4" />
-              {locale === "en" ? "Previous" : "上一步"}
+              {t("recipe.previous", locale)}
             </button>
 
-            {/* 步骤指示器 */}
+            {/* 姝ラ鎸囩ず鍣?*/}
             <div className="flex items-center gap-2">
               {steps.map((_, idx) => (
                 <button
@@ -414,35 +408,31 @@ export function CookModeModal({
                   className={cn(
                     "w-2.5 h-2.5 rounded-full transition-all",
                     idx === currentIndex
-                      ? "bg-[#E86F2C]"
+                      ? "bg-brownWarm"
                       : idx < currentIndex
-                      ? "bg-[#E86F2C]/50"
-                      : "bg-stone-200"
+                      ? "bg-brownWarm/50"
+                      : "bg-lightGray"
                   )}
-                  aria-label={
-                    locale === "en"
-                      ? `Jump to step ${idx + 1}`
-                      : `跳转到步骤 ${idx + 1}`
-                  }
+                  aria-label={t("recipe.jumpToStep", locale).replace("{step}", String(idx + 1))}
                 />
               ))}
             </div>
 
-            {/* 下一步 / 完成烹饪 */}
+            {/* 涓嬩竴姝?/ 瀹屾垚鐑归オ */}
             {isLastStep ? (
               <button
                 onClick={onClose}
                 className="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-full text-sm font-medium transition-colors"
               >
                 <Check className="w-4 h-4" />
-                {locale === "en" ? "Finish cooking" : "完成烹饪"}
+                {t("recipe.finishCooking", locale)}
               </button>
             ) : (
               <button
                 onClick={goToNext}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[#E86F2C] hover:bg-[#D55F1C] text-white rounded-full text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 bg-brownWarm hover:bg-brownDark text-white rounded-full text-sm font-medium transition-colors"
               >
-                {locale === "en" ? "Next" : "下一步"}
+                {t("recipe.next", locale)}
                 <ChevronRight className="w-4 h-4" />
               </button>
             )}

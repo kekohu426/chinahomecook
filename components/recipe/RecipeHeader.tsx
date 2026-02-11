@@ -13,6 +13,8 @@ import type { Recipe } from "@/types/recipe";
 import { DIFFICULTY_TO_LABEL } from "@/types/recipe";
 import { CoverImage } from "@/components/ui/SafeImage";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish } from "@/lib/i18n/english";
 
 interface RecipeHeaderProps {
   recipe: Recipe;
@@ -27,20 +29,26 @@ export function RecipeHeader({ recipe, coverImage }: RecipeHeaderProps) {
   const caloriesLabel = (summary as any)?.calories;
   const difficultyLabel = isEn
     ? summary.difficulty === "easy"
-      ? "Easy"
+      ? t("recipe.easy", locale)
       : summary.difficulty === "medium"
-      ? "Medium"
+      ? t("recipe.medium", locale)
       : summary.difficulty === "hard"
-      ? "Hard"
+      ? t("recipe.hard", locale)
       : summary.difficulty
     : DIFFICULTY_TO_LABEL[summary.difficulty];
-  const displayTitle = isEn ? titleEn || titleZh : titleZh;
-  const badgeTitle = isEn ? titleZh : titleEn;
+  const displayTitle = isEn
+    ? ensureEnglish(titleEn || titleZh, "Untitled Recipe")
+    : titleZh;
+  const badgeTitle = isEn ? null : titleEn;
+  const displayOneLine = isEn
+    ? ensureEnglish(summary.oneLine, t("common.englishComingSoon", locale))
+    : summary.oneLine;
+  const displayHealingTone = isEn
+    ? ensureEnglish(summary.healingTone, "")
+    : summary.healingTone;
   const caloriesText = caloriesLabel
     ? `${caloriesLabel}${typeof caloriesLabel === "number" ? " kcal" : ""}`
-    : isEn
-    ? "~450 kcal"
-    : "~450kcal";
+    : "~450 kcal";
 
   return (
     <div className="w-full bg-cream">
@@ -69,22 +77,24 @@ export function RecipeHeader({ recipe, coverImage }: RecipeHeaderProps) {
             )}
 
             {/* 大标题 */}
-            <h1 className="text-white font-serif font-medium mb-4 text-[52px] md:text-[56px] leading-[1.15] drop-shadow-lg">
+            <h1 className="editorial-hero-title text-white mb-4 drop-shadow-lg">
               {displayTitle}
             </h1>
 
             {/* 一句话描述 */}
             <div className="flex items-start gap-3 max-w-2xl mb-3">
               <div className="w-1.5 h-14 bg-orangeAccent rounded-full flex-shrink-0 mt-1" />
-              <p className="text-cream/95 text-lg leading-relaxed italic">
-                {summary.oneLine}
+              <p className="editorial-hero-subtitle italic">
+                {displayOneLine}
               </p>
             </div>
 
             {/* 治愈文案 */}
-            <p className="text-cream/80 text-base italic max-w-2xl ml-4">
-              {summary.healingTone}
-            </p>
+            {displayHealingTone ? (
+              <p className="editorial-hero-body italic max-w-2xl ml-4">
+                {displayHealingTone}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -98,7 +108,7 @@ export function RecipeHeader({ recipe, coverImage }: RecipeHeaderProps) {
               🔥
             </div>
             <div className="text-textGray text-sm mb-1">
-              {isEn ? "Difficulty" : "难度系数"}
+              {t("recipe.difficultyLabel", locale)}
             </div>
             <div className="text-textDark text-lg font-semibold">
               {difficultyLabel}
@@ -111,15 +121,15 @@ export function RecipeHeader({ recipe, coverImage }: RecipeHeaderProps) {
               ⏱️
             </div>
             <div className="text-textGray text-sm mb-1">
-              {isEn ? "Total time" : "预计耗时"}
+              {t("recipe.totalTime", locale)}
             </div>
             <div className="text-textDark text-lg font-semibold">
               {summary.timeTotalMin}
-              {isEn ? " min" : "分钟"}
+              {t("recipe.min", locale)}
             </div>
             <div className="text-textGray text-xs mt-1">
-              {isEn ? "Active time" : "操作时间"} {summary.timeActiveMin}
-              {isEn ? " min" : "分钟"}
+              {t("recipe.activeTime", locale)} {summary.timeActiveMin}
+              {t("recipe.min", locale)}
             </div>
           </div>
 
@@ -129,13 +139,13 @@ export function RecipeHeader({ recipe, coverImage }: RecipeHeaderProps) {
               🍽️
             </div>
             <div className="text-textGray text-sm mb-1">
-              {isEn ? "Calories" : "卡路里"}
+              {t("recipe.calories", locale)}
             </div>
             <div className="text-textDark text-lg font-semibold">
               {caloriesText}
             </div>
             <div className="text-textGray text-xs mt-1">
-              {isEn ? "Estimated" : "参考能量"}
+              {t("recipe.estimated", locale)}
             </div>
           </div>
         </div>

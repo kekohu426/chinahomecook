@@ -10,6 +10,7 @@ import { useState } from "react";
 import type { Recipe } from "@/types/recipe";
 import { downloadLongImage, printLongImage } from "@/lib/recipe-utils";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
 
 interface RecipeContentProps {
     recipe: Recipe;
@@ -18,7 +19,6 @@ interface RecipeContentProps {
 
 export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
     const locale = useLocale();
-    const isEn = locale === "en";
     const [isDownloadingLongImage, setIsDownloadingLongImage] = useState(false);
     const [isPrintingLongImage, setIsPrintingLongImage] = useState(false);
 
@@ -27,7 +27,7 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
         setIsDownloadingLongImage(true);
         const success = await downloadLongImage(recipe.titleZh, "steps-container");
         if (!success) {
-            alert(isEn ? "Download failed. Please try again." : "下载长图失败，请重试");
+            alert(t("recipe.downloadImageFailed", locale));
         }
         setIsDownloadingLongImage(false);
     };
@@ -37,7 +37,7 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
         setIsPrintingLongImage(true);
         const success = await printLongImage("steps-container");
         if (!success) {
-            alert(isEn ? "Print failed. Please try again." : "打印长图失败，请重试");
+            alert(t("recipe.printImageFailed", locale));
         }
         setIsPrintingLongImage(false);
     };
@@ -48,12 +48,10 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                     <h2 className="text-2xl font-serif font-medium text-textDark">
-                        {isEn ? "Steps" : "制作步骤"}
+                        {t("recipe.steps", locale)}
                     </h2>
                     <span className="text-xs px-2 py-1 rounded-full bg-orangeAccent/10 text-brownWarm font-semibold">
-                        {isEn
-                            ? `${recipe.steps.length} steps`
-                            : `共 ${recipe.steps.length} 步`}
+                        {t("recipe.stepsCount", locale).replace("{count}", String(recipe.steps.length))}
                     </span>
                 </div>
 
@@ -67,12 +65,8 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
                         <span className="text-lg">{isDownloadingLongImage ? "⏳" : "📥"}</span>
                         <span className="text-sm font-medium">
                             {isDownloadingLongImage
-                                ? isEn
-                                    ? "Preparing..."
-                                    : "生成中..."
-                                : isEn
-                                ? "Download Image"
-                                : "下载长图"}
+                                ? t("recipe.preparing", locale)
+                                : t("recipe.downloadImage", locale)}
                         </span>
                     </button>
                     <button
@@ -83,12 +77,8 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
                         <span className="text-lg">{isPrintingLongImage ? "⏳" : "🖨️"}</span>
                         <span className="text-sm font-medium">
                             {isPrintingLongImage
-                                ? isEn
-                                    ? "Preparing..."
-                                    : "准备中..."
-                                : isEn
-                                ? "Print Image"
-                                : "打印长图"}
+                                ? t("recipe.preparingPrint", locale)
+                                : t("recipe.printImage", locale)}
                         </span>
                     </button>
                 </div>
@@ -98,16 +88,8 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
             <div id="steps-container">
                 {/* 步骤卡片列表 */}
                 {recipe.steps.map((step, index) => {
-                    // 尝试更灵活地匹配 imageShot
-                    const imageShot = recipe.imageShots?.find((shot) => {
-                        // 1. 直接匹配 key === id
-                        if (shot.key === step.id) return true;
-                        // 2. 尝试匹配数字部分 (例如 step01 匹配 step1)
-                        const stepNum = step.id.replace(/\D/g, '');
-                        const shotNum = shot.key.replace(/\D/g, '');
-                        if (stepNum && shotNum && stepNum === shotNum) return true;
-                        return false;
-                    });
+                    // 使用步骤内的 imageUrl
+                    const stepImageUrl = step.imageUrl;
 
                     // 动态导入 StepCard 组件
                     const StepCard = require("@/components/recipe/StepCard").StepCard;
@@ -117,7 +99,7 @@ export function RecipeContent({ recipe, stepImages }: RecipeContentProps) {
                             key={step.id}
                             step={step}
                             stepNumber={index + 1}
-                            imageUrl={step.imageUrl || imageShot?.imageUrl}
+                            imageUrl={stepImageUrl}
                         />
                     );
                 })}

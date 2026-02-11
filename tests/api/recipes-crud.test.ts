@@ -40,8 +40,6 @@ vi.mock("@/lib/validators/recipe", () => ({
       story: data.story,
       ingredients: data.ingredients || [],
       steps: data.steps || [],
-      styleGuide: data.styleGuide || {},
-      imageShots: data.imageShots || [],
     },
   })),
 }));
@@ -231,8 +229,6 @@ describe("POST /api/recipes", () => {
       story: "宫保鸡丁的故事...",
       ingredients: [],
       steps: [],
-      styleGuide: {},
-      imageShots: [],
       location: "川渝",
       cuisine: "川菜",
       mainIngredients: ["鸡肉", "花生"],

@@ -40,8 +40,6 @@ async function main() {
       story: sampleRecipe.story as object,
       ingredients: sampleRecipe.ingredients as object[],
       steps: sampleRecipe.steps as object[],
-      styleGuide: sampleRecipe.styleGuide as object,
-      imageShots: sampleRecipe.imageShots as object[],
       slug: sampleRecipe.titleEn?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `recipe-${Date.now()}`,
       status: "published",
     },

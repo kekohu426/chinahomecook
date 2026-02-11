@@ -1,0 +1,613 @@
+{
+  "schemaVersion": "2.0.0",
+  "recipe": {
+    "id": "malaniu-001",
+    "titleZh": "麻辣牛肉",
+    "titleEn": "Spicy Mala Beef",
+    "aliases": ["川味麻辣牛肉", "花椒辣牛肉"],
+    "primaryIngredients": ["牛肉", "花椒", "辣椒"],
+    "origin": {
+      "country": "中国",
+      "region": "四川",
+      "cuisine": "川菜",
+      "notes": "以花椒与干辣椒的复合香、麻与辣的平衡见长。"
+    },
+    "summary": {
+      "oneLine": "麻与辣交织、外香里嫩的川式麻辣牛肉。",
+      "healingTone": "一口下去，花椒的麻电与辣椒的热浪相拥，痛快得刚刚好。",
+      "flavorTags": ["麻", "辣", "香脆"],
+      "difficulty": "medium",
+      "timeTotalMin": 50,
+      "timeActiveMin": 35,
+      "servings": 3,
+      "scaleHint": "牛肉按人数增减；麻辣比例随个人耐受微调。"
+    },
+    "story": "麻辣牛肉以牛肉的筋道与川味的麻辣香气为核心，常见为快炒或干锅形式，强调高温迅速定型与香料油的渗透。",
+    "culturalStory": "川菜以‘一菜一格、百菜百味’著称，麻辣牛肉以花椒与辣椒为主导，体现了川味的层次与火候掌控。",
+    "nutrition": {
+      "perServing": {
+        "calories": 520,
+        "protein": 36,
+        "fat": 32,
+        "carbs": 18,
+        "fiber": 4,
+        "sodium": 980
+      },
+      "dietaryLabels": ["含牛肉", "非素食"],
+      "disclaimer": "营养为估算值；随牛肉部位、油与香料用量变化。"
+    },
+    "equipment": [
+      { "name": "菜刀", "required": true, "notes": "逆纹切片更嫩" },
+      { "name": "炒锅（铁锅最佳）", "required": true, "notes": "高温快炒更有锅气" },
+      { "name": "碗盆与滤网", "required": true, "notes": "腌肉与捞出备用" },
+      { "name": "铲勺", "required": true, "notes": "翻炒与控油" }
+    ],
+    "ingredients": [
+      {
+        "section": "主料",
+        "items": [
+          {
+            "name": "牛里脊或牛后腿肉",
+            "iconKey": "meat",
+            "amount": 500,
+            "unit": "克",
+            "prep": "逆纹切薄片或条，吸干表面水分",
+            "optional": false,
+            "substitutes": ["牛腱（更筋道，切薄）"],
+            "allergens": [],
+            "notes": "里脊更嫩、后腿更实；切片厚度约2–3mm。"
+          }
+        ]
+      },
+      {
+        "section": "腌料",
+        "items": [
+          {
+            "name": "生抽",
+            "iconKey": "sauce",
+            "amount": 12,
+            "unit": "毫升",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["淡酱油"],
+            "allergens": ["大豆", "麸质（部分品牌）"],
+            "notes": "基础咸鲜。"
+          },
+          {
+            "name": "料酒",
+            "iconKey": "sauce",
+            "amount": 12,
+            "unit": "毫升",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["黄酒"],
+            "allergens": [],
+            "notes": "去腥增香。"
+          },
+          {
+            "name": "白胡椒粉",
+            "iconKey": "spice",
+            "amount": 0.5,
+            "unit": "茶匙",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["黑胡椒"],
+            "allergens": [],
+            "notes": "腌制提香。"
+          },
+          {
+            "name": "玉米淀粉",
+            "iconKey": "grain",
+            "amount": 8,
+            "unit": "克",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["红薯淀粉"],
+            "allergens": [],
+            "notes": "薄薄挂衣，保嫩与锁汁。"
+          }
+        ]
+      },
+      {
+        "section": "香料与配料",
+        "items": [
+          {
+            "name": "干辣椒段",
+            "iconKey": "spice",
+            "amount": 20,
+            "unit": "克",
+            "prep": "剪段",
+            "optional": false,
+            "substitutes": ["朝天椒（减量）"],
+            "allergens": [],
+            "notes": "提供主要辣度。"
+          },
+          {
+            "name": "花椒粒（二荆条产区优先）",
+            "iconKey": "spice",
+            "amount": 10,
+            "unit": "克",
+            "prep": "轻拍或温油炸香",
+            "optional": false,
+            "substitutes": ["青花椒（更清麻）"],
+            "allergens": [],
+            "notes": "麻味核心来源。"
+          },
+          {
+            "name": "蒜瓣",
+            "iconKey": "veg",
+            "amount": 6,
+            "unit": "瓣",
+            "prep": "拍碎",
+            "optional": false,
+            "substitutes": [],
+            "allergens": [],
+            "notes": "增香。"
+          },
+          {
+            "name": "姜片",
+            "iconKey": "veg",
+            "amount": 20,
+            "unit": "克",
+            "prep": "切片",
+            "optional": false,
+            "substitutes": [],
+            "allergens": [],
+            "notes": "去腥提香。"
+          },
+          {
+            "name": "葱段",
+            "iconKey": "veg",
+            "amount": 40,
+            "unit": "克",
+            "prep": "切段",
+            "optional": false,
+            "substitutes": ["香葱"],
+            "allergens": [],
+            "notes": "后段提香与点缀。"
+          },
+          {
+            "name": "郫县豆瓣酱",
+            "iconKey": "sauce",
+            "amount": 20,
+            "unit": "克",
+            "prep": "剁细",
+            "optional": false,
+            "substitutes": ["辣椒酱（风味不同）"],
+            "allergens": ["大豆", "麸质（部分品牌）"],
+            "notes": "提供底味与红亮色泽。"
+          },
+          {
+            "name": "生抽",
+            "iconKey": "sauce",
+            "amount": 10,
+            "unit": "毫升",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["淡酱油"],
+            "allergens": ["大豆", "麸质（部分品牌）"],
+            "notes": "炒段补咸鲜。"
+          },
+          {
+            "name": "白砂糖",
+            "iconKey": "other",
+            "amount": 4,
+            "unit": "克",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["冰糖粉"],
+            "allergens": [],
+            "notes": "平衡辣度与提升香气。"
+          },
+          {
+            "name": "菜籽油或花生油",
+            "iconKey": "sauce",
+            "amount": 2,
+            "unit": "汤匙",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["猪油（更香）"],
+            "allergens": [],
+            "notes": "足量油更利于香料释香。"
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "id": "step01",
+        "title": "腌牛肉保嫩",
+        "action": "牛肉加入生抽、料酒、白胡椒与玉米淀粉拌匀，静置10–15分钟，使入味并形成薄挂衣。",
+        "speechText": "腌好牛肉，薄薄挂衣更嫩。",
+        "timerSec": 600,
+        "visualCue": "牛肉均匀挂浆、无过多水分",
+        "failPoint": "腌过久易出水",
+        "photoBrief": "牛肉片微上色、表面薄浆",
+        "heat": "小火",
+        "timeMin": 10,
+        "timeMax": 15,
+        "statusChecks": ["挂浆均匀"],
+        "failurePoints": ["出水多"],
+        "recovery": "轻吸去多余腌液再炒。"
+      },
+      {
+        "id": "step02",
+        "title": "炸香花椒与辣椒",
+        "action": "锅中冷油下花椒，小火慢炸至微鼓香气溢出；加入干辣椒段转中高火快速炒香并捞出备用，留香油在锅内。",
+        "speechText": "花椒小火走香，辣椒后段快炒。",
+        "timerSec": 0,
+        "visualCue": "花椒微鼓不焦黑、辣椒油亮红润",
+        "failPoint": "温度过高花椒发黑苦涩",
+        "photoBrief": "锅中香料油亮、花椒颜色均匀",
+        "heat": "medium",
+        "timeMin": 2,
+        "timeMax": 3,
+        "statusChecks": ["无焦糊气味"],
+        "failurePoints": ["花椒发黑"],
+        "recovery": "弃香料重来，控制小火温度。"
+      },
+      {
+        "id": "step03",
+        "title": "下牛肉快炒定型",
+        "action": "保持大火，入腌好的牛肉迅速摊开，滑炒至变色微卷且表面油亮定型，不要久炒以免发柴。",
+        "speechText": "大火快炒、变色即将起。",
+        "timerSec": 0,
+        "visualCue": "牛肉颜色由红转棕、边缘微卷",
+        "failPoint": "久炒出水发柴",
+        "photoBrief": "牛肉片油亮、未出汤水",
+        "heat": "high",
+        "timeMin": 1.5,
+        "timeMax": 2.5,
+        "statusChecks": ["锅底不积水"],
+        "failurePoints": ["出水"],
+        "recovery": "加大火力先炒干水汽。"
+      },
+      {
+        "id": "step04",
+        "title": "豆瓣入味与香料回锅",
+        "action": "推牛肉至锅边，入少量油与郫县豆瓣酱小火炒出红油；再与牛肉翻匀，倒回炸香的花椒与干辣椒，加入蒜、姜与生抽、白砂糖调味，快速翻炒入味。",
+        "speechText": "豆瓣小火出红油，再与牛肉合拌。",
+        "timerSec": 0,
+        "visualCue": "锅中红油明显、香气浓郁",
+        "failPoint": "豆瓣未炒香会生腥苦涩",
+        "photoBrief": "红油裹在牛肉与香料上",
+        "heat": "medium",
+        "timeMin": 1.5,
+        "timeMax": 2.5,
+        "statusChecks": ["有红油"],
+        "failurePoints": ["生腥"],
+        "recovery": "延长小火炒酱时间至出红油。"
+      },
+      {
+        "id": "step05",
+        "title": "葱段收香与装盘",
+        "action": "加入葱段与少许花椒油快速翻拌提香，尝味微调麻辣与咸度；起锅装盘，表面撒少量花椒碎点缀。",
+        "speechText": "葱段后下，锅边香气袭人。",
+        "timerSec": 0,
+        "visualCue": "牛肉油亮、葱段鲜绿、香气四溢",
+        "failPoint": "停锅过久易回生或出水",
+        "photoBrief": "成品红润油亮、香料均匀",
+        "heat": "high",
+        "timeMin": 0.5,
+        "timeMax": 1,
+        "statusChecks": ["锅底少汁"],
+        "failurePoints": ["味型失衡"],
+        "recovery": "以少量白糖平衡、或加花椒油补麻、加盐补咸。"
+      }
+    ],
+    "faq": [
+      { "question": "牛肉容易发柴怎么办？", "answer": "选里脊或后腿的嫩部位，逆纹切薄并腌制薄挂衣；全程大火快炒，变色即起。" },
+      { "question": "麻辣如何平衡？", "answer": "花椒与辣椒分开控香，豆瓣小火出红油后再合拌；以白糖微量平衡，避免单向刺激。" },
+      { "question": "可以做干锅版本吗？", "answer": "可在步骤末段加厚底小锅垫洋葱圈或土豆片，倒入牛肉与红油，继续小火加热维持香气。" }
+    ],
+    "tips": [
+      "花椒先小火走香、辣椒中高火快炒，避免焦苦。",
+      "豆瓣必须小火炒出红油再与牛肉合拌。",
+      "腌制挂衣薄而均匀，才能既入味又保持嫩度。"
+    ],
+    "troubleshooting": [
+      { "problem": "花椒发黑苦涩", "cause": "火力过高或炒制时间过长", "fix": "改小火温油炸香，发黑即弃重来。" },
+      { "problem": "牛肉出水", "cause": "火力不足或腌制时间过长", "fix": "加大火力快速滑炒；腌制不超过15分钟并吸干多余腌液。" },
+      { "problem": "味型过咸", "cause": "豆瓣与生抽叠加", "fix": "减少生抽用量，以白糖与少量清水短炒平衡。" }
+    ],
+    "relatedRecipes": {
+      "similar": ["干锅牛肉", "藤椒牛肉"],
+      "pairing": ["白米饭", "凉拌黄瓜"]
+    },
+    "pairing": {
+      "suggestions": ["白米饭", "拍黄瓜", "清炒时蔬"],
+      "sauceOrSide": ["花椒油（少量）", "凉拌木耳"]
+    },
+    "tags": {
+      "scenes": ["家常菜", "干锅", "下酒菜"],
+      "cookingMethods": ["腌", "炸香", "快炒"],
+      "tastes": ["麻", "辣"],
+      "crowds": ["所有人"],
+      "occasions": ["正餐", "聚会"]
+    },
+    "seo": {
+      "slug": "mala-niurou",
+      "metaTitle": "麻辣牛肉 | 花椒与辣椒交织的川式快炒",
+      "metaDescription": "麻辣牛肉以花椒与干辣椒为核心，豆瓣出红油后与牛肉快炒定型，麻与辣平衡、外香里嫩的家常川味。",
+      "keywords": ["麻辣牛肉", "川菜", "花椒辣", "郫县豆瓣"]
+    },
+    "notes": ["选新鲜花椒与优质豆瓣，香气更立体；牛肉切片厚度统一更易控制熟度。"]
+  }
+}
+
+{
+  "schemaVersion": "2.0.0",
+  "recipe": {
+    "id": "yutou-doufu-001",
+    "titleZh": "鱼头豆腐",
+    "titleEn": "Fish Head Tofu Soup",
+    "aliases": ["奶白鱼头豆腐汤", "鱼头煲豆腐"],
+    "primaryIngredients": ["鱼头", "豆腐"],
+    "origin": {
+      "country": "中国",
+      "region": "江浙沪·家常",
+      "cuisine": "家常菜/汤羹",
+      "notes": "以猛火乳化出奶白汤，豆腐吸收鱼鲜，清润不腥。"
+    },
+    "summary": {
+      "oneLine": "奶白汤底、鲜香清润的家常鱼头豆腐煲。",
+      "healingTone": "热乎的奶白鱼汤裹着豆腐的柔软，入口温暖舒适。",
+      "flavorTags": ["鲜香", "清润", "奶白汤"],
+      "difficulty": "medium",
+      "timeTotalMin": 45,
+      "timeActiveMin": 30,
+      "servings": 4,
+      "scaleHint": "鱼头与豆腐按人数增减，汤量以能覆盖鱼头为宜。"
+    },
+    "story": "鱼头豆腐以高温煎香后猛火乳化出奶白汤著称，豆腐吸收鱼鲜而更滑嫩，是江浙沪与粤式家常餐桌常见的暖胃汤煲。",
+    "culturalStory": "家庭烹饪强调去腥与汤体乳化，选鲜鱼、用姜葱与料酒调和腥味，形成清润不腻的奶白汤。",
+    "nutrition": {
+      "perServing": {
+        "calories": 280,
+        "protein": 22,
+        "fat": 16,
+        "carbs": 10,
+        "fiber": 1,
+        "sodium": 780
+      },
+      "dietaryLabels": ["含鱼类", "非素食"],
+      "disclaimer": "营养为估算值；随鱼种、豆腐类型与油盐用量变化。"
+    },
+    "equipment": [
+      { "name": "菜刀", "required": true, "notes": "劈开鱼头与改刀配料" },
+      { "name": "炒锅或砂锅", "required": true, "notes": "煎香与煲汤" },
+      { "name": "铲勺与汤勺", "required": true, "notes": "翻动与盛汤" },
+      { "name": "滤网或夹子", "required": false, "notes": "捞出杂质或鱼骨碎" }
+    ],
+    "ingredients": [
+      {
+        "section": "主料",
+        "items": [
+          {
+            "name": "鲢鱼头（或草鱼头/胖头鱼头）",
+            "iconKey": "seafood",
+            "amount": 800,
+            "unit": "克",
+            "prep": "剖洗去腮与血线，厨房纸吸干",
+            "optional": false,
+            "substitutes": ["三文鱼头（风味更油香）"],
+            "allergens": ["鱼类过敏"],
+            "notes": "鱼头带胶质更易乳化出奶白汤。"
+          },
+          {
+            "name": "北豆腐或嫩豆腐",
+            "iconKey": "other",
+            "amount": 400,
+            "unit": "克",
+            "prep": "切厚块、盐水轻泡10分钟增强韧性",
+            "optional": false,
+            "substitutes": ["南豆腐（更嫩，慎翻动）"],
+            "allergens": ["大豆"],
+            "notes": "豆腐厚块不易碎，易吸汤。"
+          }
+        ]
+      },
+      {
+        "section": "配料与调味",
+        "items": [
+          {
+            "name": "生姜",
+            "iconKey": "veg",
+            "amount": 30,
+            "unit": "克",
+            "prep": "拍碎或切片",
+            "optional": false,
+            "substitutes": [],
+            "allergens": [],
+            "notes": "去腥提香。"
+          },
+          {
+            "name": "葱段",
+            "iconKey": "veg",
+            "amount": 40,
+            "unit": "克",
+            "prep": "切段",
+            "optional": false,
+            "substitutes": ["香葱"],
+            "allergens": [],
+            "notes": "煲汤增香与点缀。"
+          },
+          {
+            "name": "料酒或黄酒",
+            "iconKey": "sauce",
+            "amount": 25,
+            "unit": "毫升",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["米酒"],
+            "allergens": [],
+            "notes": "去腥增香。"
+          },
+          {
+            "name": "白胡椒粉",
+            "iconKey": "spice",
+            "amount": 0.5,
+            "unit": "茶匙",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["黑胡椒"],
+            "allergens": [],
+            "notes": "收尾提香与暖胃。"
+          },
+          {
+            "name": "盐",
+            "iconKey": "spice",
+            "amount": 3,
+            "unit": "克",
+            "prep": "",
+            "optional": false,
+            "substitutes": [],
+            "allergens": [],
+            "notes": "随口味调整。"
+          },
+          {
+            "name": "菜籽油或花生油",
+            "iconKey": "sauce",
+            "amount": 1.5,
+            "unit": "汤匙",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["猪油（更香）"],
+            "allergens": [],
+            "notes": "用于煎香鱼头。"
+          },
+          {
+            "name": "清水或高汤",
+            "iconKey": "other",
+            "amount": 1200,
+            "unit": "毫升",
+            "prep": "",
+            "optional": false,
+            "substitutes": ["鸡汤（更浓郁）"],
+            "allergens": [],
+            "notes": "足量覆盖鱼头，利于乳化。"
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "id": "step01",
+        "title": "处理鱼头与去腥",
+        "action": "鱼头去腮、清洗血线，厨房纸吸干；用少量盐与料酒轻抹鱼头静置5分钟去腥。",
+        "speechText": "鱼头要干爽，腥味集中在腮与血线。",
+        "timerSec": 300,
+        "visualCue": "鱼头表面干爽无水渍、腮位清洁",
+        "failPoint": "未吸干易煎时爆油粘锅",
+        "photoBrief": "处理干净的鱼头置案板上",
+        "heat": "小火",
+        "timeMin": 5,
+        "timeMax": 6,
+        "statusChecks": ["表面干爽"],
+        "failurePoints": ["残留腮或血线"],
+        "recovery": "再次清洗并充分擦干。"
+      },
+      {
+        "id": "step02",
+        "title": "煎香定型",
+        "action": "锅烧至微冒烟，下油改中高火，入姜片垫底防粘；放入鱼头（可劈开摊平）两面煎至金黄微焦，定型出香。",
+        "speechText": "姜片垫底更防粘，鱼皮煎至金黄。",
+        "timerSec": 0,
+        "visualCue": "鱼皮金黄、边缘微焦、香气浓",
+        "failPoint": "翻动过早易破皮",
+        "photoBrief": "锅中鱼头金黄、姜片在底",
+        "heat": "high",
+        "timeMin": 4,
+        "timeMax": 6,
+        "statusChecks": ["不粘锅", "表面金黄"],
+        "failurePoints": ["皮破粘锅"],
+        "recovery": "等待定型再翻面；补少量油。"
+      },
+      {
+        "id": "step03",
+        "title": "猛火乳化出奶白汤",
+        "action": "倒入清水或高汤没过鱼头，加入葱段与料酒；开大火沸腾后保持滚沸8–10分钟，使汤体乳化至奶白。",
+        "speechText": "保持滚沸，汤色会逐渐转白。",
+        "timerSec": 0,
+        "visualCue": "汤体由清转白、表面有乳化小泡",
+        "failPoint": "火力不足难以乳化",
+        "photoBrief": "砂锅内汤色奶白、沸腾明显",
+        "heat": "high",
+        "timeMin": 8,
+        "timeMax": 10,
+        "statusChecks": ["汤色奶白"],
+        "failurePoints": ["汤色不白"],
+        "recovery": "延长大火滚煮并保持沸腾。"
+      },
+      {
+        "id": "step04",
+        "title": "入豆腐煲透",
+        "action": "加入豆腐厚块，改中火继续煮7–10分钟让豆腐吸汤入味，保持轻推防破。",
+        "speechText": "豆腐轻推不翻拌，避免碎裂。",
+        "timerSec": 0,
+        "visualCue": "豆腐边缘微晃、内部透亮吸汤",
+        "failPoint": "大力翻动导致碎裂",
+        "photoBrief": "汤中豆腐整齐、汤色乳白",
+        "heat": "medium",
+        "timeMin": 7,
+        "timeMax": 10,
+        "statusChecks": ["豆腐入味"],
+        "failurePoints": ["碎裂"],
+        "recovery": "使用厚块并减少翻动。"
+      },
+      {
+        "id": "step05",
+        "title": "调味与收尾",
+        "action": "撒盐与白胡椒调味，尝味微调；出锅前捞出大块姜片与鱼骨碎，点少许葱花。",
+        "speechText": "盐与白胡椒收尾，清鲜暖胃。",
+        "timerSec": 0,
+        "visualCue": "汤面洁净、葱花翠绿、香气柔和",
+        "failPoint": "盐加过多掩盖鲜味",
+        "photoBrief": "成品奶白、豆腐规整、葱花点缀",
+        "heat": "小火",
+        "timeMin": 0.5,
+        "timeMax": 1,
+        "statusChecks": ["鲜香平衡"],
+        "failurePoints": ["过咸"],
+        "recovery": "少量加水或高汤稀释并重新平衡。"
+      }
+    ],
+    "faq": [
+      { "question": "汤色不奶白怎么办？", "answer": "确保鱼头先煎香，再加足量水后保持大火滚沸8–10分钟；火力不足或水量太少都会影响乳化。" },
+      { "question": "鱼腥味较重如何处理？", "answer": "去除鱼腮与血线、煎香定型、加入姜葱与料酒并保持大火滚煮，可显著降低腥味。" },
+      { "question": "豆腐容易碎？", "answer": "选北豆腐或切厚块，入锅后轻推不翻拌；可先盐水轻泡提升韧性。" }
+    ],
+    "tips": [
+      "鱼头必须充分吸干再下锅，防爆油防粘。",
+      "姜片垫底能有效避免皮面粘锅。",
+      "乳化关键在‘大火滚沸’，时间与火力缺一不可。"
+    ],
+    "troubleshooting": [
+      { "problem": "汤色清亮不白", "cause": "火力不足或煎香不充分", "fix": "提高火力延长滚沸时间；确保两面煎至金黄再下水。" },
+      { "problem": "豆腐碎裂", "cause": "翻动过多或豆腐过嫩", "fix": "使用北豆腐切厚块，烹煮时轻推。" },
+      { "problem": "有腥味残留", "cause": "未去净腮与血线或未加入姜葱与料酒", "fix": "重新清理鱼头并补充姜葱料酒猛火滚煮。" }
+    ],
+    "relatedRecipes": {
+      "similar": ["鲫鱼豆腐汤", "三文鱼头豆腐汤"],
+      "pairing": ["白米饭", "清炒青菜"]
+    },
+    "pairing": {
+      "suggestions": ["白米饭", "清炒时蔬", "凉拌黄瓜"],
+      "sauceOrSide": ["白胡椒粉（桌边加）", "葱花"]
+    },
+    "tags": {
+      "scenes": ["家常菜", "汤羹", "暖胃"],
+      "cookingMethods": ["煎", "煲", "乳化"],
+      "tastes": ["鲜香", "清润"],
+      "crowds": ["所有人"],
+      "occasions": ["正餐", "简餐"]
+    },
+    "seo": {
+      "slug": "yutou-doufu",
+      "metaTitle": "鱼头豆腐 | 奶白鲜香的家常暖胃汤煲",
+      "metaDescription": "鱼头煎香后猛火滚煮乳化出奶白汤，加入厚块豆腐煲透入味，鲜香清润、家常暖胃的鱼头豆腐。",
+      "keywords": ["鱼头豆腐", "奶白鱼汤", "家常汤煲"]
+    },
+    "notes": ["选新鲜鱼头，处理腮与血线是去腥关键；豆腐厚块更稳不易碎。"]
+  }
+}

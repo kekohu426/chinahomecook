@@ -5,6 +5,7 @@
  */
 
 import { getTextProvider } from "./provider";
+import { AIGenerationLogger, calculateCost } from "./generation-logger";
 
 // 标签数据（从数据库获取）
 interface TagData {
@@ -190,9 +191,11 @@ ${tags.occasions.map(t => `- ${t.name} (ID: ${t.id})`).join('\n')}
  */
 export async function generateRulesFromNaturalLanguage(
   userInput: string,
-  tags: TagData
+  tags: TagData,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<GeneratedRules> {
   const prompt = buildPrompt(userInput, tags);
+  const startTime = Date.now();
 
   try {
     // 使用默认的 AI Provider（GLM）
@@ -208,6 +211,29 @@ export async function generateRulesFromNaturalLanguage(
       temperature: 0.3, // 较低温度，保证输出稳定
       maxTokens: 2000,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("rule_generation", modelName, {
+        prompt: prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 2000 },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { type: "rule_generation", userInput: userInput.substring(0, 200) },
+      });
+    }
 
     const content = response.content;
 

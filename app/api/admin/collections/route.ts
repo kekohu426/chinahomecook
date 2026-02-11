@@ -1,15 +1,13 @@
-/**
- * Collections 列表 API
+﻿/**
+ * Collections 鍒楄〃 API
  *
- * GET  /api/admin/collections - 获取集合列表
- * POST /api/admin/collections - 创建集合
+ * GET  /api/admin/collections - 鑾峰彇闆嗗悎鍒楄〃
+ * POST /api/admin/collections - 鍒涘缓闆嗗悎
  *
- * 核心口径：
- * 1. 达标：publishedCount >= minRequired（pending 不计入）
- * 2. 进度：progress = publishedCount / targetCount * 100
- * 3. 列表使用缓存字段 cached*
- * 4. 规则优先级：组间 AND → 组内 logic → NOT；空组/空条件忽略
- */
+ * 鏍稿績鍙ｅ緞锛? * 1. 杈炬爣锛歱ublishedCount >= minRequired锛坧ending 涓嶈鍏ワ級
+ * 2. 杩涘害锛歱rogress = publishedCount / targetCount * 100
+ * 3. 鍒楄〃浣跨敤缂撳瓨瀛楁 cached*
+ * 4. 瑙勫垯浼樺厛绾э細缁勯棿 AND 鈫?缁勫唴 logic 鈫?NOT锛涚┖缁?绌烘潯浠跺拷鐣? */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
@@ -27,7 +25,7 @@ import type {
   ApiError,
 } from "@/lib/types/collection-api";
 
-// 生成 slug
+// 鐢熸垚 slug
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -62,7 +60,7 @@ async function createCollectionSafe(data: Parameters<typeof prisma.collection.cr
   try {
     await prisma.collection.create({ data });
   } catch (error) {
-    console.warn("自动同步合集失败（忽略）:", error);
+    console.warn("鑷姩鍚屾鍚堥泦澶辫触锛堝拷鐣ワ級:", error);
   }
 }
 
@@ -167,24 +165,22 @@ async function autoSyncCollections(): Promise<void> {
  * GET /api/admin/collections
  *
  * Query params:
- * - page: 页码（默认 1）
- * - pageSize: 每页数量（默认 20，最大 100）
- * - type: 集合类型
- * - status: 状态 (draft/published/archived)
- * - qualified: 是否达标 (true/false)
- * - search: 搜索名称/slug
- * - sortBy: 排序字段
- * - sortOrder: 排序方向 (asc/desc)
+ * - page: 椤电爜锛堥粯璁?1锛? * - pageSize: 姣忛〉鏁伴噺锛堥粯璁?20锛屾渶澶?100锛? * - type: 闆嗗悎绫诲瀷
+ * - status: 鐘舵€?(draft/published/archived)
+ * - qualified: 鏄惁杈炬爣 (true/false)
+ * - search: 鎼滅储鍚嶇О/slug
+ * - sortBy: 鎺掑簭瀛楁
+ * - sortOrder: 鎺掑簭鏂瑰悜 (asc/desc)
  */
 export async function GET(request: NextRequest) {
   try {
-    // 权限检查
+    // 鏉冮檺妫€鏌?
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "UNAUTHORIZED", message: "需要管理员权限" },
+          error: { code: "UNAUTHORIZED", message: "闇€瑕佺鐞嗗憳鏉冮檺" },
         },
         { status: 401 }
       );
@@ -192,7 +188,8 @@ export async function GET(request: NextRequest) {
 
     await autoSyncCollections();
 
-    // 解析查询参数
+    // 瑙ｆ瀽鏌ヨ鍙傛暟
+
     const searchParams = request.nextUrl.searchParams;
     const filter = searchParams.get("filter"); // featured | landing
     const params: CollectionListParams = {
@@ -211,8 +208,8 @@ export async function GET(request: NextRequest) {
       sortOrder: (searchParams.get("sortOrder") as "asc" | "desc") || "desc",
     };
 
-    // 构建查询条件
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // 鏋勫缓鏌ヨ鏉′欢
+
     const where: any = {};
 
     if (params.type) {
@@ -223,7 +220,8 @@ export async function GET(request: NextRequest) {
       where.status = params.status;
     }
 
-    // 根据 filter 参数筛选
+    // 鏍规嵁 filter 鍙傛暟绛涢€?
+
     if (filter === "featured") {
       where.isFeatured = true;
     } else if (filter === "landing") {
@@ -238,7 +236,8 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // 查询总数和列表
+    // 鏌ヨ鎬绘暟鍜屽垪琛?
+
     const collections = await prisma.collection.findMany({
       where,
       orderBy: params.sortBy
@@ -265,7 +264,8 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 转换为响应格式，计算 progress 和 qualifiedStatus
+    // 杞崲涓哄搷搴旀牸寮忥紝璁＄畻 progress 鍜?qualifiedStatus
+
     let items: CollectionListItem[] = collections.map((c) => ({
       id: c.id,
       type: c.type,
@@ -292,7 +292,8 @@ export async function GET(request: NextRequest) {
       updatedAt: c.updatedAt.toISOString(),
     }));
 
-    // 达标筛选（在内存中过滤，因为需要字段间比较）
+    // 杈炬爣绛涢€夛紙鍦ㄥ唴瀛樹腑杩囨护锛屽洜涓洪渶瑕佸瓧娈甸棿姣旇緝锛?
+
     if (params.qualified !== undefined) {
       items = items.filter((item) =>
         params.qualified
@@ -301,7 +302,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 分页在过滤后执行，保证 total/totalPages 与数据一致
+    // 鍒嗛〉鍦ㄨ繃婊ゅ悗鎵ц锛屼繚璇?total/totalPages 涓庢暟鎹竴鑷?
+
     const page = Math.max(1, params.page || 1);
     const pageSize = params.pageSize || 20;
     const total = items.length;
@@ -318,11 +320,11 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("获取集合列表失败:", error);
+    console.error("鑾峰彇闆嗗悎鍒楄〃澶辫触:", error);
     return NextResponse.json<ApiError>(
       {
         success: false,
-        error: { code: "INTERNAL_ERROR", message: "获取集合列表失败" },
+        error: { code: "INTERNAL_ERROR", message: "鑾峰彇闆嗗悎鍒楄〃澶辫触" },
       },
       { status: 500 }
     );
@@ -334,13 +336,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // 权限检查
+    // 鏉冮檺妫€鏌?
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "UNAUTHORIZED", message: "需要管理员权限" },
+          error: { code: "UNAUTHORIZED", message: "闇€瑕佺鐞嗗憳鏉冮檺" },
         },
         { status: 401 }
       );
@@ -348,17 +350,18 @@ export async function POST(request: NextRequest) {
 
     const body: CreateCollectionRequest = await request.json();
 
-    // 验证必填字段
+    // 楠岃瘉蹇呭～瀛楁
+
     if (!body.type || !body.name) {
       return NextResponse.json<ApiError>(
         {
           success: false,
           error: {
             code: "VALIDATION_ERROR",
-            message: "缺少必填字段",
+            message: "缂哄皯蹇呭～瀛楁",
             details: {
-              type: !body.type ? ["类型不能为空"] : [],
-              name: !body.name ? ["名称不能为空"] : [],
+              type: !body.type ? ["绫诲瀷涓嶈兘涓虹┖"] : [],
+              name: !body.name ? ["鍚嶇О涓嶈兘涓虹┖"] : [],
             },
           },
         },
@@ -366,10 +369,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 生成 slug
+    // 鐢熸垚 slug
+
     const slug = body.slug || generateSlug(body.name);
 
-    // 检查 slug 唯一性
+    // 妫€鏌?slug 鍞竴鎬?
+
     const existing = await prisma.collection.findUnique({
       where: { slug },
       select: { id: true },
@@ -381,26 +386,29 @@ export async function POST(request: NextRequest) {
           success: false,
           error: {
             code: "CONFLICT",
-            message: "slug 已存在",
-            details: { slug: ["该 slug 已被使用"] },
+            message: "Slug already exists",
+            details: { slug: ["This slug is already in use"] },
           },
         },
         { status: 409 }
       );
     }
 
-    // 生成 path
+    // 鐢熸垚 path
+
     const typePath =
       CollectionTypePath[body.type as keyof typeof CollectionTypePath] ||
       `/recipe/${body.type}`;
     const path = `${typePath}/${slug}`;
 
-    // 确定规则类型
+    // 纭畾瑙勫垯绫诲瀷
+
     const ruleType =
       body.ruleType ||
       (body.cuisineId || body.locationId || body.tagId ? "auto" : "custom");
 
-    // 构建规则
+    // 鏋勫缓瑙勫垯
+
     let rules = {};
     if (ruleType === "auto") {
       if (body.cuisineId) {
@@ -414,7 +422,8 @@ export async function POST(request: NextRequest) {
       rules = { mode: "custom", groups: [], exclude: [] };
     }
 
-    // 对于 cuisine 类型，自动创建或关联 Cuisine
+    // 瀵逛簬 cuisine 绫诲瀷锛岃嚜鍔ㄥ垱寤烘垨鍏宠仈 Cuisine
+
     let finalCuisineId = body.cuisineId;
     if (body.type === "cuisine" && !body.cuisineId) {
       let cuisine = await prisma.cuisine.findFirst({
@@ -436,7 +445,8 @@ export async function POST(request: NextRequest) {
       rules = { mode: "auto", field: "cuisineId", value: cuisine.id };
     }
 
-    // 对于 region 类型，自动创建或关联 Location
+    // 瀵逛簬 region 绫诲瀷锛岃嚜鍔ㄥ垱寤烘垨鍏宠仈 Location
+
     let finalLocationId = body.locationId;
     if (body.type === "region" && !body.locationId) {
       let location = await prisma.location.findFirst({
@@ -458,7 +468,8 @@ export async function POST(request: NextRequest) {
       rules = { mode: "auto", field: "locationId", value: location.id };
     }
 
-    // 创建集合
+    // 鍒涘缓闆嗗悎
+
     const collection = await prisma.collection.create({
       data: {
         type: body.type,
@@ -485,13 +496,17 @@ export async function POST(request: NextRequest) {
       data: { id: collection.id, slug: collection.slug },
     });
   } catch (error) {
-    console.error("创建集合失败:", error);
+    console.error("鍒涘缓闆嗗悎澶辫触:", error);
     return NextResponse.json<ApiError>(
       {
         success: false,
-        error: { code: "INTERNAL_ERROR", message: "创建集合失败" },
+        error: { code: "INTERNAL_ERROR", message: "鍒涘缓闆嗗悎澶辫触" },
       },
       { status: 500 }
     );
   }
 }
+
+
+
+

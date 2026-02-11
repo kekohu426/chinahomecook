@@ -1,15 +1,13 @@
-/**
- * 单个合集 API
+﻿/**
+ * 鍗曚釜鍚堥泦 API
  *
- * GET    /api/admin/collections/[id] - 获取合集详情（实时统计）
- * PUT    /api/admin/collections/[id] - 更新合集
- * DELETE /api/admin/collections/[id] - 删除合集
+ * GET    /api/admin/collections/[id] - 鑾峰彇鍚堥泦璇︽儏锛堝疄鏃剁粺璁★級
+ * PUT    /api/admin/collections/[id] - 鏇存柊鍚堥泦
+ * DELETE /api/admin/collections/[id] - 鍒犻櫎鍚堥泦
  *
- * 核心口径：
- * 1. 达标：publishedCount >= minRequired（pending 不计入）
- * 2. 进度：progress = publishedCount / targetCount * 100
- * 3. 详情页使用实时计算统计
- */
+ * 鏍稿績鍙ｅ緞锛? * 1. 杈炬爣锛歱ublishedCount >= minRequired锛坧ending 涓嶈鍏ワ級
+ * 2. 杩涘害锛歱rogress = publishedCount / targetCount * 100
+ * 3. 璇︽儏椤典娇鐢ㄥ疄鏃惰绠楃粺璁? */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
@@ -33,8 +31,7 @@ interface RouteContext {
 }
 
 /**
- * 实时计算合集匹配的食谱数量
- * 口径：根据规则匹配，排除 excludedRecipeIds
+ * 瀹炴椂璁＄畻鍚堥泦鍖归厤鐨勯璋辨暟閲? * 鍙ｅ緞锛氭牴鎹鍒欏尮閰嶏紝鎺掗櫎 excludedRecipeIds
  */
 async function countMatchedRecipesRealtime(collection: {
   id: string;
@@ -46,7 +43,7 @@ async function countMatchedRecipesRealtime(collection: {
   excludedRecipeIds: string[];
   pinnedRecipeIds: string[];
 }): Promise<{ matched: number; published: number; pending: number; draft: number }> {
-  // 使用规则引擎构建查询条件
+  // 浣跨敤瑙勫垯寮曟搸鏋勫缓鏌ヨ鏉′欢
   const baseWhere = buildRuleWhereClause(collection.rules as RuleConfig, {
     cuisineId: collection.cuisineId,
     locationId: collection.locationId,
@@ -66,7 +63,8 @@ async function countMatchedRecipesRealtime(collection: {
         }
       : baseWhere;
 
-  // 分别统计各状态数量
+  // 鍒嗗埆缁熻鍚勭姸鎬佹暟閲?
+
   const [published, pending, draft] = await Promise.all([
     prisma.recipe.count({ where: { AND: [matchWhere, { status: "published" }] } }),
     prisma.recipe.count({ where: { AND: [matchWhere, { status: "pending" }] } }),
@@ -83,17 +81,17 @@ async function countMatchedRecipesRealtime(collection: {
 
 /**
  * GET /api/admin/collections/[id]
- * 获取合集详情（使用实时统计）
+ * 鑾峰彇鍚堥泦璇︽儏锛堜娇鐢ㄥ疄鏃剁粺璁★級
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    // 权限检查
+    // 鏉冮檺妫€鏌?
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "UNAUTHORIZED", message: "需要管理员权限" },
+          error: { code: "UNAUTHORIZED", message: "闇€瑕佺鐞嗗憳鏉冮檺" },
         },
         { status: 401 }
       );
@@ -114,13 +112,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "NOT_FOUND", message: "合集不存在" },
+          error: { code: "NOT_FOUND", message: "Collection not found" },
         },
         { status: 404 }
       );
     }
 
-    // 实时计算统计数据
+    // 瀹炴椂璁＄畻缁熻鏁版嵁
+
     const counts = await countMatchedRecipesRealtime({
       id: collection.id,
       ruleType: collection.ruleType,
@@ -132,7 +131,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       pinnedRecipeIds: collection.pinnedRecipeIds,
     });
 
-    // 获取已加入的食谱列表（限制100个，避免过大）
+    // 鑾峰彇宸插姞鍏ョ殑椋熻氨鍒楄〃锛堥檺鍒?00涓紝閬垮厤杩囧ぇ锛?
+
     const baseWhere = buildRuleWhereClause(collection.rules as RuleConfig, {
       cuisineId: collection.cuisineId,
       locationId: collection.locationId,
@@ -166,14 +166,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
       ],
     });
 
-    // 判断每个食谱的加入方式
+    // 鍒ゆ柇姣忎釜椋熻氨鐨勫姞鍏ユ柟寮?
+
     const recipesWithMethod = recipes.map((r) => {
       let addMethod: "rule" | "manual" | "ai" = "rule";
 
-      // 如果在 pinnedRecipeIds 中，说明是手动添加或 AI 生成
+      // 濡傛灉鍦?pinnedRecipeIds 涓紝璇存槑鏄墜鍔ㄦ坊鍔犳垨 AI 鐢熸垚
+
       if (pinnedIds.includes(r.id)) {
-        // TODO: 未来可以通过 Recipe 表的字段判断是否为 AI 生成
-        // 暂时统一标记为手动添加
+        // TODO: 鏈潵鍙互閫氳繃 Recipe 琛ㄧ殑瀛楁鍒ゆ柇鏄惁涓?AI 鐢熸垚
+        // 鏆傛椂缁熶竴鏍囪涓烘墜鍔ㄦ坊鍔?
         addMethod = "manual";
       }
 
@@ -185,7 +187,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       };
     });
 
-    // 获取关联实体名称
+    // 鑾峰彇鍏宠仈瀹炰綋鍚嶇О
+
     let linkedEntityName: string | undefined;
     let linkedEntityType: string | undefined;
     if (collection.cuisine) {
@@ -199,7 +202,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       linkedEntityType = "tag";
     }
 
-    // 构建响应
+    // 鏋勫缓鍝嶅簲
+
     const detail: CollectionDetail = {
       id: collection.id,
       type: collection.type,
@@ -227,19 +231,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
       tagId: collection.tagId,
       linkedEntityName,
       linkedEntityType,
-      // 实时统计
+      // 瀹炴椂缁熻
       matchedCount: counts.matched,
       publishedCount: counts.published,
       pendingCount: counts.pending,
       draftCount: counts.draft,
-      // 计算字段
+      // 璁＄畻瀛楁
       progress: calculateProgress(counts.published, collection.targetCount),
       qualifiedStatus: calculateQualifiedStatus(
         counts.published,
         collection.minRequired,
         collection.targetCount
       ),
-      // 已加入的食谱列表
+      // 宸插姞鍏ョ殑椋熻氨鍒楄〃
       recipes: recipesWithMethod,
       createdAt: collection.createdAt.toISOString(),
       updatedAt: collection.updatedAt.toISOString(),
@@ -250,11 +254,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       data: detail,
     });
   } catch (error) {
-    console.error("获取合集详情失败:", error);
+    console.error("鑾峰彇鍚堥泦璇︽儏澶辫触:", error);
     return NextResponse.json<ApiError>(
       {
         success: false,
-        error: { code: "INTERNAL_ERROR", message: "获取合集详情失败" },
+        error: { code: "INTERNAL_ERROR", message: "鑾峰彇鍚堥泦璇︽儏澶辫触" },
       },
       { status: 500 }
     );
@@ -263,17 +267,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 /**
  * PUT /api/admin/collections/[id]
- * 更新合集基本信息
+ * 鏇存柊鍚堥泦鍩烘湰淇℃伅
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
-    // 权限检查
+    // 鏉冮檺妫€鏌?
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "UNAUTHORIZED", message: "需要管理员权限" },
+          error: { code: "UNAUTHORIZED", message: "闇€瑕佺鐞嗗憳鏉冮檺" },
         },
         { status: 401 }
       );
@@ -287,16 +291,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "NOT_FOUND", message: "合集不存在" },
+          error: { code: "NOT_FOUND", message: "Collection not found" },
         },
         { status: 404 }
       );
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
 
-    // 可更新字段
+    // 鍙洿鏂板瓧娈?
+
     if (body.name !== undefined) updateData.name = body.name;
     if (body.nameEn !== undefined) updateData.nameEn = body.nameEn;
     if (body.description !== undefined) updateData.description = body.description;
@@ -307,7 +310,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (body.sortOrder !== undefined) updateData.sortOrder = body.sortOrder;
     if (body.isFeatured !== undefined) updateData.isFeatured = body.isFeatured;
     if (body.seo !== undefined) {
-      // 合并现有 SEO 配置和新配置
+      // 鍚堝苟鐜版湁 SEO 閰嶇疆鍜屾柊閰嶇疆
       const existingSeo = (existing.seo as Record<string, unknown>) || {};
       updateData.seo = { ...existingSeo, ...body.seo };
     }
@@ -321,7 +324,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
             success: false,
             error: {
               code: "VALIDATION_ERROR",
-              message: "规则配置无效",
+              message: "瑙勫垯閰嶇疆鏃犳晥",
               details: { rules: validation.errors },
             },
           },
@@ -333,9 +336,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       updateData.rules = rules;
     }
 
-    // 如果修改了 slug，需要同步更新 path
+    // 濡傛灉淇敼浜?slug锛岄渶瑕佸悓姝ユ洿鏂?path
+
     if (body.slug !== undefined && body.slug !== existing.slug) {
-      // 检查新 slug 是否已存在
+      // 妫€鏌ユ柊 slug 鏄惁宸插瓨鍦?
       const slugExists = await prisma.collection.findFirst({
         where: { slug: body.slug, NOT: { id } },
       });
@@ -345,8 +349,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
             success: false,
             error: {
               code: "CONFLICT",
-              message: "slug 已存在",
-              details: { slug: ["该 slug 已被使用"] },
+              message: "Slug already exists",
+              details: { slug: ["This slug is already in use"] },
             },
           },
           { status: 409 }
@@ -370,11 +374,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       data: { id: updated.id, slug: updated.slug },
     });
   } catch (error) {
-    console.error("更新合集失败:", error);
+    console.error("鏇存柊鍚堥泦澶辫触:", error);
     return NextResponse.json<ApiError>(
       {
         success: false,
-        error: { code: "INTERNAL_ERROR", message: "更新合集失败" },
+        error: { code: "INTERNAL_ERROR", message: "鏇存柊鍚堥泦澶辫触" },
       },
       { status: 500 }
     );
@@ -386,13 +390,13 @@ export async function PUT(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    // 权限检查
+    // 鏉冮檺妫€鏌?
     const session = await auth();
     if (!session?.user || session.user.role !== "ADMIN") {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "UNAUTHORIZED", message: "需要管理员权限" },
+          error: { code: "UNAUTHORIZED", message: "闇€瑕佺鐞嗗憳鏉冮檺" },
         },
         { status: 401 }
       );
@@ -409,20 +413,21 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json<ApiError>(
         {
           success: false,
-          error: { code: "NOT_FOUND", message: "合集不存在" },
+          error: { code: "NOT_FOUND", message: "Collection not found" },
         },
         { status: 404 }
       );
     }
 
-    // 检查是否有关联的食谱
+    // 妫€鏌ユ槸鍚︽湁鍏宠仈鐨勯璋?
+
     if (collection._count.recipes > 0) {
       return NextResponse.json<ApiError>(
         {
           success: false,
           error: {
             code: "VALIDATION_ERROR",
-            message: `无法删除：该合集关联了 ${collection._count.recipes} 个菜谱`,
+            message: `Cannot delete collection: linked to ${collection._count.recipes} recipes`,
           },
         },
         { status: 400 }
@@ -433,16 +438,20 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json<ApiResponse<{ message: string }>>({
       success: true,
-      data: { message: "删除成功" },
+      data: { message: "鍒犻櫎鎴愬姛" },
     });
   } catch (error) {
-    console.error("删除合集失败:", error);
+    console.error("鍒犻櫎鍚堥泦澶辫触:", error);
     return NextResponse.json<ApiError>(
       {
         success: false,
-        error: { code: "INTERNAL_ERROR", message: "删除失败" },
+        error: { code: "INTERNAL_ERROR", message: "鍒犻櫎澶辫触" },
       },
       { status: 500 }
     );
   }
 }
+
+
+
+

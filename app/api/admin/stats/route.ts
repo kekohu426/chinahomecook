@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 
 /**
  * GET /api/admin/stats
@@ -14,6 +15,9 @@ import { prisma } from "@/lib/db/prisma";
  */
 export async function GET(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

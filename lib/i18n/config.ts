@@ -1,4 +1,8 @@
-export const DEFAULT_LOCALE = "zh" as const;
+// Requirement:
+// - tests default to zh
+// - production/commercial runtime default to en
+export const DEFAULT_LOCALE =
+  (process.env.NODE_ENV === "test" ? "zh" : "en") as const;
 
 /**
  * 路由支持的语言列表

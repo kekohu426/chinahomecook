@@ -1,6 +1,9 @@
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
+import { SectionHeading } from "@/components/home/SectionHeading";
 
 interface ThemeCard {
   id: string;
@@ -12,6 +15,7 @@ interface ThemeCard {
 
 interface ThemeCardsSectionProps {
   cards: ThemeCard[];
+  locale?: Locale;
   title?: string;
   subtitle?: string;
   ctaLabel?: string;
@@ -20,42 +24,38 @@ interface ThemeCardsSectionProps {
 
 export function ThemeCardsSection({
   cards,
+  locale = DEFAULT_LOCALE,
   title,
   subtitle,
   ctaLabel,
   ctaHref,
 }: ThemeCardsSectionProps) {
   return (
-    <section className="py-16 bg-cream">
-      <div className="max-w-7xl mx-auto px-8">
-        {/* 标题 */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-serif font-medium text-textDark">
-              {title || "热门主题"}
-            </h2>
-            <p className="text-textGray mt-1">
-              {subtitle || "精选食谱主题，找到你想要的"}
-            </p>
-          </div>
-          <LocalizedLink
-            href={ctaHref || "/recipe"}
-            className="text-brownWarm hover:text-brownDark flex items-center gap-1 font-medium"
-          >
-            {ctaLabel || "查看全部"}
-            <ArrowRight className="w-4 h-4" />
-          </LocalizedLink>
+    <section className="editorial-section editorial-section--cream">
+      <div className="editorial-container">
+        <div className="mb-10">
+          <SectionHeading
+            title={title || t("home.themeCardsTitle", locale)}
+            subtitle={subtitle || t("home.themeCardsSubtitle", locale)}
+            action={
+              <LocalizedLink
+                href={ctaHref || "/recipe"}
+                className="editorial-action"
+              >
+                {ctaLabel || t("common.viewAll", locale)}
+                <ArrowRight className="w-4 h-4" />
+              </LocalizedLink>
+            }
+          />
         </div>
 
-        {/* 卡片网格 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        <div className="editorial-grid-theme">
           {cards.filter(card => card.imageUrl).map((card) => (
             <LocalizedLink
               key={card.id}
               href={card.href || `/recipe?tag=${encodeURIComponent(card.tag)}`}
-              className="group relative aspect-[4/3] rounded-xl overflow-hidden shadow-card hover:shadow-lg transition-shadow"
+              className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-subtle hover:shadow-card transition-shadow"
             >
-              {/* 背景图 */}
               <Image
                 src={card.imageUrl}
                 alt={card.title}
@@ -63,13 +63,11 @@ export function ThemeCardsSection({
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                 sizes="(max-width: 768px) 50vw, (max-width: 1280px) 25vw, 16vw"
               />
-
-              {/* 渐变遮罩 */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-
-              {/* 标题 */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="text-white font-medium text-lg">{card.title}</h3>
+                <h3 className="text-white font-medium text-base tracking-wide">
+                  {card.title}
+                </h3>
               </div>
             </LocalizedLink>
           ))}

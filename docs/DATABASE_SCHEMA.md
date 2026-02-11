@@ -51,8 +51,6 @@ erDiagram
 | steps | Json | 是 | - | 烹饪步骤 (RecipeStep[]) |
 | nutrition | Json | 否 | - | 营养信息 |
 | coverImage | String | 否 | - | 封面图URL |
-| styleGuide | Json | 否 | - | 风格指南 |
-| imageShots | Json | 否 | - | 配图方案 |
 | status | String | 是 | "draft" | 状态: draft/pending/published/archived |
 | reviewStatus | String | 是 | "pending" | 审核: pending/approved/rejected |
 | aiGenerated | Boolean | 是 | false | 是否AI生成 |

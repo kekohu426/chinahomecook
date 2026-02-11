@@ -1,17 +1,21 @@
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
+import { SectionHeading } from "@/components/home/SectionHeading";
+import { Image as ImageIcon } from "lucide-react";
 
-// 默认配置
-const DEFAULT_CONFIG = {
-  title: "我们的初心",
-  values: [
-    { title: "免费", description: "让每个人都能轻松学做菜，不因价格而犹豫。" },
-    { title: "治愈", description: "用一道道家常菜，温暖每个平凡的日子。" },
-    { title: "用心", description: "AI 提供效率，团队保证质量，细节更安心。" },
-  ],
-  ctaLabel: "了解我们的故事 →",
-  ctaHref: "/about",
-};
+function getDefaultConfig(locale: Locale) {
+  return {
+    title: t("home.ourMission", locale),
+    values: [
+      { title: t("home.valueFree", locale), description: t("home.valueFreeDesc", locale) },
+      { title: t("home.valueHealing", locale), description: t("home.valueHealingDesc", locale) },
+      { title: t("home.valueCare", locale), description: t("home.valueCareDesc", locale) },
+    ],
+    ctaLabel: t("home.learnOurStory", locale),
+    ctaHref: "/about",
+  };
+}
 
 interface ValueItem {
   title: string;
@@ -33,31 +37,30 @@ export function BrandStorySection({
   ctaLabel,
   ctaHref,
 }: BrandStorySectionProps) {
-  const displayTitle = title ?? DEFAULT_CONFIG.title;
-  const displayValues = values ?? DEFAULT_CONFIG.values;
-  const displayCtaLabel = ctaLabel ?? DEFAULT_CONFIG.ctaLabel;
-  const displayCtaHref = ctaHref ?? DEFAULT_CONFIG.ctaHref;
+  const defaultConfig = getDefaultConfig(locale);
+  const displayTitle = title ?? defaultConfig.title;
+  const displayValues = values ?? defaultConfig.values;
+  const displayCtaLabel = ctaLabel ?? defaultConfig.ctaLabel;
+  const displayCtaHref = ctaHref ?? defaultConfig.ctaHref;
 
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
-          <div className="rounded-3xl border border-cream bg-cream/60 p-8">
+    <section className="editorial-section editorial-section--white">
+      <div className="editorial-container">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
+          <div className="editorial-card p-8">
             <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-cream via-white to-orangeAccent/20 flex items-center justify-center text-textGray">
               <div className="text-center">
-                <div className="text-4xl mb-2">🥘</div>
+                <ImageIcon className="w-10 h-10 text-brownWarm/40 mx-auto mb-2" />
                 <p className="text-sm">
-                  {locale === "en" ? "Team + kitchen scene" : "团队与厨房场景"}
+                  {t("home.teamPlaceholder", locale)}
                 </p>
               </div>
             </div>
           </div>
 
           <div>
-            <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark mb-6">
-              {displayTitle}
-            </h2>
-            <div className="space-y-4 text-sm text-textGray">
+            <SectionHeading title={displayTitle} />
+            <div className="space-y-5 text-sm text-textGray mt-6">
               {displayValues.map((value) => (
                 <div key={value.title}>
                   <p className="text-base font-medium text-textDark mb-1">
@@ -69,7 +72,7 @@ export function BrandStorySection({
             </div>
             <LocalizedLink
               href={displayCtaHref}
-              className="inline-flex mt-6 text-brownWarm font-medium"
+              className="inline-flex mt-6 editorial-link"
             >
               {displayCtaLabel}
             </LocalizedLink>

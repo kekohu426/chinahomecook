@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { useSiteConfig } from "@/components/config/SiteConfigProvider";
 import { localizePath } from "@/lib/i18n/utils";
 
 export function Footer() {
-  const locale = useLocale();
+  const { t, locale } = useTranslations();
   const siteConfig = useSiteConfig();
 
   return (
@@ -42,7 +42,7 @@ export function Footer() {
           {/* 快速链接 */}
           <div>
             <h4 className="font-medium mb-4">
-              {locale === "en" ? "Quick Links" : "快速链接"}
+              {t("footer.quickLinks")}
             </h4>
             <ul className="space-y-2 text-sm text-cream/70">
               <li>
@@ -50,7 +50,7 @@ export function Footer() {
                   href={localizePath("/recipe", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Recipes" : "食谱"}
+                  {t("nav.recipes")}
                 </Link>
               </li>
               <li>
@@ -58,7 +58,7 @@ export function Footer() {
                   href={localizePath("/ai-custom", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "AI Custom" : "AI 定制"}
+                  {t("footer.aiCustom")}
                 </Link>
               </li>
               <li>
@@ -66,7 +66,7 @@ export function Footer() {
                   href={localizePath("/gallery", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Gallery" : "美食图片库"}
+                  {t("nav.gallery")}
                 </Link>
               </li>
               <li>
@@ -74,7 +74,7 @@ export function Footer() {
                   href={localizePath("/blog", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Blog" : "博客"}
+                  {t("nav.blog")}
                 </Link>
               </li>
             </ul>
@@ -83,7 +83,7 @@ export function Footer() {
           {/* 关于 */}
           <div>
             <h4 className="font-medium mb-4">
-              {locale === "en" ? "About" : "关于我们"}
+              {t("footer.about")}
             </h4>
             <ul className="space-y-2 text-sm text-cream/70">
               <li>
@@ -91,7 +91,7 @@ export function Footer() {
                   href={localizePath("/about", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Our Story" : "品牌故事"}
+                  {t("footer.ourStory")}
                 </Link>
               </li>
               <li>
@@ -99,7 +99,7 @@ export function Footer() {
                   href={`${localizePath("/about", locale)}#team`}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Team" : "团队介绍"}
+                  {t("footer.team")}
                 </Link>
               </li>
               <li>
@@ -107,7 +107,7 @@ export function Footer() {
                   href={`${localizePath("/about", locale)}#contact`}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Contact" : "联系合作"}
+                  {t("footer.contact")}
                 </Link>
               </li>
             </ul>
@@ -116,7 +116,7 @@ export function Footer() {
           {/* 法律 */}
           <div>
             <h4 className="font-medium mb-4">
-              {locale === "en" ? "Legal" : "法律声明"}
+              {t("footer.legal")}
             </h4>
             <ul className="space-y-2 text-sm text-cream/70">
               <li>
@@ -124,7 +124,7 @@ export function Footer() {
                   href={localizePath("/privacy", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Privacy Policy" : "隐私政策"}
+                  {t("footer.privacy")}
                 </Link>
               </li>
               <li>
@@ -132,7 +132,7 @@ export function Footer() {
                   href={localizePath("/terms", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Terms" : "使用条款"}
+                  {t("footer.terms")}
                 </Link>
               </li>
               <li>
@@ -140,7 +140,7 @@ export function Footer() {
                   href={localizePath("/copyright", locale)}
                   className="hover:text-white transition-colors"
                 >
-                  {locale === "en" ? "Copyright" : "版权声明"}
+                  {t("footer.copyright")}
                 </Link>
               </li>
             </ul>
@@ -151,7 +151,7 @@ export function Footer() {
         <div className="border-t border-white/10 mt-8 pt-8 text-center">
           <p className="text-cream/50 text-sm">
             © {new Date().getFullYear()} {siteConfig.copyright} ·{" "}
-            {siteConfig.siteTagline} · All Rights Reserved
+            {siteConfig.siteTagline} · {t("footer.allRightsReserved")}
           </p>
         </div>
       </div>

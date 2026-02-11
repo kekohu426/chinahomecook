@@ -11,6 +11,7 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "@/lib/ai/provider";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { AIGenerationLogger, calculateCost } from "@/lib/ai/generation-logger";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest) {
         let successCount = 0;
         let failedCount = 0;
         const total = recipeIds.length;
+        const logger = new AIGenerationLogger();
 
         sendEvent({
           type: "start",
@@ -127,7 +129,8 @@ export async function POST(request: NextRequest) {
             const result = await translateRecipe(
               recipe,
               targetLocales,
-              autoApprove
+              autoApprove,
+              logger
             );
 
             if (result.success) {
@@ -198,11 +201,10 @@ async function translateRecipe(
     story: unknown;
     ingredients: unknown;
     steps: unknown;
-    styleGuide: unknown;
-    imageShots: unknown;
   },
   targetLocales: string[],
-  autoApprove: boolean
+  autoApprove: boolean,
+  logger: AIGenerationLogger
 ): Promise<{ success: boolean; error?: string }> {
   const sourceLocale = DEFAULT_LOCALE;
   const sourceData = {
@@ -211,11 +213,9 @@ async function translateRecipe(
     story: recipe.story as Record<string, unknown>,
     ingredients: recipe.ingredients as unknown[],
     steps: recipe.steps as unknown[],
-    styleGuide: recipe.styleGuide as Record<string, unknown>,
-    imageShots: recipe.imageShots as unknown[],
   };
 
-  const provider = await getTextProvider();
+  const provider = getTextProvider();
   let hasError = false;
   let lastError = "";
 
@@ -223,6 +223,7 @@ async function translateRecipe(
     const targetLocale = resolveLocale(targetLocaleRaw);
     if (targetLocale === sourceLocale) continue;
 
+    const startTime = Date.now();
     try {
       const targetLangName = LOCALE_NAMES_EN[targetLocale];
       const sourceLangName = LOCALE_NAMES_EN[sourceLocale];
@@ -246,6 +247,28 @@ async function translateRecipe(
         maxTokens: 6000,
       });
 
+      // 记录AI调用日志
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 6000, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        recipeId: recipe.id,
+        metadata: { entityType: "recipe", targetLocale, batch: true },
+      });
+
       const translated = parseJson(response.content || "");
       if (!translated) {
         throw new Error("AI 返回内容解析失败");
@@ -262,11 +285,6 @@ async function translateRecipe(
         Array.isArray(translated.steps) && translated.steps.length > 0
           ? translated.steps
           : sourceData.steps;
-      const styleGuide = mergeFallback(sourceData.styleGuide, translated.styleGuide);
-      const imageShots =
-        Array.isArray(translated.imageShots) && translated.imageShots.length > 0
-          ? translated.imageShots
-          : sourceData.imageShots;
 
       await prisma.recipeTranslation.upsert({
         where: { recipeId_locale: { recipeId: recipe.id, locale: targetLocale } },

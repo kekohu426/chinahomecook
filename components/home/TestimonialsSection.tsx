@@ -4,6 +4,9 @@ import {
   DEFAULT_TESTIMONIALS_EN,
   DEFAULT_TESTIMONIALS_ZH,
 } from "@/lib/home/defaults";
+import { t } from "@/lib/i18n/translations";
+import { SectionHeading } from "@/components/home/SectionHeading";
+import { MessageCircle } from "lucide-react";
 
 const DEFAULT_TESTIMONIALS: Partial<Record<Locale, Array<{
   id?: string;
@@ -42,38 +45,30 @@ export function TestimonialsSection({
   const fallbackTestimonials =
     DEFAULT_TESTIMONIALS[locale] ?? DEFAULT_TESTIMONIALS[DEFAULT_LOCALE] ?? [];
   const testimonials = items && items.length > 0 ? items : fallbackTestimonials;
+
   return (
-    <section className="py-20 bg-cream">
-      <div className="max-w-7xl mx-auto px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark">
-            {title || (locale === "en" ? "Testimonials" : "用户证言")}
-          </h2>
-          <p className="text-textGray mt-2">
-            {subtitle ||
-              (locale === "en"
-                ? "Real voices, warmth and trust."
-                : "来自真实用户的反馈，温度与专业并存。")}
-          </p>
+    <section className="editorial-section editorial-section--cream">
+      <div className="editorial-container">
+        <div className="mb-10">
+          <SectionHeading
+            title={title || t("home.testimonials", locale)}
+            subtitle={subtitle || t("home.realUserFeedback", locale)}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((item, index) => (
             <div
               key={item.id || `${item.name}-${index}`}
-              className="relative bg-white rounded-2xl border border-cream shadow-card p-6 flex flex-col gap-4"
+              className="editorial-card editorial-card--white p-6 flex flex-col gap-4 relative"
             >
-              <span className="absolute top-4 right-4 text-3xl text-brownWarm/15 font-serif">
-                “
-              </span>
+              <MessageCircle className="absolute top-4 right-4 w-8 h-8 text-brownWarm/15" />
               <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 rounded-full overflow-hidden bg-brownWarm/10 text-brownWarm flex items-center justify-center font-medium">
                   {item.avatarUrl ? (
                     <Image
                       src={item.avatarUrl}
-                      alt={
-                        locale === "en" ? `${item.name} avatar` : `${item.name} 头像`
-                      }
+                      alt={t("common.avatarAlt", locale).replace("{name}", item.name)}
                       fill
                       className="object-cover"
                       sizes="48px"
@@ -87,13 +82,13 @@ export function TestimonialsSection({
                     {item.name}
                   </div>
                   <div className="text-xs text-textGray">
-                    {item.role} · {item.city}
+                    {item.role} - {item.city}
                   </div>
                 </div>
               </div>
 
               <p className="text-sm text-textDark leading-relaxed">
-                “{item.content}”
+                &ldquo;{item.content}&rdquo;
               </p>
 
               <div className="text-xs text-textGray">{item.meta}</div>

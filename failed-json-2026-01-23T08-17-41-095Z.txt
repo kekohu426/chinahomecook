@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "2.0.0",
+  "recipe": {
+    "titleZh": "凉拌海带丝",
+    "titleEn": "Coated Seaweed Salad",
+    "aliases": ["海带凉菜", "凉拌海蜇皮"],
+    "summary": {
+      "oneLine": "清爽可口，简单易做的家常凉菜。",
+      "healingTone": "夏日炎炎，来一道凉拌海带丝，清爽解腻。",
+      "difficulty": "easy",
+      "timeTotalMin": 30,
+      "timeActiveMin": 15,
+      "servings": 2
+    },
+    "story": "凉拌海带丝是一道简单而受欢迎的家常菜，尤其在炎热的夏天，它以清爽的口感和简单的制作过程著称。",
+    "ingredients": [
+      {
+        "section": "主料",
+        "items": [
+          {
+            "name": "海带丝",
+            "amount": "200",
+            "unit": "\"克\"",
+            "iconKey": "seafood",
+            "notes": "\"最好选择干燥的海带丝，提前用水泡发。\""
+          },
+          {
+            "name": "胡萝卜",
+            "amount": "50",
+            "unit": "\"克\"",
+            "iconKey": "veg",
+            "notes": "\"增加色彩和口感。\""
+          },
+          {
+            "name": "黄瓜",
+            "amount": "100",
+            "unit": "\"克\"",
+            "iconKey": "veg",
+            "notes": "\"增加清爽口感。\""
+          }
+        ]
+      },
+      {
+        "section": "调料",
+        "items": [
+          {
+            "name": "蒜末",
+            "amount": "\"适量\"",
+            "iconKey": "veg",
+            "notes": "\"增加蒜香。\""
+          },
+          {
+            "name": "香菜",
+            "amount": "\"适量\"",
+            "iconKey": "veg",
+            "notes": "\"增加香气。\""
+          },
+          {
+            "name": "生抽",
+            "amount": "\"适量\"",
+            "iconKey": "sauce",
+            "notes": "\"增加酱油的鲜味。\""
+          },
+          {
+            "name": "醋",
+            "amount": "\"适量\"",
+            "iconKey": "sauce",
+            "notes": "\"增加酸味。\""
+          },
+          {
+            "name": "香油",
+            "amount": "\"适量\"",
+            "iconKey": "oil",
+            "notes": "\"增加香滑口感。\""
+          },
+          {
+            "name": "辣椒油",
+            "amount": "\"适量\"",
+            "iconKey": "spice",
+            "notes": "\"增加辣味。\""
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "id": "step01",
+        "title": "准备食材",
+        "action": "将海带丝提前泡发，胡萝卜和黄瓜洗净切丝。",
+        "heat": "N/A",
+        "timeMin": 10,
+        "timeMax": 15,
+        "visualCue": "海带丝完全泡发，胡萝卜和黄瓜丝清晰可见。",
+        "imagePrompt": "Real food photography, natural light, wooden dining table, "ingredients": dried seaweed, carrot, cucumber, fresh vegetables, clear and visible.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, unnatural lighting."
+      },
+      {
+        "id": "step02",
+        "title": "混合调料",
+        "action": "将蒜末、香菜、生抽、醋、香油和辣椒油混合均匀。",
+        "heat": "N/A",
+        "timeMin": 5,
+        "timeMax": 10,
+        "visualCue": "调料混合均匀，色泽诱人。",
+        "imagePrompt": "Real food photography, natural light, wooden dining table, "ingredients": garlic, scallion, soy sauce, vinegar, sesame oil, chili oil, mixed evenly, inviting color.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, unnatural lighting."
+      },
+      {
+        "id": "step03",
+        "title": "凉拌海带丝",
+        "action": "将泡发好的海带丝和切好的胡萝卜、黄瓜丝放入大碗中，倒入调好的调料，搅拌均匀。",
+        "heat": "N/A",
+        "timeMin": 5,
+        "timeMax": 10,
+        "visualCue": "海带丝和蔬菜丝混合均匀，色泽鲜艳。",
+        "imagePrompt": "Real food photography, natural light, wooden dining table, "ingredients": seaweed, carrot, cucumber, mixed evenly, bright color.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, unnatural lighting."
+      }
+    ],
+    "imageShots": [
+      {
+        "key": "cover_main",
+        "imagePrompt": "Real food photography, natural light, wooden dining table, "ingredients": seaweed, carrot, cucumber, mixed evenly, bright color, side angle view, wooden chopsticks in the foreground.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, unnatural lighting."
+      },
+      {
+        "key": "cover_detail",
+        "imagePrompt": "Real food photography, natural light, close-up view of seaweed, carrot, cucumber, mixed evenly, texture and luster clearly visible.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, unnatural lighting."
+      },
+      {
+        "key": "cover_inside",
+        "imagePrompt": "Real food photography, natural light, open bowl view, "ingredients": seaweed, carrot, cucumber, mixed evenly, vibrant color, reflection of wooden table.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, unnatural lighting."
+      }
+    ],
+    "styleGuide": {
+      "theme": "Visual theme: Simple and refreshing, natural texture",
+      "palette": ["White", "Green", "Blue"],
+      "lighting": "Soft natural light",
+      "materials": ["Ceramic bowl", "Wooden table"],
+      "props": ["Vegetables", "Utensils"],
+      "compositionRules": ["Balance", "Harmony"]
+    },
+    "nutrition": {
+      "perServing": {
+        "calories": 150,
+        "protein": 5,
+        "fat": 5,
+        "carbs": 20,
+        "fiber": 2,
+        "sodium": 100
+      }
+    },
+    "faq": [
+      {
+        "question": "如何选择海带丝？",
+        "answer": "选择干燥的海带丝，质地较硬，泡发后口感更佳。"
+      }
+    ],
+    "tips": [
+      "选择新鲜的海带丝，口感更佳。",
+      "可以根据个人口味调整调料的比例。"
+    ],
+    "troubleshooting": [
+      {
+        "problem": "海带丝泡发不软。",
+        "cause": "泡发时间不足或水质过硬。",
+        "fix": "延长泡发时间，或使用软水泡发。"
+      }
+    ],
+    "relatedRecipes": {
+      "similar": ["凉拌黄瓜", "凉拌木耳"],
+      "pairing": ["米饭", "馒头"]
+    },
+    "tags": {
+      "scenes": ["家常菜"],
+      "cookingMethods": ["拌"],
+      "tastes": ["清爽"],
+      "crowds": ["大众"],
+      "occasions": ["日常"]
+    },
+    "seo": {
+      "metaTitle": "凉拌海带丝 - 清爽简单的家常凉菜",
+      "metaDescription": "凉拌海带丝是一道简单易做的家常凉菜，清爽可口，适合夏日食用。",
+      "keywords": ["凉拌海带丝", "家常凉菜", "清爽菜谱"]
+    }
+  }
+}

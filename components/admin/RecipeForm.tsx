@@ -13,13 +13,9 @@ import { Input } from "@/components/ui/input";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { ImageGenerator } from "@/components/admin/ImageGenerator";
 import { TagSelector } from "@/components/admin/TagSelector";
-import type {
-  IngredientSection,
-  ImageShot,
-  Recipe,
-  RecipeStep,
-  StyleGuide,
-} from "@/types/recipe";
+import { RecipePreviewPanel } from "@/components/admin/RecipePreviewPanel";
+import { Loader2, Sparkles, Eye, EyeOff } from "lucide-react";
+import type { IngredientSection, Recipe, RecipeStep } from "@/types/recipe";
 
 interface RecipeFormProps {
   initialData?: Partial<Recipe> & {
@@ -68,13 +64,6 @@ const DEFAULT_STEPS: RecipeStep[] = [
     photoBrief: "",
   },
 ];
-
-const DEFAULT_STYLE_GUIDE: StyleGuide = {
-  theme: "治愈系暖调",
-  lighting: "自然光",
-  composition: "留白构图",
-  aesthetic: "吉卜力或日杂风",
-};
 
 export function RecipeForm({ initialData, mode }: RecipeFormProps) {
   const router = useRouter();
@@ -158,28 +147,10 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
     initialData?.steps?.length ? initialData.steps : DEFAULT_STEPS
   );
 
-  // 风格指南
-  const [styleGuide, setStyleGuide] = useState<StyleGuide>(
-    initialData?.styleGuide || DEFAULT_STYLE_GUIDE
-  );
-
-  // 配图方案
-  const [imageShots, setImageShots] = useState<ImageShot[]>(
-    initialData?.imageShots || []
-  );
-  const [imageUploadLoading, setImageUploadLoading] = useState<Record<number, boolean>>({});
-  const [imageGenLoading, setImageGenLoading] = useState<Record<number, boolean>>({});
+  const [stepImageUploadLoading, setStepImageUploadLoading] = useState<Record<number, boolean>>({});
+  const [stepImageGenLoading, setStepImageGenLoading] = useState<Record<number, boolean>>({});
   const [exporting, setExporting] = useState(false);
-
-  const stepImageMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    imageShots.forEach((shot) => {
-      if (shot.key && shot.imageUrl) {
-        map[shot.key] = shot.imageUrl;
-      }
-    });
-    return map;
-  }, [imageShots]);
+  const [generatingPrompts, setGeneratingPrompts] = useState(false);
 
   const mainIngredients = useMemo(() => {
     return mainIngredientsInput
@@ -306,40 +277,16 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
     setSteps(steps.filter((_, idx) => idx !== index));
   };
 
-  // 配图方案操作
-  const updateImageShot = (
-    index: number,
-    field: keyof ImageShot,
-    value: string
-  ) => {
-    const next = [...imageShots];
-    const updated = { ...next[index] } as ImageShot;
-    updated[field] = value as never;
-    next[index] = updated;
-    setImageShots(next);
-  };
+  // 上传步骤图片
+  const handleUploadForStep = async (file: File, index: number) => {
+    const step = steps[index];
+    if (!step) return;
 
-  const addImageShot = () => {
-    setImageShots([
-      ...imageShots,
-      { key: "", imagePrompt: "", ratio: "16:9" },
-    ]);
-  };
-
-  const removeImageShot = (index: number) => {
-    setImageShots(imageShots.filter((_, idx) => idx !== index));
-  };
-
-  // 上传图片到当前 shot
-  const handleUploadForShot = async (file: File, index: number) => {
-    const shot = imageShots[index];
-    if (!shot) return;
-
-    setImageUploadLoading((prev) => ({ ...prev, [index]: true }));
+    setStepImageUploadLoading((prev) => ({ ...prev, [index]: true }));
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("category", shot.key || "recipe");
+      formData.append("category", `recipes/steps/${step.id}`);
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -352,39 +299,32 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
       }
 
       const data = await response.json();
-      updateImageShot(index, "imageUrl", data.url);
+      updateStepField(index, "imageUrl", data.url);
     } catch (err) {
       alert(err instanceof Error ? err.message : "上传失败");
     } finally {
-      setImageUploadLoading((prev) => ({ ...prev, [index]: false }));
+      setStepImageUploadLoading((prev) => ({ ...prev, [index]: false }));
     }
   };
 
-  // 重新生成图片
-  const handleRegenerateForShot = async (index: number) => {
-    const shot = imageShots[index];
-    if (!shot?.imagePrompt) {
-      alert("请先填写 AI 提示词");
-      return;
-    }
+  // 生成步骤图片
+  const handleRegenerateForStep = async (index: number) => {
+    const step = steps[index];
+    if (!step) return;
 
-    const mapRatio = (ratio?: string) => {
-      if (ratio === "16:9") return { width: 1024, height: 576 };
-      if (ratio === "4:3") return { width: 1024, height: 768 };
-      return { width: 960, height: 640 };
-    };
+    // 如果没有 imagePrompt，自动生成一个
+    const prompt = step.imagePrompt || `${titleZh} - ${step.action || step.title}，中式家常菜烹饪过程，真实食物摄影，自然光，高清`;
 
-    const { width, height } = mapRatio(shot.ratio);
-
-    setImageGenLoading((prev) => ({ ...prev, [index]: true }));
+    setStepImageGenLoading((prev) => ({ ...prev, [index]: true }));
     try {
       const response = await fetch("/api/images/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: shot.imagePrompt,
-          width,
-          height,
+          prompt,
+          negativePrompt: step.negativePrompt || "AI generated, plastic, unnatural, cartoon, 3D render, text, watermark",
+          width: 1024,
+          height: 768, // 4:3 比例
         }),
       });
 
@@ -393,21 +333,60 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         throw new Error(data.error || "生成失败");
       }
 
-      updateImageShot(index, "imageUrl", data.imageUrl);
+      updateStepField(index, "imageUrl", data.imageUrl);
     } catch (err) {
       alert(err instanceof Error ? err.message : "生成失败");
     } finally {
-      setImageGenLoading((prev) => ({ ...prev, [index]: false }));
+      setStepImageGenLoading((prev) => ({ ...prev, [index]: false }));
     }
   };
 
-  // 确保为步骤或插图创建对应的 imageShot
-  const ensureShot = (key: string, promptHint?: string, ratio: ImageShot["ratio"] = "4:3") => {
-    const idx = imageShots.findIndex((s) => s.key === key);
-    if (idx >= 0) return idx;
-    const next = [...imageShots, { key, imagePrompt: promptHint || "", ratio }];
-    setImageShots(next);
-    return next.length - 1;
+  // 批量生成提示词
+  const handleGenerateAllPrompts = async () => {
+    if (steps.length === 0 || (!steps[0].action && !steps[0].title)) {
+      alert("请先添加步骤描述");
+      return;
+    }
+
+    setGeneratingPrompts(true);
+    try {
+      const response = await fetch("/api/admin/ai/generate-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipeName: titleZh || "未命名菜谱",
+          dishStyle: "dark_and_moody",
+          steps: steps.map((s, i) => ({
+            number: i + 1,
+            description: s.action || s.title || `步骤${i + 1}`
+          }))
+        })
+      });
+
+      const result = await response.json();
+      if (result.success && result.data.prompts) {
+        const newSteps = [...steps];
+        let updatedCount = 0;
+
+        result.data.prompts.forEach((p: any) => {
+          if (newSteps[p.stepNumber - 1]) {
+            newSteps[p.stepNumber - 1].imagePrompt = p.prompt;
+            newSteps[p.stepNumber - 1].photoBrief = p.coreAction;
+            updatedCount++;
+          }
+        });
+
+        setSteps(newSteps);
+        alert(`成功为 ${updatedCount} 个步骤生成了提示词！`);
+      } else {
+        throw new Error(result.error || "生成失败");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("生成失败，请稍后重试");
+    } finally {
+      setGeneratingPrompts(false);
+    }
   };
 
   const handleExportLongImage = async () => {
@@ -615,8 +594,6 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
         },
         ingredients,
         steps,
-        styleGuide,
-        imageShots,
         author,
         location: location || undefined,
         cuisine: cuisine || undefined,
@@ -1172,6 +1149,32 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
           </Button>
         </div>
 
+        {/* AI 操作区 */}
+        <div className="mb-6 p-4 bg-cream/30 rounded-md border border-cream flex items-center justify-between">
+          <div className="text-sm text-textGray">
+            <p className="font-medium text-textDark mb-1">AI 助手</p>
+            <p>自动分析步骤内容，生成专业的食品摄影提示词。</p>
+          </div>
+          <Button
+            type="button"
+            onClick={handleGenerateAllPrompts}
+            disabled={generatingPrompts || steps.length === 0}
+            className="bg-brownWarm text-white hover:bg-brownWarm/90"
+          >
+            {generatingPrompts ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                生成中...
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                一键生成提示词
+              </>
+            )}
+          </Button>
+        </div>
+
         <div className="space-y-6">
           {steps.map((step, index) => (
             <div key={step.id} className="border border-lightGray rounded-md p-4">
@@ -1219,11 +1222,17 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                   onChange={(e) => updateStepField(index, "photoBrief", e.target.value)}
                   placeholder="配图说明"
                 />
-                <Input
-                  value={step.imageUrl || ""}
-                  onChange={(e) => updateStepField(index, "imageUrl", e.target.value)}
-                  placeholder="操作图 URL（可选）"
-                />
+                <select
+                  value={step.heat || "medium"}
+                  onChange={(e) => updateStepField(index, "heat", e.target.value)}
+                  className="w-full px-3 py-2 border border-lightGray rounded-sm"
+                >
+                  <option value="low">小火</option>
+                  <option value="medium-low">中小火</option>
+                  <option value="medium">中火</option>
+                  <option value="medium-high">中大火</option>
+                  <option value="high">大火</option>
+                </select>
               </div>
               <div className="mt-4">
                 <textarea
@@ -1234,120 +1243,45 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                   placeholder="详细操作描述"
                 />
               </div>
-              <div className="mt-4">
-                <p className="text-xs text-textGray mb-2">
-                  操作图预览（优先使用步骤内图片，若为空则使用配图方案 key={step.id}）
-                </p>
-                {step.imageUrl || stepImageMap[step.id] ? (
-                  <img
-                    src={step.imageUrl || stepImageMap[step.id]}
-                    alt={`${step.title || step.id} 操作图`}
-                    className="w-full max-h-64 object-contain bg-[#F7F3EF] rounded-md border border-lightGray"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-32 rounded-md border border-dashed border-lightGray flex items-center justify-center text-textGray text-sm">
-                    暂无操作图
+              {/* 步骤图片区域 */}
+              <div className="mt-4 border-t border-lightGray pt-4">
+                <p className="text-sm font-medium text-textDark mb-2">步骤图片</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="text-xs text-textGray mb-1 block">AI 提示词</label>
+                    <Input
+                      value={step.imagePrompt || ""}
+                      onChange={(e) => updateStepField(index, "imagePrompt", e.target.value)}
+                      placeholder="图片生成提示词（可选，留空自动生成）"
+                    />
                   </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 风格指南 */}
-      <section className="bg-white rounded-md shadow-card p-6">
-        <h2 className="text-xl font-medium text-textDark mb-4">风格指南</h2>
-        <textarea
-          value={`${styleGuide.theme || ""}\n${styleGuide.lighting || ""}\n${styleGuide.composition || ""}\n${styleGuide.aesthetic || ""}`.trim()}
-          onChange={(e) => {
-            const lines = e.target.value.split("\n");
-            setStyleGuide({
-              theme: lines[0] || "",
-              lighting: lines[1] || "",
-              composition: lines[2] || "",
-              aesthetic: lines[3] || "",
-            });
-          }}
-          rows={4}
-          className="w-full px-3 py-2 border border-lightGray rounded-sm"
-          placeholder={"主题\n光线\n构图\n美学风格"}
-        />
-      </section>
-
-      {/* 配图方案 */}
-      <section className="bg-white rounded-md shadow-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-medium text-textDark">配图方案</h2>
-          <Button type="button" variant="outline" onClick={addImageShot}>
-            + 新增配图
-          </Button>
-        </div>
-
-        <div className="space-y-4">
-      {imageShots.map((shot, index) => (
-        <div key={index} className="border border-lightGray rounded-md p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center mb-3">
-            <Input
-              value={shot.key}
-              onChange={(e) => updateImageShot(index, "key", e.target.value)}
-              placeholder="key (hero/step01)"
-            />
-            <Input
-              value={shot.imagePrompt}
-              onChange={(e) => updateImageShot(index, "imagePrompt", e.target.value)}
-              placeholder="AI 提示词"
-            />
-            <select
-              value={shot.ratio}
-              onChange={(e) => updateImageShot(index, "ratio", e.target.value)}
-              className="w-full px-3 py-2 border border-lightGray rounded-sm"
-            >
-              <option value="16:9">16:9</option>
-              <option value="4:3">4:3</option>
-              <option value="3:2">3:2</option>
-            </select>
-            <Button type="button" variant="outline" onClick={() => removeImageShot(index)}>
-              删除
-            </Button>
-          </div>
-              <div>
-                <label className="text-xs text-textGray mb-1 block">图片 URL</label>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <Input
-                    value={shot.imageUrl || ""}
-                    onChange={(e) => updateImageShot(index, "imageUrl", e.target.value)}
-                    placeholder="https://..."
-                    className="flex-1"
-                  />
-                  {shot.imageUrl && (
-                    <a 
-                      href={shot.imageUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-brownWarm hover:underline text-sm whitespace-nowrap"
-                    >
-                      预览
-                    </a>
-                  )}
+                  <div>
+                    <label className="text-xs text-textGray mb-1 block">图片 URL</label>
+                    <Input
+                      value={step.imageUrl || ""}
+                      onChange={(e) => updateStepField(index, "imageUrl", e.target.value)}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 items-center mb-3">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={!!imageUploadLoading[index]}
+                    disabled={!!stepImageUploadLoading[index]}
                   >
-                    <label htmlFor={`upload-shot-${index}`} className="cursor-pointer">
-                      {imageUploadLoading[index] ? "上传中..." : "上传图片"}
+                    <label htmlFor={`upload-step-${index}`} className="cursor-pointer">
+                      {stepImageUploadLoading[index] ? "上传中..." : "上传图片"}
                     </label>
                     <input
-                      id={`upload-shot-${index}`}
+                      id={`upload-step-${index}`}
                       type="file"
                       accept="image/*"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) handleUploadForShot(file, index);
+                        if (file) handleUploadForStep(file, index);
                       }}
                     />
                   </Button>
@@ -1355,21 +1289,34 @@ export function RecipeForm({ initialData, mode }: RecipeFormProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={!!imageGenLoading[index]}
-                    onClick={() => handleRegenerateForShot(index)}
+                    disabled={!!stepImageGenLoading[index]}
+                    onClick={() => handleRegenerateForStep(index)}
                   >
-                    {imageGenLoading[index] ? "生成中..." : "重新生成"}
+                    {stepImageGenLoading[index] ? "生成中..." : "AI 生成图片"}
                   </Button>
-                  {shot.imageUrl && (
-                    <div className="w-full mt-3">
-                      <img
-                        src={shot.imageUrl}
-                        alt={shot.key}
-                        className="w-full h-52 object-contain bg-[#F7F3EF] rounded-md border border-lightGray"
-                      />
-                    </div>
+                  {step.imageUrl && (
+                    <a
+                      href={step.imageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brownWarm hover:underline text-sm"
+                    >
+                      预览大图
+                    </a>
                   )}
                 </div>
+                {step.imageUrl ? (
+                  <img
+                    src={step.imageUrl}
+                    alt={`${step.title || step.id} 操作图`}
+                    className="w-full max-h-64 object-contain bg-[#F7F3EF] rounded-md border border-lightGray"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-32 rounded-md border border-dashed border-lightGray flex items-center justify-center text-textGray text-sm">
+                    暂无操作图（点击上方按钮上传或生成）
+                  </div>
+                )}
               </div>
             </div>
           ))}

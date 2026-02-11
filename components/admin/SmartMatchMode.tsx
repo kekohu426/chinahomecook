@@ -374,7 +374,7 @@ export default function SmartMatchMode({ collection, onRefresh }: SmartMatchMode
             <div className="flex items-start gap-2 p-3 bg-purple-100 rounded-lg">
               <AlertCircle className="h-4 w-4 text-purple-600 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-purple-800">
-                生成成功后，规则将显示在上方的"当前配置"区域中
+                生成成功后，规则将显示在上方的“当前配置”区域中
               </p>
             </div>
           )}

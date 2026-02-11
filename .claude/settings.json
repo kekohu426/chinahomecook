@@ -1,17 +1,7 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(npm:*)",
-      "Bash(npx:*)",
-      "Bash(git:*)",
-      "Bash(mkdir:*)",
-      "Bash(cd:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Read(*)",
-      "Write(*)",
-      "Edit(*)",
-      "Glob(*)"
-    ]
-  }
+  "env": {
+    "ANTHROPIC_AUTH_TOKEN": "PROXY_MANAGED",
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:15721"
+  },
+  "includeCoAuthoredBy": false
 }

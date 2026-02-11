@@ -3,6 +3,7 @@
 import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { useTranslations } from "@/lib/i18n/translations";
 
 interface Stats {
   recipesGenerated: number;
@@ -28,7 +29,7 @@ export function StatsSection({
   locale = DEFAULT_LOCALE,
 }: StatsSectionProps) {
   const [currentReview, setCurrentReview] = useState(0);
-  const isEn = locale === "en";
+  const { t } = useTranslations();
 
   // 自动轮播评价
   useEffect(() => {
@@ -40,7 +41,7 @@ export function StatsSection({
   }, [reviews.length]);
 
   const formatNumber = (num: number) => {
-    if (isEn) {
+    if (locale === "en") {
       return num.toLocaleString("en-US");
     }
     if (num >= 10000) {
@@ -60,7 +61,7 @@ export function StatsSection({
                 {formatNumber(stats.recipesGenerated)}+
               </div>
               <div className="text-sm text-textGray mt-1">
-                {isEn ? "Recipes Generated" : "已生成食谱"}
+                {t("home.statsGenerated")} {t("home.statsRecipes")}
               </div>
             </div>
             <div className="text-center">
@@ -68,7 +69,7 @@ export function StatsSection({
                 {formatNumber(stats.recipesCollected)}+
               </div>
               <div className="text-sm text-textGray mt-1">
-                {isEn ? "Recipes Collected" : "收录菜品"}
+                {t("home.statsCollected")}
               </div>
             </div>
             <div className="text-center">
@@ -76,7 +77,7 @@ export function StatsSection({
                 {formatNumber(stats.totalDownloads)}+
               </div>
               <div className="text-sm text-textGray mt-1">
-                {isEn ? "Total Downloads" : "累计下载"}
+                {t("home.statsTimes")}
               </div>
             </div>
           </div>

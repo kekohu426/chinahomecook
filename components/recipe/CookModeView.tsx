@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { StepImage } from "@/components/ui/SafeImage";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
+import { getSpeechLocale } from "@/lib/i18n/format";
 
 interface CookModeViewProps {
   steps: RecipeStep[];
@@ -44,7 +46,6 @@ export function CookModeView({
   stepImages,
 }: CookModeViewProps) {
   const locale = useLocale();
-  const isEn = locale === "en";
   const [open, setOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -151,7 +152,7 @@ export function CookModeView({
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     const text = currentStep?.speechText || currentStep?.action || "";
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = isEn ? "en-US" : "zh-CN";
+    utterance.lang = getSpeechLocale(locale);
     utterance.rate = 0.9;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
@@ -244,7 +245,7 @@ export function CookModeView({
       >
         <Play className="w-5 h-5 fill-current" />
         <span className="tracking-wide">
-          {isEn ? "Start Cooking" : "开始烹饪"}
+          {t("recipe.startCooking", locale)}
         </span>
       </button>
 
@@ -282,7 +283,7 @@ export function CookModeView({
               >
                 <X className="w-5 h-5" />
                 <span className="hidden sm:inline">
-                  {isEn ? "Exit" : "退出"}
+                  {t("recipe.exitCookMode", locale)}
                 </span>
               </button>
             </div>
@@ -322,7 +323,7 @@ export function CookModeView({
                     <CheckCircle2 className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="text-amber-200 font-medium text-sm mb-1">
-                        {isEn ? "Done when" : "完成标志"}
+                        {t("recipe.doneWhen", locale)}
                       </p>
                       <p className="text-white/80">{currentStep.visualCue}</p>
                     </div>
@@ -344,12 +345,9 @@ export function CookModeView({
                         }
                       </div>
                       <p className="text-white/50 text-sm mt-2">
-                        {timerState === "idle" &&
-                          (isEn ? "Click to start timer" : "点击开始计时")}
-                        {timerState === "running" &&
-                          (isEn ? "Timer running..." : "计时进行中...")}
-                        {timerState === "paused" &&
-                          (isEn ? "Paused" : "已暂停")}
+                        {timerState === "idle" && t("recipe.clickToStart", locale)}
+                        {timerState === "running" && t("recipe.timerRunning", locale)}
+                        {timerState === "paused" && t("recipe.paused", locale)}
                       </p>
                     </div>
 
@@ -361,7 +359,7 @@ export function CookModeView({
                           className="flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-full font-medium transition-colors"
                         >
                           <Pause className="w-5 h-5" />
-                          {isEn ? "Pause" : "暂停"}
+                          {t("recipe.pause", locale)}
                         </button>
                       ) : (
                         <button
@@ -370,12 +368,8 @@ export function CookModeView({
                         >
                           <Play className="w-5 h-5 fill-current" />
                           {timerState === "paused"
-                            ? isEn
-                              ? "Resume"
-                              : "继续"
-                            : isEn
-                            ? "Start"
-                            : "开始"}
+                            ? t("recipe.resume", locale)
+                            : t("recipe.start", locale)}
                         </button>
                       )}
 
@@ -385,7 +379,7 @@ export function CookModeView({
                           className="flex items-center gap-2 px-4 py-3 bg-white/10 hover:bg-white/20 text-white/80 rounded-full transition-colors"
                         >
                           <RotateCcw className="w-5 h-5" />
-                          {isEn ? "Reset" : "重置"}
+                          {t("recipe.reset", locale)}
                         </button>
                       )}
                     </div>
@@ -398,9 +392,9 @@ export function CookModeView({
                   className="flex items-center justify-center gap-3 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/70 hover:text-white transition-colors"
                 >
                   <Volume2 className="w-5 h-5" />
-                  <span>{isEn ? "Read step" : "朗读步骤"}</span>
+                  <span>{t("recipe.readStep", locale)}</span>
                   <span className="text-white/40 text-sm">
-                    {isEn ? "(press R)" : "(按 R 键)"}
+                    {t("recipe.pressR", locale)}
                   </span>
                 </button>
               </div>
@@ -425,7 +419,7 @@ export function CookModeView({
                 >
                   <ChevronLeft className="w-5 h-5" />
                   <span className="hidden sm:inline">
-                    {isEn ? "Previous" : "上一步"}
+                    {t("recipe.prevStep", locale)}
                   </span>
                 </button>
 
@@ -443,11 +437,7 @@ export function CookModeView({
                           ? "w-3 h-3 bg-amber-700 hover:bg-amber-600"
                           : "w-3 h-3 bg-white/20 hover:bg-white/30"
                       )}
-                      aria-label={
-                        isEn
-                          ? `Jump to step ${idx + 1}`
-                          : `跳转到步骤 ${idx + 1}`
-                      }
+                      aria-label={t("recipe.jumpToStep", locale).replace("{step}", String(idx + 1))}
                     />
                   ))}
                 </div>
@@ -465,7 +455,7 @@ export function CookModeView({
                   )}
                 >
                   <span className="hidden sm:inline">
-                    {isEn ? "Next" : "下一步"}
+                    {t("recipe.nextStep", locale)}
                   </span>
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -474,13 +464,13 @@ export function CookModeView({
               {/* 快捷键提示 */}
               <div className="hidden lg:flex items-center justify-center gap-6 mt-4 text-white/30 text-sm">
                 <span>
-                  {isEn ? "← → Switch steps" : "← → 切换步骤"}
+                  {t("recipe.shortcutSwitch", locale)}
                 </span>
                 <span>
-                  {isEn ? "Space Pause/Resume timer" : "空格 暂停/继续计时"}
+                  {t("recipe.shortcutTimer", locale)}
                 </span>
-                <span>{isEn ? "R Read" : "R 朗读"}</span>
-                <span>{isEn ? "ESC Exit" : "ESC 退出"}</span>
+                <span>{t("recipe.shortcutRead", locale)}</span>
+                <span>{t("recipe.shortcutExit", locale)}</span>
               </div>
             </div>
           </footer>

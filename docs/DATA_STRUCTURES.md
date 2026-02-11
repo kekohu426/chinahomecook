@@ -20,8 +20,6 @@
 | story | `RecipeStory` | 文化故事 | 标题, 内容, 标签 |
 | ingredients | `IngredientSection[]` | 食材清单 | 分组(主料/配料), 详细食材项 |
 | steps | `RecipeStep[]` | 制作步骤 | 动作, 语音, 计时器, 视觉线索, 失败点, 配图指令 |
-| styleGuide | `StyleGuide` | 视觉风格 | 主题, 光线, 构图, 美学 |
-| imageShots | `ImageShot[]` | 配图方案 | 图片Key, 提示词, 比例 |
 | tags | `RecipeTags?` | 标签维度 | 场景, 烹饪法, 口味, 人群, 场合 |
 | nutrition | `RecipeNutrition?` | 营养成分 | 热量, 蛋白, 脂肪, 碳水等 |
 
@@ -53,17 +51,6 @@ interface RecipeStep {
 }
 ```
 
-#### 配图方案 (ImageShot)
-```typescript
-interface ImageShot {
-  key: string;            // cover, step01, final
-  imagePrompt: string;    // AI生图提示词
-  ratio: "16:9" | "4:3" | "3:2";
-  imageUrl?: string;      // 生成后的图片URL
-}
-```
-
----
 
 ## 2. 数据库架构 (存储层)
 
@@ -93,7 +80,6 @@ erDiagram
 | title | String | 菜名 (中文) |
 | ingredients | JSON | 对应应用层 `IngredientSection[]` |
 | steps | JSON | 对应应用层 `RecipeStep[]` |
-| styleGuide | JSON | 对应应用层 `StyleGuide` |
 | status | String | draft / pending / published / archived |
 | transStatus | JSON | 翻译状态追踪 `{"en": "completed"}` |
 

@@ -2,6 +2,11 @@ import NextAuth from "next-auth";
 import type { Adapter } from "next-auth/adapters";
 import { authConfig } from "./config";
 
+// 管理员邮箱列表
+const ADMIN_EMAILS = [
+  "hukeko0206@gmail.com",
+];
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -16,7 +21,9 @@ export const {
       // 首次登录时保存用户信息到 token
       if (user) {
         token.id = user.id ?? user.email ?? "";
-        token.role = "ADMIN"; // 暂时所有用户都是 ADMIN
+        // 根据邮箱判断角色
+        const isAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase() || "");
+        token.role = isAdmin ? "ADMIN" : "USER";
         token.email = user.email;
         token.name = user.name;
       }

@@ -35,7 +35,42 @@ export interface ValidatedTags {
 }
 
 /**
+ * 根据 slug 或 name 查找标签
+ * AI 可能返回中文名称或英文 slug，需要同时支持两种匹配方式
+ */
+async function findTagsBySlugOrName(
+  type: string,
+  values: string[]
+): Promise<{ tags: Array<{ id: string; slug: string; name: string }>; foundValues: Set<string> }> {
+  if (!values || values.length === 0) {
+    return { tags: [], foundValues: new Set() };
+  }
+
+  // 同时匹配 slug 和 name
+  const tags = await prisma.tag.findMany({
+    where: {
+      type,
+      OR: [
+        { slug: { in: values } },
+        { name: { in: values } },
+      ],
+    },
+    select: { id: true, slug: true, name: true },
+  });
+
+  // 构建已找到的值集合（包括 slug 和 name）
+  const foundValues = new Set<string>();
+  for (const tag of tags) {
+    foundValues.add(tag.slug);
+    foundValues.add(tag.name);
+  }
+
+  return { tags, foundValues };
+}
+
+/**
  * 验证 AI 返回的标签，返回有效的 ID 列表和未知标签列表
+ * 支持 AI 返回中文名称或英文 slug
  */
 export async function validateAITags(
   aiTags: AITagOutput,
@@ -46,8 +81,10 @@ export async function validateAITags(
 
   // 1. 验证菜系
   if (cuisineSlug) {
-    const cuisine = await prisma.cuisine.findUnique({
-      where: { slug: cuisineSlug },
+    const cuisine = await prisma.cuisine.findFirst({
+      where: {
+        OR: [{ slug: cuisineSlug }, { name: cuisineSlug }],
+      },
       select: { id: true },
     });
     if (cuisine) {
@@ -58,12 +95,7 @@ export async function validateAITags(
 
   // 2. 验证场景 (scenes) - 使用 Tag 模型，type = "scene"
   if (aiTags.scenes && aiTags.scenes.length > 0) {
-    const scenes = await prisma.tag.findMany({
-      where: { type: "scene", slug: { in: aiTags.scenes } },
-      select: { id: true, slug: true },
-    });
-
-    const foundSlugs = new Set(scenes.map((s) => s.slug));
+    const { tags: scenes, foundValues } = await findTagsBySlugOrName("scene", aiTags.scenes);
     const sceneIds = scenes.map((s) => s.id);
 
     // 设置主场景（第一个有效的）
@@ -73,21 +105,16 @@ export async function validateAITags(
     }
 
     // 记录未知的场景
-    for (const slug of aiTags.scenes) {
-      if (!foundSlugs.has(slug)) {
-        unknown.push({ type: "scene", slug });
+    for (const value of aiTags.scenes) {
+      if (!foundValues.has(value)) {
+        unknown.push({ type: "scene", slug: value });
       }
     }
   }
 
   // 3. 验证烹饪方式 (cookingMethods) - 使用 Tag 模型，type = "method"
   if (aiTags.cookingMethods && aiTags.cookingMethods.length > 0) {
-    const methods = await prisma.tag.findMany({
-      where: { type: "method", slug: { in: aiTags.cookingMethods } },
-      select: { id: true, slug: true },
-    });
-
-    const foundSlugs = new Set(methods.map((m) => m.slug));
+    const { tags: methods, foundValues } = await findTagsBySlugOrName("method", aiTags.cookingMethods);
     const methodIds = methods.map((m) => m.id);
 
     // 设置主烹饪方式（第一个有效的）
@@ -97,63 +124,48 @@ export async function validateAITags(
     }
 
     // 记录未知的烹饪方式
-    for (const slug of aiTags.cookingMethods) {
-      if (!foundSlugs.has(slug)) {
-        unknown.push({ type: "method", slug });
+    for (const value of aiTags.cookingMethods) {
+      if (!foundValues.has(value)) {
+        unknown.push({ type: "method", slug: value });
       }
     }
   }
 
   // 4. 验证口味 (tastes) - 使用 Tag 模型，type = "taste"
   if (aiTags.tastes && aiTags.tastes.length > 0) {
-    const tastes = await prisma.tag.findMany({
-      where: { type: "taste", slug: { in: aiTags.tastes } },
-      select: { id: true, slug: true },
-    });
-
-    const foundSlugs = new Set(tastes.map((t) => t.slug));
+    const { tags: tastes, foundValues } = await findTagsBySlugOrName("taste", aiTags.tastes);
     valid.tastes = tastes.map((t) => t.id);
 
     // 记录未知的口味
-    for (const slug of aiTags.tastes) {
-      if (!foundSlugs.has(slug)) {
-        unknown.push({ type: "taste", slug });
+    for (const value of aiTags.tastes) {
+      if (!foundValues.has(value)) {
+        unknown.push({ type: "taste", slug: value });
       }
     }
   }
 
   // 5. 验证人群 (crowds) - 使用 Tag 模型，type = "crowd"
   if (aiTags.crowds && aiTags.crowds.length > 0) {
-    const crowds = await prisma.tag.findMany({
-      where: { type: "crowd", slug: { in: aiTags.crowds } },
-      select: { id: true, slug: true },
-    });
-
-    const foundSlugs = new Set(crowds.map((c) => c.slug));
+    const { tags: crowds, foundValues } = await findTagsBySlugOrName("crowd", aiTags.crowds);
     valid.crowds = crowds.map((c) => c.id);
 
     // 记录未知的人群
-    for (const slug of aiTags.crowds) {
-      if (!foundSlugs.has(slug)) {
-        unknown.push({ type: "crowd", slug });
+    for (const value of aiTags.crowds) {
+      if (!foundValues.has(value)) {
+        unknown.push({ type: "crowd", slug: value });
       }
     }
   }
 
   // 6. 验证场合 (occasions) - 使用 Tag 模型，type = "occasion"
   if (aiTags.occasions && aiTags.occasions.length > 0) {
-    const occasions = await prisma.tag.findMany({
-      where: { type: "occasion", slug: { in: aiTags.occasions } },
-      select: { id: true, slug: true },
-    });
-
-    const foundSlugs = new Set(occasions.map((o) => o.slug));
+    const { tags: occasions, foundValues } = await findTagsBySlugOrName("occasion", aiTags.occasions);
     valid.occasions = occasions.map((o) => o.id);
 
     // 记录未知的场合
-    for (const slug of aiTags.occasions) {
-      if (!foundSlugs.has(slug)) {
-        unknown.push({ type: "occasion", slug });
+    for (const value of aiTags.occasions) {
+      if (!foundValues.has(value)) {
+        unknown.push({ type: "occasion", slug: value });
       }
     }
   }

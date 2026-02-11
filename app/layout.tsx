@@ -1,8 +1,23 @@
 import { cookies } from "next/headers";
+import { Bodoni_Moda, Source_Sans_3 } from "next/font/google";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME } from "@/lib/i18n/config";
 import "./globals.css";
 import type { Metadata } from "next";
+
+const displayFont = Bodoni_Moda({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const sansFont = Source_Sans_3({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();
@@ -26,8 +41,8 @@ export default async function RootLayout({
   const htmlLang = localeCookie || DEFAULT_LOCALE;
 
   return (
-    <html lang={htmlLang}>
-      <body className="font-sans antialiased bg-cream">
+    <html lang={htmlLang} data-scroll-behavior="smooth">
+      <body className={`${sansFont.variable} ${displayFont.variable} font-sans antialiased bg-cream`}>
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

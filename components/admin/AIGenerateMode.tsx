@@ -116,7 +116,7 @@ export default function AIGenerateMode({ collection, onRefresh }: AIGenerateMode
           <div>
             <h4 className="font-medium text-purple-900">AI 批量生成食谱</h4>
             <p className="text-sm text-purple-700 mt-1">
-              AI 将根据"{collection.name}"主题批量生成食谱，生成的食谱将进入待审核状态
+              AI 将根据“{collection.name}”主题批量生成食谱，生成的食谱将进入待审核状态
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function AIGenerateMode({ collection, onRefresh }: AIGenerateMode
               <ul className="text-sm text-textGray space-y-1">
                 <li>• AI 将根据聚合页主题生成相关食谱</li>
                 <li>• 生成的食谱包含完整的食材、步骤、营养信息</li>
-                <li>• 所有食谱将进入"待审核"状态，需要人工审核后发布</li>
+                <li>• 所有食谱将进入“待审核”状态，需要人工审核后发布</li>
                 <li>• 建议每次生成 10-20 道，确保质量</li>
               </ul>
             </div>
@@ -213,7 +213,7 @@ export default function AIGenerateMode({ collection, onRefresh }: AIGenerateMode
               <li>• 首次使用建议生成 10-15 道食谱测试效果</li>
               <li>• 生成后请及时审核，确保内容质量</li>
               <li>• 如果生成的食谱不符合要求，可以删除后重新生成</li>
-              <li>• 建议配合"智能匹配模式"使用，先匹配现有食谱，再用 AI 补充</li>
+                <li>• 建议配合“智能匹配模式”使用，先匹配现有食谱，再用 AI 补充</li>
             </ul>
           </div>
         </div>

@@ -1,8 +1,3 @@
-// Recipe Zen - 重构后的数据模型
-// 版本: v2.0 (多语言架构)
-// 更新时间: 2026-01-07
-// 设计原则: 主表存中文，翻译表存英文，支持未来扩展
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,183 +6,134 @@ datasource db {
   provider = "postgresql"
 }
 
-// ==================== 菜谱相关 ====================
-
-// 菜谱主表 (中文内容)
 model Recipe {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String              @id @default(cuid())
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  summary         Json?
+  story           Json?
+  ingredients     Json
+  steps           Json
 
-  // 基本信息 (中文)
-  title         String              // 菜名
-  slug          String   @unique    // URL标识
-  description   String?             // 一句话介绍
-  difficulty    String?             // 难度: easy/medium/hard
-  prepTime      Int?                // 准备时间(分钟)
-  cookTime      Int?                // 烹饪时间(分钟)
-  servings      String?             // 份量
-
-  // 内容 (JSON)
-  summary       Json?               // 摘要信息
-  story         Json?               // 文化故事
-  ingredients   Json                // 食材列表
-  steps         Json                // 烹饪步骤
-  nutrition     Json?               // 营养信息
-  faq           Json?               // 常见问题
-  tips          Json?               // 小贴士
-  troubleshooting Json?             // 失败排查
-  relatedRecipes Json?              // 相关推荐
-  pairing       Json?               // 搭配建议
-  seo           Json?               // SEO 信息
-  notes         Json?               // 备注信息
-
-  // 图片
-  coverImage    String?             // 封面图
-  styleGuide    Json?               // 风格指南
-  imageShots    Json?               // 配图方案
-
-  // 分类关联
-  cuisineId     String?
-  cuisine       Cuisine?  @relation(fields: [cuisineId], references: [id])
-  locationId    String?
-  location      Location? @relation(fields: [locationId], references: [id])
-  collectionId  String?
-  collection    Collection? @relation(fields: [collectionId], references: [id])
-
-  // 标签 (多对多)
-  tags          RecipeTag[]
-
-  // 状态管理
-  status        String   @default("draft")     // draft/pending/published/archived
-  reviewStatus  String   @default("pending")   // pending/approved/rejected
-  reviewedAt    DateTime?
-  reviewNote    String?
-  publishedAt   DateTime?
-
-  // AI生成信息
-  aiGenerated   Boolean  @default(false)
-  generateJobId String?
-  qualityScore  Json?    // AI质量评分
-
-  // 翻译状态
-  transStatus   Json     @default("{}")  // {"en": "completed", "ja": "pending"}
-
-  // 统计
-  viewCount     Int      @default(0)
-
-  // 翻译关联
-  translations  RecipeTranslation[]
+  viewCount       Int                 @default(0)
+  aiGenerated     Boolean             @default(false)
+  collectionId    String?
+  cookTime        Int?
+  coverImage      String?
+  cuisineId       String?
+  description     String?
+  difficulty      String?
+  generateJobId   String?
+  locationId      String?
+  nutrition       Json?
+  prepTime        Int?
+  publishedAt     DateTime?
+  qualityScore    Json?
+  reviewNote      String?
+  reviewStatus    String              @default("pending")
+  reviewedAt      DateTime?
+  servings        String?
+  slug            String              @unique
+  status          String              @default("draft")
+  title           String
+  author          String?
+  transStatus     Json                @default("{}")
+  faq             Json?
+  notes           Json?
+  pairing         Json?
+  relatedRecipes  Json?
+  seo             Json?
+  tips            Json?
+  troubleshooting Json?
+  explorerId      String?
+  reviewerId      String?
+  collection      Collection?         @relation(fields: [collectionId], references: [id])
+  cuisine         Cuisine?            @relation(fields: [cuisineId], references: [id])
+  explorer        TeamMember?         @relation("RecipeExplorer", fields: [explorerId], references: [id])
+  location        Location?           @relation(fields: [locationId], references: [id])
+  reviewer        TeamMember?         @relation("RecipeReviewer", fields: [reviewerId], references: [id])
+  tags              RecipeTag[]
+  translations      RecipeTranslation[]
+  imageGenTasks     ImageGenTask[]
+  customRecipeTasks CustomRecipeTask[]
+  favorites         UserFavorite[]
 
   @@index([status, publishedAt])
   @@index([cuisineId])
   @@index([locationId])
   @@index([collectionId])
   @@index([slug])
+  @@index([explorerId])
+  @@index([reviewerId])
 }
 
-// 菜谱翻译表
 model RecipeTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  recipeId      String
-  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  locale  String   // en, ja, ko, etc.
-
-  // 翻译内容
-  title         String
-  slug          String              // 英文slug: braised-pork
-  description   String?
-  difficulty    String?
-  summary       Json?
-  story         Json?
-  ingredients   Json?
-  steps         Json?
-
-  // 翻译元数据
-  transMethod   String?             // ai/manual/hybrid
-  aiModel       String?             // gpt-4-turbo, claude-3.5
-  aiPrompt      String?             // 使用的提示词
-  qualityScore  Decimal?            // 0.00-1.00
-
-  // 审核状态
-  isReviewed    Boolean  @default(false)
-  reviewedBy    String?
-  reviewedAt    DateTime?
-  reviewNote    String?
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  recipeId     String
+  title        String
+  slug         String
+  description  String?
+  difficulty   String?
+  summary      Json?
+  story        Json?
+  ingredients  Json?
+  steps        Json?
+  transMethod  String?
+  aiModel      String?
+  aiPrompt     String?
+  qualityScore Decimal?
+  isReviewed   Boolean   @default(false)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  locale       String
+  recipe       Recipe    @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 
   @@unique([recipeId, locale])
   @@index([locale])
   @@index([recipeId])
 }
 
-// ==================== 合集管理 ====================
-
-// 合集主表 (二级聚合页)
 model Collection {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // 基本信息 (中文)
-  type          String              // cuisine/region/scene/method/taste/crowd/occasion/ingredient/theme
-  name          String
-  nameEn        String?             // 英文名称
-  slug          String   @unique
-  path          String              // URL路径: /recipe/cuisine/chuan
-  description   String?  @db.Text
-  descriptionEn String?  @db.Text   // 英文简介
-  coverImage    String?
-
-  // 状态管理
-  status        String   @default("draft")  // draft/published/archived
-  publishedAt   DateTime?                   // 首次发布时间
-  isFeatured    Boolean  @default(false)    // 是否推荐到一级页
-
-  // 规则配置
-  ruleType      String   @default("auto")   // auto(单标签) / custom(主题)
-  rules         Json     @default("{}")     // 匹配规则JSON，见 RuleConfig
-
-  // 数量配置
-  minRequired   Int      @default(20)       // 最低发布门槛（达标线）
-  targetCount   Int      @default(60)       // 目标数量
-
-  // 内容管理
-  pinnedRecipeIds   String[]  @default([])  // 置顶食谱ID列表（有序）
-  excludedRecipeIds String[]  @default([])  // 排除食谱ID列表
-
-  // SEO配置 (JSON)
-  seo           Json     @default("{}")     // SEO配置JSON，见 SeoConfig
-
-  // 排序
-  sortOrder     Int      @default(0)        // 同类型内排序权重
-
-  // 统计缓存（列表/进度条用，由刷新接口更新）
-  cachedMatchedCount   Int      @default(0)  // 匹配的食谱总数
-  cachedPublishedCount Int      @default(0)  // 已发布食谱数
-  cachedPendingCount   Int      @default(0)  // 待审核食谱数
-  cachedAt             DateTime?             // 缓存更新时间
-
-  // 流量统计
-  viewCount     Int      @default(0)  // 总访问量
-  lastViewedAt  DateTime?             // 最后访问时间
-
-  // 翻译状态
-  transStatus   Json     @default("{}")     // {"en": "completed"}
-
-  // 关联字段（单标签模式用）
-  cuisineId     String?  @unique
-  cuisine       Cuisine? @relation(fields: [cuisineId], references: [id], onDelete: SetNull)
-  locationId    String?  @unique
-  location      Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  tagId         String?  @unique            // 关联 Tag 表（crowd/occasion/scene等）
-  tag           Tag?     @relation(fields: [tagId], references: [id], onDelete: SetNull)
-
-  // 其他关联
-  recipes       Recipe[]
-  translations  CollectionTranslation[]
+  id                   String                  @id @default(cuid())
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  type                 String
+  name                 String
+  slug                 String                  @unique
+  path                 String
+  description          String?
+  coverImage           String?
+  status               String                  @default("draft")
+  isFeatured           Boolean                 @default(false)
+  minRequired          Int                     @default(20)
+  targetCount          Int                     @default(60)
+  rules                Json                    @default("{}")
+  pinnedRecipeIds      String[]                @default([])
+  excludedRecipeIds    String[]                @default([])
+  seo                  Json                    @default("{}")
+  transStatus          Json                    @default("{}")
+  cuisineId            String?                 @unique
+  locationId           String?                 @unique
+  cachedAt             DateTime?
+  cachedMatchedCount   Int                     @default(0)
+  cachedPendingCount   Int                     @default(0)
+  cachedPublishedCount Int                     @default(0)
+  descriptionEn        String?
+  nameEn               String?
+  publishedAt          DateTime?
+  ruleType             String                  @default("auto")
+  sortOrder            Int                     @default(0)
+  tagId                String?                 @unique
+  lastViewedAt         DateTime?
+  viewCount            Int                     @default(0)
+  cuisine              Cuisine?                @relation(fields: [cuisineId], references: [id])
+  location             Location?               @relation(fields: [locationId], references: [id])
+  tag                  Tag?                    @relation(fields: [tagId], references: [id])
+  translations         CollectionTranslation[]
+  recipes              Recipe[]
 
   @@index([type, status])
   @@index([status, cachedPublishedCount])
@@ -195,308 +141,237 @@ model Collection {
   @@index([sortOrder])
 }
 
-// 合集翻译表
 model CollectionTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  collectionId  String
-  collection    Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  locale  String
-
-  name          String
-  slug          String
-  description   String?
-  seo           Json?
-
-  transMethod   String?
-  isReviewed    Boolean  @default(false)
+  id           String     @id @default(cuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  collectionId String
+  name         String
+  slug         String
+  description  String?
+  seo          Json?
+  transMethod  String?
+  isReviewed   Boolean    @default(false)
+  locale       String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
   @@unique([collectionId, locale])
 }
 
-// ==================== 分类标签 ====================
-
-// 菜系表
 model Cuisine {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  name          String   @unique
-  slug          String   @unique
-  description   String?
-  icon          String?
-  sortOrder     Int      @default(0)
-  isActive      Boolean  @default(true)
-
-  transStatus   Json     @default("{}")
-
-  recipes       Recipe[]
-  collection    Collection?
-  translations  CuisineTranslation[]
+  id           String               @id @default(cuid())
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  name         String               @unique
+  slug         String               @unique
+  description  String?
+  icon         String?
+  sortOrder    Int                  @default(0)
+  isActive     Boolean              @default(true)
+  transStatus  Json                 @default("{}")
+  collection   Collection?
+  translations CuisineTranslation[]
+  recipes      Recipe[]
 
   @@index([isActive, sortOrder])
 }
 
-// 菜系翻译表
 model CuisineTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  cuisineId     String
-  cuisine       Cuisine  @relation(fields: [cuisineId], references: [id], onDelete: Cascade)
-  locale        String
-
-  name          String
-  slug          String
-  description   String?
+  id          String   @id @default(cuid())
+  cuisineId   String
+  name        String
+  slug        String
+  description String?
+  locale      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cuisine     Cuisine  @relation(fields: [cuisineId], references: [id], onDelete: Cascade)
 
   @@unique([cuisineId, locale])
   @@index([locale])
 }
 
-// 地域表
 model Location {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  name          String   @unique
-  slug          String   @unique
-  description   String?
-  sortOrder     Int      @default(0)
-  isActive      Boolean  @default(true)
-
-  transStatus   Json     @default("{}")
-
-  recipes       Recipe[]
-  collection    Collection?
-  translations  LocationTranslation[]
+  id           String                @id @default(cuid())
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  name         String                @unique
+  slug         String                @unique
+  description  String?
+  sortOrder    Int                   @default(0)
+  isActive     Boolean               @default(true)
+  transStatus  Json                  @default("{}")
+  collection   Collection?
+  translations LocationTranslation[]
+  recipes      Recipe[]
 
   @@index([isActive, sortOrder])
 }
 
-// 地域翻译表
 model LocationTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  locationId    String
-  location      Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  locale        String
-
-  name          String
-  slug          String
-  description   String?
+  id          String   @id @default(cuid())
+  locationId  String
+  name        String
+  slug        String
+  description String?
+  locale      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   @@unique([locationId, locale])
   @@index([locale])
 }
 
-// 标签表 (场景/口味/烹饪方式等)
 model Tag {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  type          String              // scene/taste/method/crowd/occasion/ingredient
-  name          String
-  slug          String   @unique
-  icon          String?
-  color         String?
-  sortOrder     Int      @default(0)
-  isActive      Boolean  @default(true)
-
-  transStatus   Json     @default("{}")
-
-  recipes       RecipeTag[]
-  collection    Collection?         // 关联的聚合页（单标签模式）
-  translations  TagTranslation[]
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  type         String
+  name         String
+  slug         String           @unique
+  icon         String?
+  color        String?
+  sortOrder    Int              @default(0)
+  isActive     Boolean          @default(true)
+  transStatus  Json             @default("{}")
+  collection   Collection?
+  recipes      RecipeTag[]
+  translations TagTranslation[]
 
   @@unique([type, name])
   @@index([type, isActive])
 }
 
-// 标签翻译表
 model TagTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  tagId         String
-  tag           Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  locale        String
-
-  name          String
-  slug          String
+  id        String   @id @default(cuid())
+  tagId     String
+  name      String
+  slug      String
+  locale    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([tagId, locale])
   @@index([locale])
 }
 
-// 菜谱-标签关联
 model RecipeTag {
-  recipeId      String
-  recipe        Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  tagId         String
-  tag           Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  createdAt     DateTime @default(now())
+  recipeId  String
+  tagId     String
+  createdAt DateTime @default(now())
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([recipeId, tagId])
 }
 
-// ==================== 食材管理 ====================
-
-// 食材表
 model Ingredient {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  name          String   @unique
-  category      String?             // meat/vegetable/seasoning/other
-  unit          String?             // 默认单位
-  iconKey       String?             // 图标标识
-  iconUrl       String?             // 图标URL
-
-  transStatus   Json     @default("{}")
-
-  translations  IngredientTranslation[]
+  id           String                  @id @default(cuid())
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  name         String                  @unique
+  category     String?
+  unit         String?
+  iconKey      String?
+  iconUrl      String?
+  transStatus  Json                    @default("{}")
+  translations IngredientTranslation[]
 
   @@index([category])
 }
 
-// 食材翻译表
 model IngredientTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  ingredientId  String
-  ingredient    Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
-  locale        String
-
-  name          String
-  unit          String?
+  id           String     @id @default(cuid())
+  ingredientId String
+  name         String
+  unit         String?
+  locale       String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
 
   @@unique([ingredientId, locale])
   @@index([locale])
 }
 
-// ==================== 任务队列 ====================
-
-// AI生成任务
 model GenerateJob {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // 来源
-  sourceType    String              // collection/custom
-  collectionId  String?
-
-  // 配置
-  lockedTags    Json                // 锁定的标签
-  recipeNames   String[]            // 菜谱名称列表
-  qualityLevel  String   @default("high")
-  reviewMode    String   @default("ai_human")
-
-  // 状态
-  status        String   @default("pending")  // pending/running/paused/completed/failed
-  totalCount    Int      @default(0)
-  successCount  Int      @default(0)
-  failedCount   Int      @default(0)
-
-  // 结果
-  results       Json     @default("[]")
-  errorMessage  String?
-
-  // 执行信息
-  startedAt     DateTime?
-  completedAt   DateTime?
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sourceType   String
+  collectionId String?
+  lockedTags   Json
+  recipeNames  String[]
+  qualityLevel String    @default("high")
+  reviewMode   String    @default("ai_human")
+  status       String    @default("pending")
+  totalCount   Int       @default(0)
+  successCount Int       @default(0)
+  failedCount  Int       @default(0)
+  results      Json      @default("[]")
+  errorMessage String?
+  startedAt    DateTime?
+  completedAt  DateTime?
 
   @@index([status])
   @@index([collectionId])
 }
 
-// 翻译任务
 model TranslationJob {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // 目标
-  entityType    String              // recipe/collection/cuisine/location/tag/ingredient
-  entityId      String
-  targetLang    String              // en/ja/ko
-
-  // 状态
-  status        String   @default("pending")  // pending/processing/completed/failed
-  priority      Int      @default(5)          // 1-10, 越小越优先
-
-  // 执行信息
-  startedAt     DateTime?
-  completedAt   DateTime?
-  errorMessage  String?
-  retryCount    Int      @default(0)
-  maxRetries    Int      @default(3)
-
-  // 结果
-  result        Json?
-  qualityScore  Decimal?
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  entityType   String
+  entityId     String
+  targetLang   String
+  status       String    @default("pending")
+  priority     Int       @default(5)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+  retryCount   Int       @default(0)
+  maxRetries   Int       @default(3)
+  result       Json?
+  qualityScore Decimal?
 
   @@index([status, priority])
   @@index([entityType, entityId])
 }
 
-// ==================== 配置表 ====================
-
-// AI配置
 model AIConfig {
-  id            String   @id @default("default")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // 文本生成模型
-  textProvider  String?
-  textApiKey    String?
-  textBaseUrl   String?
-  textModel     String?
-
-  // 图像生成模型
-  imageProvider String?
-  imageApiKey   String?
-  imageBaseUrl  String?
-  imageModel    String?
+  id                  String   @id @default("default")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  textProvider        String?
+  textApiKey          String?
+  textBaseUrl         String?
+  textModel           String?
+  imageProvider       String?
+  imageApiKey         String?
+  imageBaseUrl        String?
+  imageModel          String?
   imageNegativePrompt String?
-
-  // 翻译模型
-  transProvider String?
-  transApiKey   String?
-  transBaseUrl  String?
-  transModel    String?
-
-  // 提示词模板
-  recipePrompt  String?             // 菜谱生成提示词
-  recipeSystemPrompt String?        // 菜谱系统提示词
-  transPrompt   String?             // 翻译提示词
-  seoPrompt     String?  @db.Text   // SEO内容生成提示词
+  transProvider       String?
+  transApiKey         String?
+  transBaseUrl        String?
+  transModel          String?
+  recipePrompt        String?
+  recipeSystemPrompt  String?
+  transPrompt         String?
+  seoPrompt           String?
 }
 
-// AI提示词配置
 model AIPrompt {
   id           String   @id @default(cuid())
-  key          String   @unique    // 唯一标识符
-  name         String              // 显示名称
-  description  String?             // 功能描述
-  category     String              // 分类: chat, generate, recommend, translate
-  prompt       String   @db.Text   // 用户提示词
-  systemPrompt String?  @db.Text   // 系统提示词
-  variables    String?             // 支持的变量（JSON 字符串）
+  key          String   @unique
+  name         String
+  description  String?
+  category     String
+  prompt       String
+  systemPrompt String?
+  variables    String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -505,257 +380,214 @@ model AIPrompt {
   @@index([key])
 }
 
-// 站点配置
 model SiteConfig {
-  id            String   @id @default("default")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  siteName      Json?               // { zh: "xxx", en: "xxx" }
-  siteDesc      Json?
-  defaultLang   String   @default("en")
+  id             String   @id @default("default")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  siteName       Json?
+  siteDesc       Json?
+  defaultLang    String   @default("en")
   supportedLangs String[] @default(["en", "zh"])
-
-  // 翻译设置
-  autoTranslate Boolean  @default(true)
-  transOnPublish Boolean @default(true)
+  autoTranslate  Boolean  @default(true)
+  transOnPublish Boolean  @default(true)
 }
 
-// 首页配置
 model HomeConfig {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  section       String              // hero/featured/categories/seasonal/about
-  sortOrder     Int      @default(0)
-  isActive      Boolean  @default(true)
-
-  // 内容 (中文)
-  title         String?
-  subtitle      String?
-  content       Json?
-
-  // 关联内容
-  recipeIds     String[]
-  collectionIds String[]
-
-  // 图片
+  id              String                  @id @default(cuid())
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  section         String
+  sortOrder       Int                     @default(0)
+  isActive        Boolean                 @default(true)
+  title           String?
+  subtitle        String?
+  content         Json?
+  recipeIds       String[]
+  collectionIds   String[]
   backgroundImage String?
-
-  transStatus   Json     @default("{}")
-  translations  HomeConfigTranslation[]
+  transStatus     Json                    @default("{}")
+  translations    HomeConfigTranslation[]
 
   @@index([section, isActive])
 }
 
-// 首页配置翻译
 model HomeConfigTranslation {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  configId      String
-  config        HomeConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
-  locale        String
-
-  title         String?
-  subtitle      String?
-  content       Json?
+  id        String     @id @default(cuid())
+  configId  String
+  title     String?
+  subtitle  String?
+  content   Json?
+  locale    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  config    HomeConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
 
   @@unique([configId, locale])
   @@index([locale])
 }
 
-// 首页快捷入口
 model HomeBrowseItem {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  type        String              // REGION/CUISINE/INGREDIENT/SCENE
-  name        String
-  description String?
-  href        String
-  imageUrl    String?
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-
-  transStatus Json     @default("{}")
+  id           String                      @id @default(cuid())
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+  type         String
+  name         String
+  description  String?
+  href         String
+  imageUrl     String?
+  sortOrder    Int                         @default(0)
+  isActive     Boolean                     @default(true)
+  transStatus  Json                        @default("{}")
   translations HomeBrowseItemTranslation[]
 
   @@index([type, isActive])
 }
 
 model HomeBrowseItemTranslation {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id          String         @id @default(cuid())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   itemId      String
-  item        HomeBrowseItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
   locale      String
-
   name        String?
   description String?
+  item        HomeBrowseItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@unique([itemId, locale])
   @@index([locale])
 }
 
-// 首页主题卡片
 model HomeThemeCard {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  title       String
-  tag         String
-  imageUrl    String
-  href        String?
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-
-  transStatus Json     @default("{}")
+  id           String                     @id @default(cuid())
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+  title        String
+  tag          String
+  imageUrl     String
+  href         String?
+  sortOrder    Int                        @default(0)
+  isActive     Boolean                    @default(true)
+  transStatus  Json                       @default("{}")
   translations HomeThemeCardTranslation[]
 
   @@index([isActive])
 }
 
 model HomeThemeCardTranslation {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  cardId      String
-  card        HomeThemeCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  locale      String
-
-  title       String?
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  cardId    String
+  locale    String
+  title     String?
+  card      HomeThemeCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   @@unique([cardId, locale])
   @@index([locale])
 }
 
-// 首页用户证言
 model HomeTestimonial {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  name        String
-  role        String
-  city        String
-  content     String
-  meta        String
-  avatarUrl   String?
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-
-  transStatus Json     @default("{}")
+  id           String                       @id @default(cuid())
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
+  name         String
+  role         String
+  city         String
+  content      String
+  meta         String
+  avatarUrl    String?
+  sortOrder    Int                          @default(0)
+  isActive     Boolean                      @default(true)
+  transStatus  Json                         @default("{}")
   translations HomeTestimonialTranslation[]
 
   @@index([isActive])
 }
 
 model HomeTestimonialTranslation {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id            String          @id @default(cuid())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   testimonialId String
-  testimonial HomeTestimonial @relation(fields: [testimonialId], references: [id], onDelete: Cascade)
-  locale      String
-
-  name        String?
-  role        String?
-  city        String?
-  content     String?
-  meta        String?
+  locale        String
+  name          String?
+  role          String?
+  city          String?
+  content       String?
+  meta          String?
+  testimonial   HomeTestimonial @relation(fields: [testimonialId], references: [id], onDelete: Cascade)
 
   @@unique([testimonialId, locale])
   @@index([locale])
 }
 
-// ==================== 用户 ====================
-
 model User {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  email         String   @unique
-  passwordHash  String
-  name          String?
-  role          String   @default("user")  // user/editor/admin
+  id                String              @id @default(cuid())
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  email             String              @unique
+  passwordHash      String
+  name              String?
+  role              String              @default("user")
+  favorites         UserFavorite[]
+  customRecipeTasks CustomRecipeTask[]
 
   @@index([email])
 }
 
-// ==================== AI对话历史 (保留兼容) ====================
+// 用户收藏食谱
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  recipeId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId])
+  @@index([userId])
+  @@index([recipeId])
+}
 
 model AIConversation {
   id            String   @id @default(cuid())
   createdAt     DateTime @default(now())
-
   recipeId      String
-  recipeTitleZh String   // 冗余字段，方便查询
-
-  messages      Json     // [{ role, content, timestamp }]
+  recipeTitleZh String
+  messages      Json
 
   @@index([recipeId])
   @@index([createdAt])
 }
 
-// ==================== AI 生成日志 ====================
-
-// AI 生成过程日志
-// 用于追踪文本生成、图片生成的完整链路
 model AIGenerationLog {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-
-  // 会话与步骤标识
-  sessionId     String   @map("session_id")     // 会话ID，串联一次完整生成
-  stepName      String   @map("step_name")      // 步骤名称：prompt_assembly/text_generation/image_generation/etc
-  timestamp     DateTime @default(now())        // 步骤时间戳
-
-  // 模型信息
-  modelName     String   @map("model_name")     // 模型名称：gpt-4/dall-e-3/etc
-  provider      String?                         // 供应商：openai/anthropic/etc
-
-  // 状态
-  status        String                          // success/failed/partial
-
-  // 输入数据
-  prompt        String?  @db.Text               // 提示词（小于10KB）
-  promptUrl     String?  @map("prompt_url")     // 大提示词外存URL
-  parameters    Json?                           // 调用参数：temperature/max_tokens/etc
-
-  // 输出数据
-  result        Json?                           // 结果数据（结构化）
-  resultUrl     String?  @map("result_url")     // 大结果外存URL
-  resultText    String?  @map("result_text") @db.Text  // 文本结果
-  resultImages  String[] @map("result_images")  // 图片URL列表
-
-  // 性能与成本
-  durationMs    Int?     @map("duration_ms")    // 耗时（毫秒）
-  tokenUsage    Json?    @map("token_usage")    // Token使用：{input, output, total}
-  cost          Float?                          // 成本（美元）
-
-  // 关联与追踪
-  retryIndex    Int?     @map("retry_index")    // 重试次数（0=首次）
-  recipeId      String?  @map("recipe_id")      // 关联食谱ID
-  jobId         String?  @map("job_id")         // 关联任务ID
-  userId        String?  @map("user_id")        // 触发用户ID
-
-  // 错误与警告
-  errorMessage  String?  @map("error_message") @db.Text  // 错误信息
-  errorStack    String?  @map("error_stack") @db.Text    // 错误堆栈
-  warning       String?  @db.Text               // 警告信息
-
-  // 元数据
-  metadata      Json?                           // 其他元数据
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  sessionId    String   @map("session_id")
+  stepName     String   @map("step_name")
+  timestamp    DateTime @default(now())
+  modelName    String   @map("model_name")
+  provider     String?
+  status       String
+  prompt       String?
+  promptUrl    String?  @map("prompt_url")
+  parameters   Json?
+  result       Json?
+  resultUrl    String?  @map("result_url")
+  resultText   String?  @map("result_text")
+  resultImages String[] @map("result_images")
+  durationMs   Int?     @map("duration_ms")
+  tokenUsage   Json?    @map("token_usage")
+  cost         Float?
+  retryIndex   Int?     @map("retry_index")
+  recipeId     String?  @map("recipe_id")
+  jobId        String?  @map("job_id")
+  userId       String?  @map("user_id")
+  errorMessage String?  @map("error_message")
+  errorStack   String?  @map("error_stack")
+  warning      String?
+  metadata     Json?
 
   @@index([sessionId])
   @@index([timestamp])
@@ -765,4 +597,188 @@ model AIGenerationLog {
   @@index([recipeId])
   @@index([jobId])
   @@map("ai_generation_logs")
+}
+
+model AboutSection {
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  titleZh      String
+  contentZh    String
+  type         String                    @default("text")
+  imageUrl     String?
+  videoUrl     String?
+  sortOrder    Int                       @default(0)
+  isActive     Boolean                   @default(true)
+  translations AboutSectionTranslation[]
+
+  @@index([sortOrder])
+  @@index([isActive])
+}
+
+model AboutSectionTranslation {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  sectionId String
+  locale    String
+  title     String
+  content   String
+  section   AboutSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, locale])
+  @@index([locale])
+}
+
+model TeamMember {
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  slug                  String   @unique
+  nameZh                String
+  nameEn                String
+  role                  String
+  bioZh                 String?
+  bioEn                 String?
+  mottoZh               String?
+  mottoEn               String?
+  avatarUrl             String?
+  specialtyCuisines     String[]
+  specialtyRegions      String[]
+  sortOrder             Int      @default(0)
+  isActive              Boolean  @default(true)
+  assignedExplorerCount Int      @default(0)
+  assignedReviewerCount Int      @default(0)
+  exploredRecipes       Recipe[] @relation("RecipeExplorer")
+  reviewedRecipes       Recipe[] @relation("RecipeReviewer")
+
+  @@index([role, isActive])
+  @@index([sortOrder])
+}
+
+// 图片生成任务（步骤图 + 成品图）
+model ImageGenTask {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  recipeId     String?   // 关联食谱（可选）
+  recipeName   String    // 食谱名称
+  dishStyle    String    @default("dark_and_moody") // light_and_fresh/dark_and_moody/baking
+
+  // 步骤图信息
+  steps        Json      // [{number, description, title?, action?}]
+  prompts      Json?     // StepPrompt[] - 步骤图提示词
+  images       Json?     // [{stepNumber, imageUrl, error?}] - 步骤图结果
+
+  // 成品图信息
+  imageShots   Json?     // [{key, ratio, imagePrompt?}] - 成品图配置
+  shotPrompts  Json?     // [{key, ratio, imagePrompt}] - 成品图提示词
+  shotImages   Json?     // [{key, ratio, imageUrl, error?}] - 成品图结果
+
+  // 封面图（从成品图中选择）
+  coverImageUrl String?
+
+  // 任务状态: pending/generating_prompts/generating_images/completed/failed
+  status       String    @default("pending")
+  errorMessage String?
+
+  // 创建形式: auto_generate(菜谱生成) / manual(手动创建) / batch(批量任务) / import(导入)
+  source       String    @default("auto_generate")
+
+  // 进度跟踪 - 步骤图
+  totalSteps   Int       @default(0)
+  promptsDone  Int       @default(0)
+  imagesDone   Int       @default(0)
+
+  // 进度跟踪 - 成品图
+  totalShots   Int       @default(0)
+  shotsDone    Int       @default(0)
+
+  // 时间戳
+  startedAt    DateTime?
+  completedAt  DateTime?
+
+  // 关联
+  recipe       Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([recipeId])
+  @@index([createdAt])
+}
+
+// 定制食谱生成任务
+model CustomRecipeTask {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String    // 关联用户
+  userPrompt    String    // 用户需求描述
+  recipeName    String    // 食谱名称
+
+  recipeId      String?   // 生成的食谱ID
+  imageTaskId   String?   // 关联的图片任务ID
+
+  // 状态: pending → recipe_generating → recipe_done →
+  //       prompts_generating → images_generating → reviewing → completed
+  status        String    @default("pending")
+
+  currentPhase  Int       @default(0) // 当前阶段 0-6
+  totalPhases   Int       @default(7)
+  phaseProgress Int       @default(0) // 阶段内进度 0-100
+
+  totalImages   Int       @default(0)
+  imagesDone    Int       @default(0)
+
+  startedAt     DateTime?
+  completedAt   DateTime?
+  errorMessage  String?
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe        Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// 博客文章
+model BlogPost {
+  id           String               @id @default(cuid())
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  title        String
+  slug         String               @unique
+  content      String?
+  excerpt      String?
+  coverImage   String?
+  status       String               @default("draft")
+  publishedAt  DateTime?
+  viewCount    Int                  @default(0)
+  author       String?
+  transStatus  Json                 @default("{}")
+  seo          Json?
+  translations BlogPostTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([slug])
+}
+
+// 博客翻译
+model BlogPostTranslation {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  postId      String
+  locale      String
+  title       String
+  slug        String
+  content     String?
+  excerpt     String?
+  transMethod String?
+  isReviewed  Boolean  @default(false)
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, locale])
+  @@index([locale])
 }

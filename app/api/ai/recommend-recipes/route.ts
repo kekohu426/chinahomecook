@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { isValidAIBaseUrl } from "@/lib/ai/url-validator";
 
 // 权限验证
 async function requireAdmin(): Promise<NextResponse | null> {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
       excludeExisting = true,
     } = body;
 
-    // 获取已有菜谱标题用于排重
+    // 获取已有菜谱标题用于排重（限制数量防止内存溢出）
     let existingTitles: string[] = [];
     if (excludeExisting) {
       const existingRecipes = await prisma.recipe.findMany({
@@ -53,6 +54,8 @@ export async function POST(request: NextRequest) {
         where: {
           status: { in: ["draft", "pending", "published"] },
         },
+        take: 1000, // 限制数量防止内存溢出
+        orderBy: { createdAt: "desc" },
       });
       existingTitles = existingRecipes.map(r => r.title);
     }
@@ -83,6 +86,15 @@ export async function POST(request: NextRequest) {
     if (!aiConfig?.textApiKey || !aiConfig?.textBaseUrl) {
       return NextResponse.json(
         { success: false, error: "AI配置未完成" },
+        { status: 500 }
+      );
+    }
+
+    // 验证 AI API URL 安全性（防止 SSRF）
+    if (!isValidAIBaseUrl(aiConfig.textBaseUrl)) {
+      console.error("无效的 AI API URL:", aiConfig.textBaseUrl);
+      return NextResponse.json(
+        { success: false, error: "AI服务配置无效" },
         { status: 500 }
       );
     }
@@ -177,7 +189,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
 /**
  * 解析AI返回的推荐结果
  */

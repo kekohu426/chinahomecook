@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude config set:*)",
+      "Bash(claude config --help:*)",
+      "Bash(powershell:*)",
+      "Bash(findstr:*)",
+      "Bash(node scripts/seed-recipe-prompt.mjs:*)",
+      "Bash(rm:*)",
+      "Bash(del scriptsseed-recipe-prompt.ts)"
+    ]
+  }
+}

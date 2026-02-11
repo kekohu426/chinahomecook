@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { AIGenerationLogger, calculateCost } from "@/lib/ai/generation-logger";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -157,6 +158,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     };
 
     const provider = await getTextProvider();
+    const logger = new AIGenerationLogger();
     const results: Record<string, { success: boolean; error?: string }> = {};
 
     for (const targetLocaleRaw of targetLocales) {
@@ -166,6 +168,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         continue;
       }
 
+      const startTime = Date.now();
       try {
         const targetLangName = LOCALE_NAMES_EN[targetLocale];
         const sourceLangName = LOCALE_NAMES_EN[sourceLocale];
@@ -187,6 +190,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           ],
           temperature: 0.3,
           maxTokens: 6000,
+        });
+
+        // 记录AI调用日志
+        const durationMs = Date.now() - startTime;
+        logger.logSuccess("translation", provider.model || "unknown", {
+          prompt: applied.prompt.substring(0, 1000),
+          parameters: { temperature: 0.3, maxTokens: 6000, targetLocale },
+          durationMs,
+          recipeId: id,
+          metadata: { entityType: "recipe", targetLocale },
         });
 
         const translated = parseJson(response.content || "");

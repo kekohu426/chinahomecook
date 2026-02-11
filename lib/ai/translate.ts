@@ -15,6 +15,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "./provider";
 import { getAppliedPrompt } from "./prompt-manager";
+import { AIGenerationLogger, calculateCost } from "./generation-logger";
 
 /**
  * 翻译服务支持的语言
@@ -99,8 +100,9 @@ function generateSlug(text: string, locale: string): string {
 export async function translateRecipe(
   recipeId: string,
   targetLocale: SupportedLocale,
-  options?: { autoReview?: boolean }
+  options?: { autoReview?: boolean; logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
+  const startTime = Date.now();
   try {
     const recipe = await prisma.recipe.findUnique({
       where: { id: recipeId },
@@ -142,6 +144,30 @@ export async function translateRecipe(
       temperature: 0.3,
       maxTokens: 6000,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 6000, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        recipeId,
+        metadata: { entityType: "recipe", targetLocale },
+      });
+    }
 
     const translated = parseJsonResponse(response.content);
     if (!translated) {
@@ -205,8 +231,10 @@ export async function translateRecipe(
  */
 export async function translateCuisine(
   cuisineId: string,
-  targetLocale: SupportedLocale
+  targetLocale: SupportedLocale,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
+  const startTime = Date.now();
   try {
     const cuisine = await prisma.cuisine.findUnique({
       where: { id: cuisineId },
@@ -237,6 +265,29 @@ export async function translateCuisine(
       temperature: 0.3,
       maxTokens: 500,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 500, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { entityType: "cuisine", entityId: cuisineId, targetLocale },
+      });
+    }
 
     const translated = parseJsonResponse(response.content);
     if (!translated) {
@@ -281,8 +332,10 @@ export async function translateCuisine(
  */
 export async function translateLocation(
   locationId: string,
-  targetLocale: SupportedLocale
+  targetLocale: SupportedLocale,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
+  const startTime = Date.now();
   try {
     const location = await prisma.location.findUnique({
       where: { id: locationId },
@@ -313,6 +366,29 @@ export async function translateLocation(
       temperature: 0.3,
       maxTokens: 500,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 500, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { entityType: "location", entityId: locationId, targetLocale },
+      });
+    }
 
     const translated = parseJsonResponse(response.content);
     if (!translated) {
@@ -357,8 +433,10 @@ export async function translateLocation(
  */
 export async function translateTag(
   tagId: string,
-  targetLocale: SupportedLocale
+  targetLocale: SupportedLocale,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
+  const startTime = Date.now();
   try {
     const tag = await prisma.tag.findUnique({
       where: { id: tagId },
@@ -389,6 +467,29 @@ export async function translateTag(
       temperature: 0.3,
       maxTokens: 200,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 200, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { entityType: "tag", entityId: tagId, targetLocale },
+      });
+    }
 
     const translated = parseJsonResponse(response.content);
     if (!translated) {
@@ -431,8 +532,10 @@ export async function translateTag(
  */
 export async function translateCollection(
   collectionId: string,
-  targetLocale: SupportedLocale
+  targetLocale: SupportedLocale,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
+  const startTime = Date.now();
   try {
     const collection = await prisma.collection.findUnique({
       where: { id: collectionId },
@@ -464,6 +567,29 @@ export async function translateCollection(
       temperature: 0.3,
       maxTokens: 800,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 800, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { entityType: "collection", entityId: collectionId, targetLocale },
+      });
+    }
 
     const translated = parseJsonResponse(response.content);
     if (!translated) {
@@ -509,8 +635,10 @@ export async function translateCollection(
  */
 export async function translateIngredient(
   ingredientId: string,
-  targetLocale: SupportedLocale
+  targetLocale: SupportedLocale,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
+  const startTime = Date.now();
   try {
     const ingredient = await prisma.ingredient.findUnique({
       where: { id: ingredientId },
@@ -541,6 +669,29 @@ export async function translateIngredient(
       temperature: 0.3,
       maxTokens: 200,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 200, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { entityType: "ingredient", entityId: ingredientId, targetLocale },
+      });
+    }
 
     const translated = parseJsonResponse(response.content);
     if (!translated) {
@@ -583,21 +734,21 @@ export async function translateEntity(
   entityType: string,
   entityId: string,
   targetLocale: SupportedLocale,
-  options?: { autoReview?: boolean }
+  options?: { autoReview?: boolean; logger?: AIGenerationLogger }
 ): Promise<TranslationResult> {
   switch (entityType) {
     case "recipe":
       return translateRecipe(entityId, targetLocale, options);
     case "cuisine":
-      return translateCuisine(entityId, targetLocale);
+      return translateCuisine(entityId, targetLocale, { logger: options?.logger });
     case "location":
-      return translateLocation(entityId, targetLocale);
+      return translateLocation(entityId, targetLocale, { logger: options?.logger });
     case "tag":
-      return translateTag(entityId, targetLocale);
+      return translateTag(entityId, targetLocale, { logger: options?.logger });
     case "collection":
-      return translateCollection(entityId, targetLocale);
+      return translateCollection(entityId, targetLocale, { logger: options?.logger });
     case "ingredient":
-      return translateIngredient(entityId, targetLocale);
+      return translateIngredient(entityId, targetLocale, { logger: options?.logger });
     default:
       return { success: false, error: `不支持的实体类型: ${entityType}` };
   }

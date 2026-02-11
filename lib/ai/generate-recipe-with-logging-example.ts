@@ -7,7 +7,6 @@
 
 import { AIGenerationLogger, calculateCost } from "./generation-logger";
 import { getTextProvider } from "./provider";
-import { evolinkClient } from "./evolink";
 
 /**
  * 示例：带日志的食谱生成
@@ -111,48 +110,7 @@ export async function generateRecipeWithLogging(params: {
       resultText: "Validation passed",
     });
 
-    // 步骤5: 图片生成（如果需要）
-    if (recipeData.imageShots && recipeData.imageShots.length > 0) {
-      for (let i = 0; i < recipeData.imageShots.length; i++) {
-        const shot = recipeData.imageShots[i];
-        try {
-          const imageUrl = await logger.measure(
-            "image_generation",
-            "dall-e-3",
-            async () => {
-              const result = await evolinkClient.generateImage({
-                prompt: shot.prompt,
-                model: "dall-e-3",
-              });
-              return result.url;
-            },
-            {
-              prompt: shot.prompt.substring(0, 500),
-              parameters: { model: "dall-e-3", index: i },
-              cost: 0.04, // DALL-E 3 固定价格
-              retryIndex: 0,
-            }
-          );
-
-          recipeData.imageShots[i].url = imageUrl;
-
-          logger.logSuccess("image_storage", "system", {
-            durationMs: 0,
-            resultImages: [imageUrl],
-            metadata: { shotIndex: i },
-          });
-        } catch (error) {
-          logger.logFailure("image_generation", "dall-e-3", error as Error, {
-            prompt: shot.prompt.substring(0, 500),
-            retryIndex: 0,
-            metadata: { shotIndex: i },
-          });
-          // 继续处理其他图片
-        }
-      }
-    }
-
-    // 步骤6: 数据库写入
+    // 步骤5: 数据库写入
     const startDb = Date.now();
     const savedRecipe = await saveRecipeToDatabase(recipeData);
     logger.logSuccess("database_insert", "system", {

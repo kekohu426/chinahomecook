@@ -11,14 +11,15 @@ import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ShareButton } from "@/components/blog/ShareButton";
-import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { Calendar, ArrowLeft, User, Clock, ChevronRight } from "lucide-react";
 import { Metadata } from "next";
 import { prisma } from "@/lib/db/prisma";
 import type { Locale } from "@/lib/i18n/config";
-import { DEFAULT_LOCALE } from "@/lib/i18n/config";
-import { getContentLocales } from "@/lib/i18n/content";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/lib/i18n/config";
 import { localizePath, toRouteLocale } from "@/lib/i18n/utils";
+import { ensureEnglish } from "@/lib/i18n/english";
+import { t } from "@/lib/i18n/translations";
+import { getDateLocale } from "@/lib/i18n/format";
 
 // 计算阅读时间（中文约 400 字/分钟，英文约 200 词/分钟）
 function calculateReadingTime(content: string, locale: string): number {
@@ -33,42 +34,100 @@ function calculateReadingTime(content: string, locale: string): number {
   }
 }
 
-interface BlogPost {
+interface BlogPostData {
   id: string;
   title: string;
-  summary: string | null;
-  contentMarkdown: string;
-  outline: any;
-  faq: any;
   slug: string;
-  metaTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImage: string | null;
-  tags: string[];
-  locale: string;
+  content: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  author: string | null;
   publishedAt: Date | null;
-  authorName: string | null;
-  imageAssets: {
-    id: string;
-    prompt: string;
-    imageUrl: string | null;
-    altText: string | null;
-    sectionHeading: string | null;
-    position: number;
-  }[];
+  locale: string;
+  seo: any;
 }
 
 interface BlogDetailResponse {
-  post: BlogPost;
+  post: BlogPostData;
   alternateLocales: { locale: string; slug: string }[];
 }
 
-// TODO: BlogPost/BlogPostTranslation 模型尚未在新 schema 中实现
-// 当博客模型创建后，需要更新此函数
-async function getBlogPost(_slug: string, _locale: Locale = DEFAULT_LOCALE): Promise<BlogDetailResponse | null> {
-  // BlogPost 模型不存在，返回 null
-  return null;
+async function getBlogPost(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<BlogDetailResponse | null> {
+  try {
+    // 先尝试通过主表 slug 查找
+    let post = await prisma.blogPost.findUnique({
+      where: { slug },
+      include: {
+        translations: true,
+      },
+    });
+
+    // 如果没找到，尝试通过翻译表 slug 查找
+    if (!post) {
+      const translation = await prisma.blogPostTranslation.findFirst({
+        where: { slug },
+        include: {
+          post: {
+            include: {
+              translations: true,
+            },
+          },
+        },
+      });
+      if (translation) {
+        post = translation.post;
+      }
+    }
+
+    if (!post || post.status !== "published") {
+      return null;
+    }
+
+    // 获取当前语言的翻译
+    const currentTranslation = post.translations.find((t) => t.locale === locale);
+
+    // 构建返回数据
+    const rawTitle = currentTranslation?.title || post.title;
+    const rawContent = currentTranslation?.content || post.content || "";
+    const rawExcerpt = currentTranslation?.excerpt || post.excerpt || "";
+    const isEn = locale === "en";
+    const postData: BlogPostData = {
+      id: post.id,
+      title: isEn ? ensureEnglish(rawTitle, "Untitled Post") : rawTitle,
+      slug: currentTranslation?.slug || post.slug,
+      content: isEn
+        ? currentTranslation?.content
+          ? rawContent
+          : `<p>${t("common.englishComingSoon", locale)}</p>`
+        : rawContent,
+      excerpt: isEn ? ensureEnglish(rawExcerpt, "") : rawExcerpt,
+      coverImage: post.coverImage,
+      author: post.author,
+      publishedAt: post.publishedAt,
+      locale: locale,
+      seo: post.seo,
+    };
+
+    // 构建备用语言列表
+    const alternateLocales: { locale: string; slug: string }[] = [];
+
+    // 添加主语言（中文）
+    if (locale !== "zh") {
+      alternateLocales.push({ locale: "zh", slug: post.slug });
+    }
+
+    // 添加其他翻译
+    for (const trans of post.translations) {
+      if (trans.locale !== locale) {
+        alternateLocales.push({ locale: trans.locale, slug: trans.slug });
+      }
+    }
+
+    return { post: postData, alternateLocales };
+  } catch (error) {
+    console.error("Failed to fetch blog post:", error);
+    return null;
+  }
 }
 
 interface BlogDetailPageProps {
@@ -82,7 +141,7 @@ export async function generateMetadata({
   const data = await getBlogPost(slug, locale);
 
   if (!data) {
-    return { title: locale === "en" ? "Post not found" : "文章不存在" };
+    return { title: t("blog.postNotFound", locale) };
   }
 
   const { post } = data;
@@ -91,32 +150,28 @@ export async function generateMetadata({
   const articleUrl = `${siteUrl}${articlePath}`;
 
   return {
-    title:
-      post.metaTitle ||
-      `${post.title} | Recipe Zen ${locale === "en" ? "Blog" : "美食博客"}`,
-    description: post.metaDescription || post.summary || "",
-    keywords: post.tags.length > 0 ? post.tags.join(", ") : undefined,
-    authors: post.authorName ? [{ name: post.authorName }] : undefined,
+    title: `${post.title} | Recipe Zen ${t("blog.breadcrumb", locale)}`,
+    description: post.excerpt || "",
+    authors: post.author ? [{ name: post.author }] : undefined,
     openGraph: {
-      title: post.metaTitle || post.title,
-      description: post.metaDescription || post.summary || "",
-      images: post.ogImage ? [{ url: post.ogImage, width: 1200, height: 630, alt: post.title }] : [],
+      title: post.title,
+      description: post.excerpt || "",
+      images: post.coverImage ? [{ url: post.coverImage, width: 1200, height: 630, alt: post.title }] : [],
       type: "article",
       url: articleUrl,
       siteName: "Recipe Zen",
-      locale: post.locale === "zh-CN" ? "zh_CN" : post.locale.replace("-", "_"),
+      locale: locale === "zh" ? "zh_CN" : "en_US",
       publishedTime: post.publishedAt?.toISOString(),
-      authors: post.authorName ? [post.authorName] : undefined,
-      tags: post.tags,
+      authors: post.author ? [post.author] : undefined,
     },
     twitter: {
       card: "summary_large_image",
-      title: post.metaTitle || post.title,
-      description: post.metaDescription || post.summary || "",
-      images: post.ogImage ? [post.ogImage] : [],
+      title: post.title,
+      description: post.excerpt || "",
+      images: post.coverImage ? [post.coverImage] : [],
     },
     alternates: {
-      canonical: post.canonicalUrl || articleUrl,
+      canonical: articleUrl,
       languages: data.alternateLocales.reduce((acc, alt) => {
         const routeLocale = toRouteLocale(alt.locale);
         acc[routeLocale] = localizePath(`/blog/${alt.slug}`, routeLocale);
@@ -130,6 +185,41 @@ export async function generateMetadata({
   };
 }
 
+export async function generateStaticParams() {
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: "published" },
+      select: {
+        slug: true,
+        translations: {
+          select: { slug: true, locale: true },
+        },
+      },
+    });
+
+    const params: { slug: string; locale: Locale }[] = [];
+
+    for (const post of posts) {
+      // 添加主语言版本
+      for (const locale of SUPPORTED_LOCALES) {
+        params.push({ slug: post.slug, locale });
+      }
+
+      // 添加翻译版本
+      for (const trans of post.translations) {
+        if (SUPPORTED_LOCALES.includes(trans.locale as Locale)) {
+          params.push({ slug: trans.slug, locale: trans.locale as Locale });
+        }
+      }
+    }
+
+    return params;
+  } catch (error) {
+    console.error("Failed to generate static params:", error);
+    return [];
+  }
+}
+
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug, locale } = await params;
   const data = await getBlogPost(slug, locale);
@@ -139,29 +229,22 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   }
 
   const { post, alternateLocales } = data;
-  const readingTime = calculateReadingTime(post.contentMarkdown, post.locale);
+  const readingTime = calculateReadingTime(post.content, post.locale);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://recipezen.com";
-
-  // 过滤有效图片
-  const validImages = post.imageAssets.filter((img) => img.imageUrl);
-
-  // 获取相关食谱（由于博客不存在，返回空数组）
-  // TODO: 当博客模型存在时，根据博客标签匹配菜系或关键词
-  const relatedRecipes: any[] = [];
 
   // JSON-LD 结构化数据
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
-    description: post.summary || post.metaDescription || "",
-    image: post.ogImage || undefined,
+    description: post.excerpt || "",
+    image: post.coverImage || undefined,
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.publishedAt?.toISOString(),
-    author: post.authorName
+    author: post.author
       ? {
           "@type": "Person",
-          name: post.authorName,
+          name: post.author,
         }
       : {
           "@type": "Organization",
@@ -179,8 +262,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       "@type": "WebPage",
       "@id": `${siteUrl}/blog/${post.slug}`,
     },
-    keywords: post.tags.join(", "),
-    articleSection: locale === "en" ? "Food Blog" : "美食博客",
+    articleSection: t("blog.heroTitle", locale),
     inLanguage: post.locale,
   };
 
@@ -192,13 +274,13 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       {
         "@type": "ListItem",
         position: 1,
-        name: locale === "en" ? "Home" : "首页",
+        name: t("nav.home", locale),
         item: siteUrl,
       },
       {
         "@type": "ListItem",
         position: 2,
-        name: locale === "en" ? "Blog" : "博客",
+        name: t("blog.breadcrumb", locale),
         item: `${siteUrl}${localizePath("/blog", locale)}`,
       },
       {
@@ -228,11 +310,11 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         {/* 面包屑导航 */}
         <nav className="flex items-center gap-2 text-sm text-textGray mb-6">
           <LocalizedLink href="/" className="hover:text-brownWarm transition-colors">
-            {locale === "en" ? "Home" : "首页"}
+            {t("nav.home", locale)}
           </LocalizedLink>
           <ChevronRight className="w-4 h-4" />
           <LocalizedLink href="/blog" className="hover:text-brownWarm transition-colors">
-            {locale === "en" ? "Blog" : "博客"}
+            {t("blog.breadcrumb", locale)}
           </LocalizedLink>
           <ChevronRight className="w-4 h-4" />
           <span className="text-textDark truncate max-w-[200px]">{post.title}</span>
@@ -241,37 +323,22 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         <article itemScope itemType="https://schema.org/Article">
           {/* 标题区 */}
           <header className="mb-8">
-            {/* 标签 */}
-            {post.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {post.tags.map((tag) => (
-                  <LocalizedLink
-                    key={tag}
-                    href={`/blog?tag=${encodeURIComponent(tag)}`}
-                    className="px-3 py-1 bg-brownWarm/10 text-brownWarm text-sm rounded-full hover:bg-brownWarm/20 transition-colors"
-                  >
-                    {tag}
-                  </LocalizedLink>
-                ))}
-              </div>
-            )}
-
             {/* 标题 */}
             <h1 className="text-3xl md:text-4xl font-serif font-medium text-textDark mb-4">
               {post.title}
             </h1>
 
             {/* 摘要 */}
-            {post.summary && (
-              <p className="text-lg text-textGray mb-4">{post.summary}</p>
+            {post.excerpt && (
+              <p className="text-lg text-textGray mb-4">{post.excerpt}</p>
             )}
 
             {/* 元信息 */}
             <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-textGray text-sm">
-              {post.authorName && (
+              {post.author && (
                 <span className="flex items-center gap-1" itemProp="author">
                   <User className="w-4 h-4" />
-                  {post.authorName}
+                  {post.author}
                 </span>
               )}
               {post.publishedAt && (
@@ -282,7 +349,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                 >
                   <Calendar className="w-4 h-4" />
                   {new Date(post.publishedAt).toLocaleDateString(
-                    locale === "en" ? "en-US" : "zh-CN",
+                    getDateLocale(locale),
                     {
                     year: "numeric",
                     month: "long",
@@ -293,8 +360,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
               )}
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {readingTime}{" "}
-                {locale === "en" ? "min read" : "分钟阅读"}
+                {t("blog.readingTime", locale).replace("{count}", readingTime.toString())}
               </span>
             </div>
 
@@ -302,7 +368,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             {alternateLocales.length > 0 && (
               <div className="mt-4 flex items-center gap-2 text-sm">
                 <span className="text-textGray">
-                  {locale === "en" ? "Other languages:" : "其他语言："}
+                  {t("blog.otherLanguages", locale)}
                 </span>
                 {alternateLocales.map((alt) => {
                   const targetLocale = toRouteLocale(alt.locale);
@@ -313,7 +379,9 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
                       href={targetHref}
                       className="px-2 py-1 bg-lightGray rounded hover:bg-brownWarm/10 transition-colors"
                     >
-                      {targetLocale === "en" ? "English" : "中文"}
+                      {targetLocale === "en"
+                        ? t("language.english", locale)
+                        : t("language.chinese", locale)}
                     </LocalizedLink>
                   );
                 })}
@@ -322,10 +390,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </header>
 
           {/* 封面图 */}
-          {post.ogImage && (
+          {post.coverImage && (
             <div className="relative aspect-[16/9] rounded-xl overflow-hidden mb-8">
               <Image
-                src={post.ogImage}
+                src={post.coverImage}
                 alt={post.title}
                 fill
                 className="object-cover"
@@ -335,171 +403,50 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
             </div>
           )}
 
-          {/* 目录（如果有大纲） */}
-          {post.outline && Array.isArray(post.outline) && post.outline.length > 0 && (
-            <nav className="bg-lightGray/50 rounded-xl p-6 mb-8">
-              <h2 className="text-lg font-medium text-textDark mb-4">
-                {locale === "en" ? "Table of Contents" : "目录"}
-              </h2>
-              <ul className="space-y-2">
-                {post.outline.map((item: any, index: number) => (
-                  <li key={index}>
-                    <a
-                      href={`#section-${index}`}
-                      className="text-textGray hover:text-brownWarm transition-colors"
-                    >
-                      {item.heading || item.title || (typeof item === 'string' ? item : '')}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
-
           {/* 正文 */}
           <div className="prose prose-lg max-w-none prose-headings:font-serif prose-headings:text-textDark prose-p:text-textGray prose-a:text-brownWarm prose-strong:text-textDark prose-li:text-textGray">
-            <MarkdownRenderer content={post.contentMarkdown} />
+            <MarkdownRenderer content={post.content} />
           </div>
-
-          {/* 插图展示 - 只有当有有效图片时才显示 */}
-          {validImages.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-lightGray">
-              <h2 className="text-xl font-serif font-medium text-textDark mb-6">
-                {locale === "en" ? "Related Images" : "相关图片"}
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {validImages.map((img) => (
-                  <figure key={img.id} className="group">
-                    <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-lightGray">
-                      <Image
-                        src={img.imageUrl!}
-                        alt={img.altText || img.sectionHeading || ""}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        unoptimized
-                      />
-                    </div>
-                    {(img.altText || img.sectionHeading) && (
-                      <figcaption className="mt-2 text-sm text-textGray text-center">
-                        {img.altText || img.sectionHeading}
-                      </figcaption>
-                    )}
-                  </figure>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* FAQ */}
-          {post.faq && Array.isArray(post.faq) && post.faq.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-lightGray">
-              <h2 className="text-xl font-serif font-medium text-textDark mb-6">
-                {locale === "en" ? "FAQ" : "常见问题"}
-              </h2>
-              <div className="space-y-4">
-                {post.faq.map((item: any, index: number) => (
-                  <details
-                    key={index}
-                    className="group bg-white rounded-lg border border-lightGray"
-                  >
-                    <summary className="px-6 py-4 cursor-pointer font-medium text-textDark hover:text-brownWarm transition-colors list-none flex items-center justify-between">
-                      {item.question || item.q}
-                      <span className="text-textGray group-open:rotate-180 transition-transform">
-                        ▼
-                      </span>
-                    </summary>
-                    <div className="px-6 pb-4 text-textGray">
-                      {item.answer || item.a}
-                    </div>
-                  </details>
-                ))}
-              </div>
-            </div>
-          )}
         </article>
 
-        {/* 分享与标签 */}
+        {/* 分享 */}
         <div className="mt-12 pt-8 border-t border-lightGray">
-          {/* 标签云 */}
-          {post.tags.length > 0 && (
-            <div className="mb-6">
-              <span className="text-textGray text-sm mr-2">
-                {locale === "en" ? "Tags:" : "标签："}
-              </span>
-              <div className="inline-flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
-                  <LocalizedLink
-                    key={tag}
-                    href={`/blog?tag=${encodeURIComponent(tag)}`}
-                    className="px-3 py-1 bg-lightGray text-textGray text-sm rounded-full hover:bg-brownWarm/20 hover:text-brownWarm transition-colors"
-                  >
-                    #{tag}
-                  </LocalizedLink>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* 分享按钮 */}
           <div className="flex items-center justify-center gap-4 py-6">
             <span className="text-textGray">
-              {locale === "en" ? "Share:" : "分享文章："}
+              {t("blog.shareLabel", locale)}
             </span>
             <ShareButton title={post.title} />
           </div>
         </div>
 
         {/* 作者信息卡片 */}
-        {post.authorName && (
+        {post.author && (
           <div className="mt-8 p-6 bg-white rounded-xl border border-lightGray">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-brownWarm/10 flex items-center justify-center">
                 <User className="w-8 h-8 text-brownWarm" />
               </div>
               <div>
-                <p className="font-medium text-textDark">{post.authorName}</p>
+                <p className="font-medium text-textDark">{post.author}</p>
                 <p className="text-sm text-textGray">
-                  {locale === "en"
-                    ? "Recipe Zen Food Blogger"
-                    : "Recipe Zen 美食博主"}
+                  {t("blog.authorLabel", locale)}
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* 相关食谱推荐 */}
-        {relatedRecipes.length > 0 && (
-          <section className="mt-12 pt-8 border-t border-lightGray">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-serif font-medium text-textDark">
-                {locale === "en" ? "Related Recipes" : "相关食谱推荐"}
-              </h2>
-              <LocalizedLink
-                href="/recipe"
-                className="text-brownWarm hover:underline text-sm"
-              >
-                {locale === "en" ? "View all recipes →" : "查看全部食谱 →"}
-              </LocalizedLink>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {relatedRecipes.map((recipe: any) => (
-                <RecipeCard
-                  key={recipe.id}
-                  id={recipe.id}
-                  titleZh={recipe.title}
-                  title={recipe.title}
-                  summary={recipe.summary}
-                  location={recipe.location?.name || null}
-                  cuisine={recipe.cuisine?.name || null}
-                  aiGenerated={recipe.aiGenerated}
-                  coverImage={recipe.coverImage}
-                  aspectClass="aspect-[4/3]"
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        {/* 返回列表 */}
+        <div className="mt-8 text-center">
+          <LocalizedLink
+            href="/blog"
+            className="inline-flex items-center gap-2 text-brownWarm hover:underline"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t("blog.backToList", locale)}
+          </LocalizedLink>
+        </div>
       </main>
 
       <Footer />

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { RuleConfig, CustomRuleConfig, RuleGroup, RuleCondition } from "@/lib/types/collection";
 import RuleTagSelector from "./RuleTagSelector";
+import { getErrorMessage } from "@/lib/utils";
 
 interface RuleEditorProps {
   rules: RuleConfig;
@@ -221,7 +222,7 @@ export default function RuleEditor({ rules, onChange, disabled, collectionId, cu
         if (data.success) {
           setPreviewCount(data.data.count);
         } else {
-          setPreviewError(data.error);
+          setPreviewError(getErrorMessage(data.error, "预览失败"));
         }
       } catch (error) {
         setPreviewError("预览失败");

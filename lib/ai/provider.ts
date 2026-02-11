@@ -8,6 +8,7 @@ import { DeepSeekProvider } from "./deepseek";
 import { OpenAIProvider } from "./openai";
 import { GLMProvider } from "./glm";
 import type { AIProvider } from "./types";
+import { AIGenerationLogger, calculateCost } from "./generation-logger";
 
 /**
  * 获取文本生成 AI Provider
@@ -82,9 +83,12 @@ export async function chat(
     systemPrompt?: string;
     temperature?: number;
     maxTokens?: number;
+    logger?: AIGenerationLogger;
+    stepName?: string;
   }
 ): Promise<string> {
   const provider = getTextProvider();
+  const startTime = Date.now();
 
   const messages = [];
 
@@ -100,13 +104,57 @@ export async function chat(
     content: prompt,
   });
 
-  const response = await provider.chat({
-    messages,
-    temperature: options?.temperature,
-    maxTokens: options?.maxTokens,
-  });
+  try {
+    const response = await provider.chat({
+      messages,
+      temperature: options?.temperature,
+      maxTokens: options?.maxTokens,
+    });
 
-  return response.content;
+    // 记录成功日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess(options.stepName || "text_generation", modelName, {
+        prompt: prompt.substring(0, 1000),
+        resultText: response.content.substring(0, 5000),
+        parameters: {
+          temperature: options?.temperature,
+          maxTokens: options?.maxTokens,
+        },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+      });
+    }
+
+    return response.content;
+  } catch (error) {
+    // 记录失败日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      options.logger.logFailure(
+        options.stepName || "text_generation",
+        provider.getModel(),
+        error as Error,
+        {
+          prompt: prompt.substring(0, 1000),
+          durationMs,
+          provider: provider.getName(),
+        }
+      );
+    }
+    throw error;
+  }
 }
 
 /**
@@ -121,9 +169,12 @@ export async function chatStream(
     systemPrompt?: string;
     temperature?: number;
     maxTokens?: number;
+    logger?: AIGenerationLogger;
+    stepName?: string;
   }
 ): Promise<string> {
   const provider = getTextProvider();
+  const startTime = Date.now();
 
   const messages = [];
 
@@ -139,14 +190,58 @@ export async function chatStream(
     content: prompt,
   });
 
-  const response = await provider.chatStream(
-    {
-      messages,
-      temperature: options?.temperature,
-      maxTokens: options?.maxTokens,
-    },
-    onChunk
-  );
+  try {
+    const response = await provider.chatStream(
+      {
+        messages,
+        temperature: options?.temperature,
+        maxTokens: options?.maxTokens,
+      },
+      onChunk
+    );
 
-  return response.content;
+    // 记录成功日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess(options.stepName || "text_generation_stream", modelName, {
+        prompt: prompt.substring(0, 1000),
+        resultText: response.content.substring(0, 5000),
+        parameters: {
+          temperature: options?.temperature,
+          maxTokens: options?.maxTokens,
+        },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+      });
+    }
+
+    return response.content;
+  } catch (error) {
+    // 记录失败日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      options.logger.logFailure(
+        options.stepName || "text_generation_stream",
+        provider.getModel(),
+        error as Error,
+        {
+          prompt: prompt.substring(0, 1000),
+          durationMs,
+          provider: provider.getName(),
+        }
+      );
+    }
+    throw error;
+  }
 }

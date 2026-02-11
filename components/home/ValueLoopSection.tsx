@@ -1,5 +1,6 @@
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
 
 const STEPS: Partial<Record<Locale, {
   title: string;
@@ -68,12 +69,10 @@ export function ValueLoopSection({ locale = DEFAULT_LOCALE }: { locale?: Locale 
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark">
-            {locale === "en" ? "From idea to plate in 4 steps" : "从想法到成品，4 步搞定"}
+            {t("home.valueLoopTitle", locale)}
           </h2>
           <p className="text-textGray mt-2">
-            {locale === "en"
-              ? "Clear steps that make cooking feel easy."
-              : "把做饭拆成清晰步骤，每一步都更安心。"}
+            {t("home.valueLoopSubtitle", locale)}
           </p>
         </div>
 
@@ -96,7 +95,7 @@ export function ValueLoopSection({ locale = DEFAULT_LOCALE }: { locale?: Locale 
             href="/ai-custom"
             className="px-6 py-3 bg-brownWarm text-white rounded-full font-medium hover:bg-brownDark transition-colors"
           >
-            {locale === "en" ? "Get Started" : "立即开始"}
+            {t("home.startExploring", locale)}
           </LocalizedLink>
         </div>
       </div>

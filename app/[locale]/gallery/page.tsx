@@ -8,6 +8,9 @@
 import { prisma } from "@/lib/db/prisma";
 import { getContentLocales } from "@/lib/i18n/content";
 import type { Locale } from "@/lib/i18n/config";
+import { ensureEnglish, titleFromSlug, toEnglishLabel } from "@/lib/i18n/english";
+import { translateTagName } from "@/lib/i18n/tag-english";
+import { CUISINE_LABELS_EN, LOCATION_LABELS_EN } from "@/lib/i18n/labels";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { GalleryPageClient } from "@/components/gallery/GalleryPageClient";
@@ -94,6 +97,7 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
   const { locale } = await params;
   const content = seoContent[locale] || seoContent.zh;
   const locales = getContentLocales(locale);
+  const isEn = locale === "en";
 
   // 获取筛选选项
   const [cuisines, locations, sceneTags] = await Promise.all([
@@ -135,8 +139,22 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
         prepTime: true,
         cookTime: true,
         difficulty: true,
-        cuisine: { select: { id: true, name: true, slug: true } },
-        location: { select: { id: true, name: true, slug: true } },
+        cuisine: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            translations: { where: { locale: { in: locales } } }
+          }
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            translations: { where: { locale: { in: locales } } }
+          }
+        },
         tags: {
           include: {
             tag: {
@@ -170,16 +188,39 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
 
     const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
 
+    // 获取菜系和地域翻译
+    const cuisineTrans = recipe.cuisine?.translations?.find((t: any) =>
+      locales.includes(t.locale)
+    );
+    const locationTrans = recipe.location?.translations?.find((t: any) =>
+      locales.includes(t.locale)
+    );
+
+    const rawTitle = translation?.title || recipe.title;
+    const cuisineNameRaw = cuisineTrans?.name || recipe.cuisine?.name || null;
+    const locationNameRaw = locationTrans?.name || recipe.location?.name || null;
     return {
       id: recipe.id,
-      title: translation?.title || recipe.title,
+      title: isEn ? ensureEnglish(rawTitle, "Untitled Recipe") : rawTitle,
       slug: translation?.slug || recipe.slug,
       coverImage: recipe.coverImage,
       cuisineId: recipe.cuisine?.id || null,
-      cuisineName: recipe.cuisine?.name || null,
+      cuisineName: isEn
+        ? toEnglishLabel(
+            cuisineNameRaw,
+            CUISINE_LABELS_EN,
+            titleFromSlug(recipe.cuisine?.slug || "Cuisine")
+          )
+        : cuisineNameRaw,
       cuisineSlug: recipe.cuisine?.slug || null,
       locationId: recipe.location?.id || null,
-      locationName: recipe.location?.name || null,
+      locationName: isEn
+        ? toEnglishLabel(
+            locationNameRaw,
+            LOCATION_LABELS_EN,
+            titleFromSlug(recipe.location?.slug || "Region")
+          )
+        : locationNameRaw,
       totalTime,
       difficulty: recipe.difficulty,
       tagIds: recipe.tags.map((rt) => rt.tag.id),
@@ -187,7 +228,8 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
         const tagTrans = rt.tag.translations.find((t) =>
           locales.includes(t.locale)
         );
-        return tagTrans?.name || rt.tag.name;
+        const tagNameRaw = tagTrans?.name || rt.tag.name;
+        return isEn ? ensureEnglish(tagNameRaw, "") : tagNameRaw;
       }),
     };
   });
@@ -195,27 +237,42 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
   // 格式化筛选选项
   const formattedCuisines = cuisines.map((c) => {
     const trans = c.translations.find((t) => locales.includes(t.locale));
+    const rawName = trans?.name || c.name;
     return {
       id: c.id,
-      name: trans?.name || c.name,
+      name: isEn
+        ? toEnglishLabel(rawName, CUISINE_LABELS_EN, titleFromSlug(c.slug || "Cuisine"))
+        : rawName,
       slug: c.slug,
     };
   });
 
   const formattedLocations = locations.map((l) => {
     const trans = l.translations.find((t) => locales.includes(t.locale));
+    const rawName = trans?.name || l.name;
     return {
       id: l.id,
-      name: trans?.name || l.name,
+      name: isEn
+        ? toEnglishLabel(rawName, LOCATION_LABELS_EN, titleFromSlug(l.slug || "Region"))
+        : rawName,
       slug: l.slug,
     };
   });
 
   const formattedSceneTags = sceneTags.map((t) => {
     const trans = t.translations.find((tr) => locales.includes(tr.locale));
+    const rawName = trans?.name || t.name;
     return {
       id: t.id,
-      name: trans?.name || t.name,
+      name: isEn
+        ? translateTagName({
+            name: rawName,
+            originalName: t.name,
+            slug: t.slug,
+            type: "scene",
+            locale,
+          })
+        : rawName,
       slug: t.slug,
     };
   });
@@ -251,13 +308,11 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
       {/* SEO 核心区 - H1 + 说明文案 */}
       <section className="bg-gradient-to-br from-brownWarm via-orangeAccent/70 to-brownWarm text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 md:py-16">
-          <h1 className="text-4xl md:text-5xl font-serif font-medium mb-6">
-            {content.h1}
-          </h1>
-          <p className="text-white/90 text-lg leading-relaxed max-w-3xl mb-6">
+          <h1 className="editorial-hero-title mb-6">{content.h1}</h1>
+          <p className="editorial-hero-subtitle max-w-3xl mb-6">
             {content.intro}
           </p>
-          <p className="text-white/80 text-base">
+          <p className="editorial-hero-body">
             {content.countLabel}:{" "}
             <span className="font-semibold text-white">
               {total} {content.countUnit}

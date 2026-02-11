@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -20,6 +21,9 @@ interface RouteContext {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
     const { searchParams } = new URL(request.url);
     const locale = searchParams.get("locale");
@@ -54,6 +58,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
     const body = await request.json();
     const { locale, name, slug } = body;

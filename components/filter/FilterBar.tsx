@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MapPin, UtensilsCrossed, Loader2, X, Sun, Flame, Heart, Users, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
+import { translateTagName } from "@/lib/i18n/tag-english";
 
 interface Location {
   id: string;
@@ -23,6 +25,7 @@ interface Tag {
   id: string;
   name: string;
   slug: string;
+  originalName?: string;
 }
 
 interface FilterBarProps {
@@ -94,11 +97,11 @@ export function FilterBar({
         ] = await Promise.all([
           fetch(`/api/config/locations${qs}`),
           fetch(`/api/config/cuisines${qs}`),
-          fetch("/api/admin/config/tags/scenes"),
-          fetch("/api/admin/config/tags/cooking-methods"),
-          fetch("/api/admin/config/tags/tastes"),
-          fetch("/api/admin/config/tags/crowds"),
-          fetch("/api/admin/config/tags/occasions"),
+          fetch(`/api/admin/config/tags/scenes?locale=${locale}`),
+          fetch(`/api/admin/config/tags/cooking-methods?locale=${locale}`),
+          fetch(`/api/admin/config/tags/tastes?locale=${locale}`),
+          fetch(`/api/admin/config/tags/crowds?locale=${locale}`),
+          fetch(`/api/admin/config/tags/occasions?locale=${locale}`),
         ]);
 
         const [
@@ -259,10 +262,10 @@ export function FilterBar({
             className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
               selectedValue === ""
                 ? "bg-brownWarm text-white shadow-md"
-                : "bg-gray-100 text-textGray hover:bg-gray-200"
+                : "bg-lightGray text-textGray hover:bg-cream/70"
             }`}
           >
-            {locale === "en" ? "All" : "全部"}
+            {t("filter.all", locale)}
           </button>
           {tags.map((tag) => (
             <button
@@ -275,10 +278,16 @@ export function FilterBar({
               className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
                 selectedValue === tag.slug
                   ? "bg-brownWarm text-white shadow-md"
-                  : "bg-gray-100 text-textGray hover:bg-gray-200"
+                  : "bg-lightGray text-textGray hover:bg-cream/70"
               }`}
             >
-              {tag.name}
+              {translateTagName({
+                name: tag.name,
+                originalName: tag.originalName,
+                slug: tag.slug,
+                type: filterKey,
+                locale,
+              })}
             </button>
           ))}
         </div>
@@ -295,7 +304,7 @@ export function FilterBar({
           <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
             <div className="flex items-center gap-2 text-textGray font-medium shrink-0">
               <MapPin className="w-4 h-4" />
-              <span>{locale === "en" ? "Region:" : "地点:"}</span>
+              <span>{t("filter.region", locale)}:</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -307,10 +316,10 @@ export function FilterBar({
                 className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
                   selectedLocation === ""
                     ? "bg-brownWarm text-white shadow-md"
-                    : "bg-gray-100 text-textGray hover:bg-gray-200"
+                    : "bg-lightGray text-textGray hover:bg-cream/70"
                 }`}
               >
-                {locale === "en" ? "All" : "全部"}
+                {t("filter.all", locale)}
               </button>
               {locations.map((loc) => (
                 <button
@@ -324,7 +333,7 @@ export function FilterBar({
                   className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
                     selectedLocation === (loc.slug || loc.originalName || loc.name)
                       ? "bg-brownWarm text-white shadow-md"
-                      : "bg-gray-100 text-textGray hover:bg-gray-200"
+                      : "bg-lightGray text-textGray hover:bg-cream/70"
                   }`}
                 >
                   {loc.name}
@@ -339,7 +348,7 @@ export function FilterBar({
           <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
             <div className="flex items-center gap-2 text-textGray font-medium shrink-0">
               <UtensilsCrossed className="w-4 h-4" />
-              <span>{locale === "en" ? "Cuisine:" : "菜系:"}</span>
+              <span>{t("filter.cuisine", locale)}:</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -351,10 +360,10 @@ export function FilterBar({
                 className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
                   selectedCuisine === ""
                     ? "bg-brownWarm text-white shadow-md"
-                    : "bg-gray-100 text-textGray hover:bg-gray-200"
+                    : "bg-lightGray text-textGray hover:bg-cream/70"
                 }`}
               >
-                {locale === "en" ? "All" : "全部"}
+                {t("filter.all", locale)}
               </button>
               {cuisines.map((cui) => (
                 <button
@@ -368,7 +377,7 @@ export function FilterBar({
                   className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
                     selectedCuisine === (cui.slug || cui.originalName || cui.name)
                       ? "bg-brownWarm text-white shadow-md"
-                      : "bg-gray-100 text-textGray hover:bg-gray-200"
+                      : "bg-lightGray text-textGray hover:bg-cream/70"
                   }`}
                 >
                   {cui.name}
@@ -382,7 +391,7 @@ export function FilterBar({
         {showTags && (scenes.length > 0 || methods.length > 0 || tastes.length > 0) && (
           <>
             {/* 展开/收起按钮 */}
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between pt-2 border-t border-lightGray">
               <button
                 onClick={() => setExpanded(!expanded)}
                 className="flex items-center gap-2 text-sm text-textGray hover:text-brownWarm transition-colors"
@@ -390,12 +399,12 @@ export function FilterBar({
                 {expanded ? (
                   <>
                     <ChevronUp className="w-4 h-4" />
-                    {locale === "en" ? "Less filters" : "收起更多筛选"}
+                    {t("filter.lessFilters", locale)}
                   </>
                 ) : (
                   <>
                     <ChevronDown className="w-4 h-4" />
-                    {locale === "en" ? "More filters" : "更多筛选"}
+                    {t("filter.moreFilters", locale)}
                     {hasTagFilters && (
                       <span className="ml-1 px-1.5 py-0.5 bg-brownWarm text-white text-xs rounded-full">
                         {[selectedScene, selectedMethod, selectedTaste, selectedCrowd, selectedOccasion].filter(Boolean).length}
@@ -411,7 +420,7 @@ export function FilterBar({
               <div className="space-y-3 pt-2">
                 {renderTagRow(
                   <Sun className="w-4 h-4" />,
-                  locale === "en" ? "Scene:" : "场景:",
+                  `${t("filter.scene", locale)}:`,
                   scenes,
                   selectedScene,
                   setSelectedScene,
@@ -419,7 +428,7 @@ export function FilterBar({
                 )}
                 {renderTagRow(
                   <Flame className="w-4 h-4" />,
-                  locale === "en" ? "Method:" : "烹饪方法:",
+                  `${t("filter.method", locale)}:`,
                   methods,
                   selectedMethod,
                   setSelectedMethod,
@@ -427,7 +436,7 @@ export function FilterBar({
                 )}
                 {renderTagRow(
                   <Heart className="w-4 h-4" />,
-                  locale === "en" ? "Taste:" : "口味:",
+                  `${t("filter.taste", locale)}:`,
                   tastes,
                   selectedTaste,
                   setSelectedTaste,
@@ -435,7 +444,7 @@ export function FilterBar({
                 )}
                 {renderTagRow(
                   <Users className="w-4 h-4" />,
-                  locale === "en" ? "For:" : "适宜人群:",
+                  `${t("filter.crowd", locale)}:`,
                   crowds,
                   selectedCrowd,
                   setSelectedCrowd,
@@ -443,7 +452,7 @@ export function FilterBar({
                 )}
                 {renderTagRow(
                   <Calendar className="w-4 h-4" />,
-                  locale === "en" ? "Occasion:" : "场合:",
+                  `${t("filter.occasion", locale)}:`,
                   occasions,
                   selectedOccasion,
                   setSelectedOccasion,
@@ -456,13 +465,13 @@ export function FilterBar({
 
         {/* 底部状态栏 (清除按钮等) */}
         {hasActiveFilters && (
-          <div className="flex justify-end pt-2 border-t border-gray-100">
+          <div className="flex justify-end pt-2 border-t border-lightGray">
              <button
               onClick={clearFilters}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-lightGray hover:bg-red-50 hover:text-red-600 text-textGray text-sm transition-colors"
             >
               <X className="w-3 h-3" />
-              {locale === "en" ? "Clear filters" : "清除所有筛选"}
+              {t("filter.clearAll", locale)}
             </button>
           </div>
         )}

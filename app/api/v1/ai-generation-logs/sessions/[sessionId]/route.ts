@@ -26,8 +26,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { sessionId } = await context.params;
 
     // 查询该会话的所有日志
+    const EXCLUDED_STEP_NAMES = ["import_start", "import_validation", "import_create"];
+
     const logs = await prisma.aIGenerationLog.findMany({
-      where: { sessionId },
+      where: { sessionId, stepName: { notIn: EXCLUDED_STEP_NAMES } },
       orderBy: { timestamp: "asc" },
     });
 

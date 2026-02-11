@@ -37,6 +37,7 @@
     "@tiptap/extension-underline": "^3.14.0",
     "@tiptap/react": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
+    "busboy": "^1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dom-to-image-more": "^3.7.2",
@@ -49,10 +50,12 @@
     "openai": "^6.15.0",
     "pg": "^8.16.3",
     "prisma": "^7.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-json-view-lite": "^2.5.0",
     "tailwind-merge": "^3.4.0",
-    "undici": "^7.16.0"
+    "undici": "^7.16.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -67,6 +70,7 @@
     "eslint": "^8",
     "eslint-config-next": "^15.1.0",
     "jsdom": "^27.4.0",
+    "playwright": "^1.58.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.19",
     "tsx": "^4.21.0",

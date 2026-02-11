@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { processTranslationQueue } from "@/lib/ai/translation-job-executor";
+import { requireAdmin } from "@/lib/auth/guard";
 
 /**
  * POST /api/admin/jobs/translation/process
@@ -16,6 +17,9 @@ import { processTranslationQueue } from "@/lib/ai/translation-job-executor";
  */
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json().catch(() => ({}));
     const limit = Math.min(body.limit || 10, 50); // 最大 50 个
 

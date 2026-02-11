@@ -6,6 +6,7 @@
  */
 
 import { v4 as uuidv4 } from "uuid";
+import { prisma } from "@/lib/db/prisma";
 
 export interface LogStepParams {
   sessionId: string;
@@ -82,16 +83,37 @@ class LogQueue {
     const logsToFlush = this.queue.splice(0, this.maxQueueSize);
 
     try {
-      // 批量写入
-      await fetch("/api/v1/ai-generation-logs/batch", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ logs: logsToFlush }),
+      // 直接写入数据库（服务端环境）
+      await prisma.aIGenerationLog.createMany({
+        data: logsToFlush.map((log) => ({
+          sessionId: log.sessionId,
+          stepName: log.stepName,
+          modelName: log.modelName,
+          status: log.status,
+          provider: log.provider,
+          prompt: log.prompt,
+          promptUrl: log.promptUrl,
+          parameters: log.parameters as Record<string, unknown> | undefined,
+          result: log.result as Record<string, unknown> | undefined,
+          resultUrl: log.resultUrl,
+          resultText: log.resultText,
+          resultImages: log.resultImages,
+          durationMs: log.durationMs,
+          tokenUsage: log.tokenUsage as Record<string, unknown> | undefined,
+          cost: log.cost,
+          retryIndex: log.retryIndex,
+          recipeId: log.recipeId,
+          jobId: log.jobId,
+          userId: log.userId,
+          errorMessage: log.errorMessage,
+          errorStack: log.errorStack,
+          warning: log.warning,
+          metadata: log.metadata as Record<string, unknown> | undefined,
+        })),
+        skipDuplicates: true,
       });
     } catch (error) {
-      console.error("Failed to flush logs:", error);
+      console.error("Failed to flush logs to database:", error);
       // 失败了也不重试，避免内存泄漏
     } finally {
       this.isFlushing = false;
@@ -140,27 +162,69 @@ export async function flushLogs(): Promise<void> {
 
 /**
  * 计算成本（基于 token 使用量）
+ * 价格表更新于 2025-01
  */
 export function calculateCost(
   modelName: string,
   tokenUsage: { input?: number; output?: number }
 ): number {
   // 模型价格表（每 1K tokens 的价格，单位：美元）
+  // 2025-01 更新
   const MODEL_PRICING: Record<
     string,
     { input: number; output: number } | { perImage: number }
   > = {
-    "gpt-4": { input: 0.03, output: 0.06 },
+    // OpenAI GPT 系列
+    "gpt-4o": { input: 0.0025, output: 0.01 },
+    "gpt-4o-mini": { input: 0.00015, output: 0.0006 },
     "gpt-4-turbo": { input: 0.01, output: 0.03 },
+    "gpt-4": { input: 0.03, output: 0.06 },
     "gpt-3.5-turbo": { input: 0.0005, output: 0.0015 },
+    "o1": { input: 0.015, output: 0.06 },
+    "o1-mini": { input: 0.003, output: 0.012 },
+    "o1-preview": { input: 0.015, output: 0.06 },
+    // Anthropic Claude 系列
     "claude-3-opus": { input: 0.015, output: 0.075 },
+    "claude-3-5-sonnet": { input: 0.003, output: 0.015 },
     "claude-3-sonnet": { input: 0.003, output: 0.015 },
     "claude-3-haiku": { input: 0.00025, output: 0.00125 },
+    "claude-3-5-haiku": { input: 0.0008, output: 0.004 },
+    // Google Gemini 系列
+    "gemini-1.5-pro": { input: 0.00125, output: 0.005 },
+    "gemini-1.5-flash": { input: 0.000075, output: 0.0003 },
+    "gemini-2.0-flash": { input: 0.0001, output: 0.0004 },
+    // DeepSeek 系列
+    "deepseek-chat": { input: 0.00014, output: 0.00028 },
+    "deepseek-reasoner": { input: 0.00055, output: 0.00219 },
+    // 图像生成
     "dall-e-3": { perImage: 0.04 },
+    "dall-e-3-hd": { perImage: 0.08 },
     "dall-e-2": { perImage: 0.02 },
+    "flux-pro": { perImage: 0.055 },
+    "flux-dev": { perImage: 0.025 },
+    "flux-schnell": { perImage: 0.003 },
+    "ideogram-v2": { perImage: 0.08 },
+    "stable-diffusion-3": { perImage: 0.035 },
+    "midjourney": { perImage: 0.05 },
   };
 
-  const pricing = MODEL_PRICING[modelName];
+  // 尝试模糊匹配模型名称
+  let pricing = MODEL_PRICING[modelName];
+  if (!pricing) {
+    // 尝试去掉版本号后缀匹配
+    const baseName = modelName.replace(/-\d{4,}.*$/, "").replace(/-latest$/, "");
+    pricing = MODEL_PRICING[baseName];
+  }
+  if (!pricing) {
+    // 尝试前缀匹配
+    for (const [key, value] of Object.entries(MODEL_PRICING)) {
+      if (modelName.startsWith(key) || modelName.includes(key)) {
+        pricing = value;
+        break;
+      }
+    }
+  }
+
   if (!pricing) {
     return 0;
   }

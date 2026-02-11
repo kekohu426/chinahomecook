@@ -6,6 +6,7 @@
 
 import { getTextProvider } from "./provider";
 import { getAppliedPrompt } from "./prompt-manager";
+import { AIGenerationLogger, calculateCost } from "./generation-logger";
 
 export interface RecommendContext {
   collectionName: string;
@@ -130,10 +131,12 @@ function parseRecommendResponse(response: string): RecommendedDish[] {
  */
 export async function recommendDishes(
   context: RecommendContext,
-  count: number = 10
+  count: number = 10,
+  options?: { logger?: AIGenerationLogger }
 ): Promise<RecommendedDish[]> {
+  const startTime = Date.now();
   try {
-    const provider = await getTextProvider();
+    const provider = getTextProvider();
 
     // 计算多样性配比
     const classicCount = Math.ceil(count * 0.3);
@@ -191,6 +194,33 @@ export async function recommendDishes(
       temperature: 0.8, // 稍高的温度增加多样性
       maxTokens: 2000,
     });
+
+    // 记录AI调用日志
+    if (options?.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      options.logger.logSuccess("dish_recommendation", modelName, {
+        prompt: prompt.substring(0, 1000),
+        parameters: { temperature: 0.8, maxTokens: 2000, count },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: {
+          type: "dish_recommendation",
+          collectionName: context.collectionName,
+          collectionType: context.collectionType,
+        },
+      });
+    }
 
     const recommendations = parseRecommendResponse(response.content);
 

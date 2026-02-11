@@ -3,17 +3,18 @@ import { prisma } from "@/lib/db/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     const recipe = await prisma.recipe.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         title: true,
         steps: true,
         coverImage: true,
-        imageShots: true,
       },
     });
 
@@ -22,20 +23,11 @@ export async function GET(
     }
 
     const steps = recipe.steps as any[];
-    const imageShots = recipe.imageShots as any[];
-
     const stepImages = steps?.map((step, i) => ({
       index: i + 1,
       title: step.title || step.action?.substring(0, 30),
       hasImageUrl: !!step.imageUrl,
       imageUrl: step.imageUrl || null,
-    })) || [];
-
-    const coverImages = imageShots?.map((shot, i) => ({
-      index: i + 1,
-      key: shot.key,
-      hasImageUrl: !!shot.imageUrl,
-      imageUrl: shot.imageUrl || null,
     })) || [];
 
     return NextResponse.json({
@@ -44,8 +36,6 @@ export async function GET(
       coverImage: recipe.coverImage,
       stepCount: steps?.length || 0,
       stepImages,
-      coverImageCount: imageShots?.length || 0,
-      coverImages,
     });
   } catch (error) {
     console.error("查询失败:", error);

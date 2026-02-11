@@ -26,8 +26,12 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
     const groupBy = searchParams.get("groupBy") || "day"; // day/week/month
 
+    const EXCLUDED_STEP_NAMES = ["import_start", "import_validation", "import_create"];
+
     // 构建查询条件
-    const where: any = ;
+    const where: any = {
+      stepName: { notIn: EXCLUDED_STEP_NAMES },
+    };
 
     if (startDate || endDate) {
       where.timestamp = {};

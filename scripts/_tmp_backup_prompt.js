@@ -1,0 +1,17 @@
+﻿const fs = require('fs');
+const path = 'lib/ai/default-prompts.ts';
+const out = 'docs/prompt-backups/recipe_generate.prev.md';
+const s = fs.readFileSync(path, 'utf8');
+const keyIdx = s.indexOf('key: "recipe_generate"');
+if (keyIdx === -1) throw new Error('recipe_generate not found');
+const sysIdx = s.indexOf('systemPrompt:', keyIdx);
+const sysTickStart = s.indexOf('`', sysIdx);
+const sysTickEnd = s.indexOf('`', sysTickStart + 1);
+const promptIdx = s.indexOf('prompt:', sysTickEnd);
+const promptTickStart = s.indexOf('`', promptIdx);
+const promptTickEnd = s.indexOf('`', promptTickStart + 1);
+const sys = s.slice(sysTickStart + 1, sysTickEnd);
+const prompt = s.slice(promptTickStart + 1, promptTickEnd);
+fs.mkdirSync('docs/prompt-backups', { recursive: true });
+fs.writeFileSync(out, `# recipe_generate previous prompt\n\n## systemPrompt\n\n${sys}\n\n## prompt\n\n${prompt}\n`, 'utf8');
+console.log('backup written to', out);

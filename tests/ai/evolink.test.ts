@@ -3,6 +3,14 @@ import { EvolinkClient } from "@/lib/ai/evolink";
 
 const originalFetch = global.fetch;
 
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    aIConfig: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+  },
+}));
+
 describe("EvolinkClient", () => {
   beforeEach(() => {
     process.env.EVOLINK_API_KEY = "test-key";
@@ -77,7 +85,7 @@ describe("EvolinkClient", () => {
       timeoutMs: 10,
     });
 
-    vi.advanceTimersByTime(20);
+    await vi.advanceTimersByTimeAsync(20);
     const result = await promise;
 
     expect(result.success).toBe(false);

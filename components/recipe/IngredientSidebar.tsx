@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useIngredientIcons } from "@/hooks/use-ingredient-icons";
 import { matchIngredientIcon } from "@/lib/ingredient-icons";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
 
 interface IngredientSidebarProps {
   ingredients: Recipe["ingredients"];
@@ -26,7 +27,6 @@ export function IngredientSidebar({
   baseServings = 3,
 }: IngredientSidebarProps) {
   const locale = useLocale();
-  const isEn = locale === "en";
   // 可选份量（基准份量的倍数）
   const servingOptions = (() => {
     const candidates = [
@@ -72,14 +72,14 @@ export function IngredientSidebar({
       {/* 头部 */}
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-xl font-serif font-medium text-textDark">
-          {isEn ? "Ingredients" : "食材清单"}
+          {t("recipe.ingredients", locale)}
         </h3>
         <span className="text-xs text-textGray bg-lightGray px-3 py-1 rounded-button">
-          {isEn ? "INGREDIENTS" : "食材"}
+          {t("recipe.ingredients", locale).toUpperCase()}
         </span>
       </div>
       <p className="text-xs text-textGray mb-4">
-        {isEn ? "Mode: Everyday" : "模式：生活化"}
+        {t("recipe.modeEveryday", locale)}
       </p>
 
       {/* 份量切换（胶囊式按钮组）*/}
@@ -95,7 +95,7 @@ export function IngredientSidebar({
                 : "text-textGray hover:text-textDark"
             )}
           >
-            {size} {isEn ? "servings" : "人"}
+            {size} {t("recipe.persons", locale)}
           </button>
         ))}
       </div>
@@ -109,7 +109,7 @@ export function IngredientSidebar({
           <h4 className="text-sm font-medium text-textDark mb-3">
             {section.section}{" "}
             <span className="text-xs text-textGray ml-2 uppercase">
-              {isMain ? (isEn ? "MAIN" : "主料") : (isEn ? "EXTRAS" : "辅料")}
+              {isMain ? t("recipe.mainIngredients", locale) : t("recipe.extras", locale)}
             </span>
           </h4>
             );

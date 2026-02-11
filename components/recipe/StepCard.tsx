@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { copyStepContent, downloadStepImage } from "@/lib/recipe-utils";
 import { StepImage } from "@/components/ui/SafeImage";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTranslations } from "@/lib/i18n/translations";
 
 interface StepCardProps {
   step: RecipeStep;
@@ -26,6 +27,7 @@ interface StepCardProps {
 export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
   const locale = useLocale();
   const isEn = locale === "en";
+  const { t } = useTranslations();
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(step.timerSec);
   const [copying, setCopying] = useState(false);
@@ -50,8 +52,8 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
           // 计时器结束提示（可添加音效）
           if (typeof window !== "undefined" && "Notification" in window) {
             try {
-              new Notification(isEn ? "Timer finished" : "计时器结束", {
-                body: isEn ? `${step.title} completed!` : `${step.title} 完成！`,
+              new Notification(t("recipeDetail.timerFinished"), {
+                body: `${step.title} ${t("status.success")}`,
               });
             } catch (e) {
               // Notification API may not be available
@@ -76,7 +78,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
     setCopying(true);
     const success = await copyStepContent(cardId, stepNumber, step.title);
     if (!success) {
-      alert(isEn ? "Copy failed. Please try again." : "复制失败，请重试");
+      alert(t("status.copyFailed"));
     }
     setTimeout(() => setCopying(false), 2000);
   };
@@ -86,7 +88,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
     setDownloading(true);
     const success = await downloadStepImage(cardId, stepNumber, step.title);
     if (!success) {
-      alert(isEn ? "Download failed. Please try again." : "下载失败，请重试");
+      alert(t("status.downloadFailed"));
     }
     setDownloading(false);
   };
@@ -112,7 +114,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
           >
             <span>{copying ? "✓" : "📋"}</span>
             <span>
-              {copying ? (isEn ? "Copied" : "已复制") : isEn ? "Copy" : "复制"}
+              {copying ? t("status.copied") : t("recipeDetail.copy")}
             </span>
           </button>
           {/* 下载按钮 */}
@@ -124,19 +126,15 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
             <span>{downloading ? "⏳" : "📥"}</span>
             <span>
               {downloading
-                ? isEn
-                  ? "Downloading"
-                  : "下载中"
-                : isEn
-                ? "Download"
-                : "下载"}
+                ? t("status.loading")
+                : t("common.save")}
             </span>
           </button>
           {/* 计时标签 */}
           {(step.timerSec ?? 0) > 0 && (
             <span className="text-xs font-semibold text-orangeAccent bg-orangeAccent/10 px-3 py-1 rounded-full ml-1">
-              {isEn ? "Timer" : "计时"} {Math.floor((step.timerSec ?? 0) / 60)}{" "}
-              {isEn ? "min" : "分"}
+              {t("recipe.timer")} {Math.floor((step.timerSec ?? 0) / 60)}{" "}
+              {t("recipe.minutes")}
             </span>
           )}
         </div>
@@ -161,7 +159,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
             <span className="text-lg">✍️</span>
             <div>
               <span className="text-sm font-semibold text-brownDark">
-                {isEn ? "Check:" : "状态检查："}
+                {t("recipe.checkLabel")}
               </span>
               <span className="text-sm text-textDark ml-1">{step.visualCue}</span>
             </div>
@@ -176,7 +174,7 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
             <span className="text-lg">⚠️</span>
             <div className="text-sm leading-relaxed">
               <span className="font-semibold">
-                {isEn ? "Pitfall:" : "失败点："}
+                {t("recipe.pitfallLabel")}
               </span>
               <span className="text-textDark ml-1">{step.failPoint}</span>
             </div>
@@ -202,13 +200,13 @@ export function StepCard({ step, stepNumber, imageUrl }: StepCardProps) {
           <span className="mr-2">{timerActive ? "⏰" : "⏱️"}</span>
           {timerActive ? (
             <>
-              {isEn ? "Timer running" : "计时运行中"} - {formatTime(timeLeft ?? 0)}
+              {t("recipe.timerRunning")} - {formatTime(timeLeft ?? 0)}
             </>
           ) : (
             <>
-              {isEn ? "Start timer" : "开启计时器"} (
+              {t("recipe.startTimer")} (
               {Math.floor((step.timerSec ?? 0) / 60)}
-              {isEn ? " min" : "分钟"})
+              {t("recipe.min")})
             </>
           )}
         </button>

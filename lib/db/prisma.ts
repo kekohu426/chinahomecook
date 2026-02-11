@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -6,10 +6,9 @@ import { Pool as PgPool } from "pg";
 import ws from "ws";
 
 /**
- * Prisma Client 单例
+ * Prisma Client 鍗曚緥
  *
- * 防止开发环境热重载时创建多个实例
- * 支持本地 PostgreSQL 和 Neon PostgreSQL
+ * 闃叉寮€鍙戠幆澧冪儹閲嶈浇鏃跺垱寤哄涓疄渚? * 鏀寔鏈湴 PostgreSQL 鍜?Neon PostgreSQL
  */
 
 // Configure WebSocket for Neon in development
@@ -34,9 +33,12 @@ function createPrismaClient() {
 
   // Check if using local PostgreSQL
   const isLocalDB = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+  // Auto-detect Neon: use Neon adapter for neon.tech URLs, pg adapter for local
+  const isNeonDB = connectionString.includes('neon.tech');
+  const useNeonAdapter = !isLocalDB && (isNeonDB || process.env.USE_NEON_ADAPTER === "true");
 
-  if (isLocalDB) {
-    // For local PostgreSQL, use pg adapter
+  // Use pg adapter for local PostgreSQL
+  if (!useNeonAdapter) {
     if (!globalForPrisma.pgPool) {
       globalForPrisma.pgPool = new PgPool({ connectionString });
     }
@@ -49,7 +51,7 @@ function createPrismaClient() {
     });
   }
 
-  // Use Neon adapter for Neon PostgreSQL
+  // Use Neon adapter for Neon PostgreSQL (auto-detected or explicitly enabled)
   if (!globalForPrisma.pool) {
     globalForPrisma.pool = new Pool({ connectionString });
   }
@@ -67,3 +69,4 @@ export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
+

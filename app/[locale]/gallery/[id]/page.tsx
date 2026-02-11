@@ -14,6 +14,9 @@ import { Footer } from "@/components/layout/Footer";
 import { Download, ArrowLeft, ExternalLink } from "lucide-react";
 import { getContentLocales } from "@/lib/i18n/content";
 import type { Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, titleFromSlug, toEnglishLabel } from "@/lib/i18n/english";
+import { CUISINE_LABELS_EN, LOCATION_LABELS_EN } from "@/lib/i18n/labels";
 
 interface GalleryDetailPageProps {
   params: Promise<{ id: string; locale: Locale }>;
@@ -33,23 +36,26 @@ export async function generateMetadata({ params }: GalleryDetailPageProps) {
   });
 
   if (!recipe) {
-    return { title: locale === "en" ? "Image not found" : "图片不存在" };
+    return { title: t("gallery.imageNotFound", locale) };
   }
 
   const translation =
     locales
       .map((loc) => recipe.translations.find((item) => item.locale === loc))
       .find(Boolean) || null;
-  const displayTitle = translation?.title || recipe.title;
   const isEn = locale === "en";
+  const rawTitle = translation?.title || recipe.title;
+  const displayTitle = isEn ? ensureEnglish(rawTitle, "Recipe") : rawTitle;
 
+  const photoTitle = t("gallery.photoTitle", locale);
   return {
-    title: `${displayTitle} - ${isEn ? "Food Photo" : "美食图片"} | Recipe Zen`,
-    description: isEn
-      ? `Download a high-resolution photo of ${displayTitle}`
-      : `${displayTitle}的美食摄影图片，高清下载`,
+    title: `${displayTitle} - ${photoTitle} | Recipe Zen`,
+    description: t("gallery.photoDescription", locale).replace(
+      "{title}",
+      displayTitle
+    ),
     openGraph: {
-      title: `${displayTitle} - ${isEn ? "Food Photo" : "美食图片"}`,
+      title: `${displayTitle} - ${photoTitle}`,
       images: recipe.coverImage ? [recipe.coverImage] : [],
     },
   };
@@ -81,8 +87,27 @@ export default async function GalleryDetailPage({
     locales
       .map((loc) => recipe.translations.find((item) => item.locale === loc))
       .find(Boolean) || null;
-  const displayTitle = translation?.title || recipe.title;
   const isEn = locale === "en";
+  const rawTitle = translation?.title || recipe.title;
+  const displayTitle = isEn ? ensureEnglish(rawTitle, "Recipe") : rawTitle;
+  const cuisineLabel = recipe.cuisine
+    ? isEn
+      ? toEnglishLabel(
+          recipe.cuisine.name,
+          CUISINE_LABELS_EN,
+          ensureEnglish(titleFromSlug(recipe.cuisine.slug), "Cuisine")
+        )
+      : recipe.cuisine.name
+    : null;
+  const locationLabel = recipe.location
+    ? isEn
+      ? toEnglishLabel(
+          recipe.location.name,
+          LOCATION_LABELS_EN,
+          ensureEnglish(titleFromSlug(recipe.location.slug), "Region")
+        )
+      : recipe.location.name
+    : null;
 
   // 获取相关图片
   const relatedWhere: any = {
@@ -124,7 +149,7 @@ export default async function GalleryDetailPage({
           className="inline-flex items-center gap-2 text-textGray hover:text-textDark mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
-          {isEn ? "Back to Gallery" : "返回图片库"}
+          {t("gallery.backToGallery", locale)}
         </LocalizedLink>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -152,14 +177,14 @@ export default async function GalleryDetailPage({
 
             {/* 标签 */}
             <div className="flex flex-wrap gap-2">
-              {recipe.cuisine && (
+              {cuisineLabel && (
                 <span className="px-3 py-1 bg-brownWarm/10 text-brownWarm rounded-full text-sm">
-                  {recipe.cuisine.name}
+                  {cuisineLabel}
                 </span>
               )}
-              {recipe.location && (
+              {locationLabel && (
                 <span className="px-3 py-1 bg-brownWarm/10 text-brownWarm rounded-full text-sm">
-                  {recipe.location.name}
+                  {locationLabel}
                 </span>
               )}
             </div>
@@ -174,12 +199,10 @@ export default async function GalleryDetailPage({
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-brownWarm text-white rounded-lg hover:bg-brownDark transition-colors"
               >
                 <Download className="w-5 h-5" />
-                {isEn ? "Download Image" : "下载图片"}
+                {t("gallery.downloadImage", locale)}
               </a>
               <p className="text-xs text-textGray text-center">
-                {isEn
-                  ? "For personal use only. Contact us for commercial licensing."
-                  : "图片仅供个人学习使用，商用请联系授权"}
+                {t("gallery.imageLicense", locale)}
               </p>
             </div>
 
@@ -189,7 +212,7 @@ export default async function GalleryDetailPage({
               className="w-full flex items-center justify-center gap-2 px-6 py-3 border border-brownWarm text-brownWarm rounded-lg hover:bg-brownWarm/10 transition-colors"
             >
               <ExternalLink className="w-5 h-5" />
-              {isEn ? "View Full Recipe" : "查看完整食谱"}
+              {t("gallery.viewFullRecipe", locale)}
             </LocalizedLink>
           </div>
         </div>
@@ -198,7 +221,7 @@ export default async function GalleryDetailPage({
         {relatedImages.length > 0 && (
           <div className="mt-16">
             <h2 className="text-xl font-serif font-medium text-textDark mb-6">
-              {isEn ? "Related Images" : "相关图片"}
+              {t("gallery.relatedImages", locale)}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {relatedImages.map((img) => {
@@ -208,7 +231,10 @@ export default async function GalleryDetailPage({
                       img.translations.find((item) => item.locale === loc)
                     )
                     .find(Boolean) || null;
-                const relatedTitle = relatedTranslation?.title || img.title;
+                const relatedTitleRaw = relatedTranslation?.title || img.title;
+                const relatedTitle = isEn
+                  ? ensureEnglish(relatedTitleRaw, "Recipe")
+                  : relatedTitleRaw;
                 return (
                 <LocalizedLink
                   key={img.id}

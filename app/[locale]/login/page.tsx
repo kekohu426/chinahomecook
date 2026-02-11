@@ -1,19 +1,24 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n/config";
 import { localizePath } from "@/lib/i18n/utils";
+import { useTranslations } from "@/lib/i18n/translations";
 
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = (params.locale as Locale) || "zh";
-  const isEn = locale === "en";
+  const { t } = useTranslations();
   const [showLogin, setShowLogin] = useState(false);
+
+  // 获取 callbackUrl，默认根据角色跳转
+  const callbackUrl = searchParams.get("callbackUrl");
 
   // Timeout fallback - show login form after 3 seconds if still loading
   useEffect(() => {
@@ -28,13 +33,16 @@ export default function LoginPage() {
   // If already logged in, redirect
   useEffect(() => {
     if (session?.user) {
-      if (session.user.role === "ADMIN") {
+      // 如果有 callbackUrl，优先跳转到 callbackUrl
+      if (callbackUrl) {
+        router.push(callbackUrl);
+      } else if (session.user.role === "ADMIN") {
         router.push("/admin/recipes");
       } else {
         router.push(localizePath("/", locale));
       }
     }
-  }, [session, router, locale]);
+  }, [session, router, locale, callbackUrl]);
 
   if (status === "loading" && !showLogin) {
     return (
@@ -53,35 +61,33 @@ export default function LoginPage() {
               Recipe Zen
             </h1>
             <p className="text-sm text-brownDark/60 mt-1">
-              {isEn ? "Healing Food Studio" : "治愈系美食研习所"}
+              {t("auth.loginTagline")}
             </p>
           </Link>
         </div>
 
         <p className="text-center text-textGray mb-8">
-          {isEn ? "Sign in to access admin" : "登录以访问管理后台"}
+          {t("auth.signInContinue")}
         </p>
 
         <button
-          onClick={() => signIn("google", { callbackUrl: "/admin/recipes" })}
-          className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl py-3 px-4 font-medium transition-all"
+          onClick={() => signIn("google", { callbackUrl: callbackUrl || localizePath("/", locale) })}
+          className="w-full flex items-center justify-center gap-3 bg-white border-2 border-lightGray text-textDark hover:bg-cream/70 hover:border-brownWarm/40 rounded-xl py-3 px-4 font-medium transition-all"
         >
           <GoogleIcon />
-          {isEn ? "Sign in with Google" : "使用 Google 账号登录"}
+          {t("auth.signInWithGoogle")}
         </button>
 
         <p className="text-center text-xs text-textGray/60 mt-6">
-          {isEn
-            ? "First-time sign-ins will be granted admin access"
-            : "首次登录的用户将自动成为管理员"}
+          {t("auth.signInNote")}
         </p>
 
-        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+        <div className="mt-8 pt-6 border-t border-lightGray text-center">
           <Link
             href={localizePath("/", locale)}
             className="text-sm text-brownWarm hover:underline"
           >
-            {isEn ? "Back to Home" : "返回首页"}
+            {t("common.backToHome")}
           </Link>
         </div>
       </div>

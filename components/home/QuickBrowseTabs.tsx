@@ -2,8 +2,10 @@
 
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import Image from "next/image";
+import { Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
-import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTranslations } from "@/lib/i18n/translations";
+import { SectionHeading } from "@/components/home/SectionHeading";
 
 type BrowseItem = {
   id: string;
@@ -32,24 +34,15 @@ export function QuickBrowseTabs({
   ingredients,
   scenes,
 }: QuickBrowseTabsProps) {
-  const locale = useLocale();
-  const isEn = locale === "en";
+  const { t } = useTranslations();
   const [activeTab, setActiveTab] = useState<TabKey>("cuisine");
 
-  const tabs: { key: TabKey; label: string }[] =
-    locale === "en"
-      ? [
-          { key: "cuisine", label: "By Cuisine" },
-          { key: "region", label: "By Region" },
-          { key: "ingredient", label: "By Ingredient" },
-          { key: "scene", label: "By Scene" },
-        ]
-      : [
-          { key: "cuisine", label: "按菜系" },
-          { key: "region", label: "按地域" },
-          { key: "ingredient", label: "按食材" },
-          { key: "scene", label: "按场景" },
-        ];
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: "cuisine", label: t("filter.cuisine") },
+    { key: "region", label: t("filter.region") },
+    { key: "ingredient", label: t("recipe.ingredients") },
+    { key: "scene", label: t("filter.scene") },
+  ];
 
   const panels: Record<TabKey, BrowseItem[]> = {
     region: regions,
@@ -61,34 +54,24 @@ export function QuickBrowseTabs({
   const activeItems = panels[activeTab] || [];
 
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-8">
-        {/* 标题区 */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark">
-            {title ||
-              (locale === "en"
-                ? "Browse by Cuisine / Region / Ingredient / Scene"
-                : "按菜系 / 地域 / 食材 / 场景找菜谱")}
-          </h2>
-          <p className="text-textGray mt-2 max-w-2xl mx-auto">
-            {subtitle ||
-              (locale === "en"
-                ? "From Sichuan to Cantonese, from quick meals to low-calorie diets, find what you want to cook today."
-                : "从川菜到粤菜，从快手菜到减脂餐，按你的需求快速找到今天想做的菜。")}
-          </p>
+    <section className="editorial-section editorial-section--white">
+      <div className="editorial-container">
+        <div className="mb-10">
+          <SectionHeading
+            title={title || t("home.quickBrowseTitle")}
+            subtitle={subtitle || t("home.quickBrowseSubtitle")}
+          />
         </div>
 
-        {/* Tab 切换 */}
-        <div className="flex flex-wrap justify-center gap-3 mb-10">
+        <div className="editorial-tabs mb-10">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+              className={`editorial-tab ${
                 activeTab === tab.key
-                  ? "bg-brownWarm text-white"
-                  : "bg-cream text-textGray hover:text-textDark"
+                  ? "editorial-tab--active"
+                  : "editorial-tab--inactive"
               }`}
             >
               {tab.label}
@@ -96,37 +79,34 @@ export function QuickBrowseTabs({
           ))}
         </div>
 
-        {/* 4列网格，1:1图片 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="editorial-grid-4">
           {activeItems.slice(0, 8).map((item) => (
             <LocalizedLink
               key={item.id}
               href={item.href}
-              className="group bg-white rounded-xl border border-cream overflow-hidden shadow-card hover:shadow-lg transition-shadow"
+              className="group editorial-card"
             >
-              {/* 1:1 图片区 */}
-              <div className="relative aspect-square overflow-hidden bg-lightGray">
+              <div className="editorial-image">
                 {item.imageUrl ? (
                   <Image
                     src={item.imageUrl}
-                    alt={isEn ? `${item.name} recipes` : `${item.name} 食谱`}
+                    alt={`${item.name} ${t("nav.recipes")}`}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="editorial-image-cover"
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-cream via-white to-orangeAccent/20 flex items-center justify-center text-textGray">
-                    <span className="text-4xl">🍲</span>
+                    <ImageIcon className="w-10 h-10 text-brownWarm/40" />
                   </div>
                 )}
               </div>
-              {/* 信息区 */}
-              <div className="p-4">
+              <div className="editorial-card-body">
                 <h3 className="text-lg font-medium text-textDark group-hover:text-brownWarm transition-colors">
                   {item.name}
                 </h3>
                 {item.description && (
-                  <p className="text-sm text-textGray mt-1 line-clamp-1">
+                  <p className="text-sm text-textGray mt-2 line-clamp-2">
                     {item.description}
                   </p>
                 )}

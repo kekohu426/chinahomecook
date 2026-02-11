@@ -75,6 +75,8 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
     const search = searchParams.get("search"); // prompt 关键词搜索
 
+    const EXCLUDED_STEP_NAMES = ["import_start", "import_validation", "import_create"];
+
     // 构建查询条件
     const where: any = {};
 
@@ -97,6 +99,9 @@ export async function GET(request: NextRequest) {
         { resultText: { contains: search, mode: "insensitive" } },
       ];
     }
+
+    // 排除非 AI 调用的导入日志
+    where.AND = [{ stepName: { notIn: EXCLUDED_STEP_NAMES } }];
 
     // 查询数据
     const [logs, total] = await Promise.all([

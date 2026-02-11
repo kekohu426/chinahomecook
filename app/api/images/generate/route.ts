@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { evolinkClient } from "@/lib/ai/evolink";
+import { AIGenerationLogger } from "@/lib/ai/generation-logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 调用 Evolink API 生成图片
+    const logger = new AIGenerationLogger();
     const result = await evolinkClient.generateImage({
       prompt,
       negativePrompt,
@@ -28,6 +30,8 @@ export async function POST(request: NextRequest) {
       height,
       timeoutMs: 20000,
       retries: 1,
+      logger,
+      stepName: "image_generation",
     });
 
     if (!result.success) {

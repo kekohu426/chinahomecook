@@ -17,6 +17,8 @@ import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
 import { buildRuleWhereClause } from "@/lib/collection/rule-engine";
 import type { RuleConfig, SeoConfig } from "@/lib/types/collection";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, titleFromSlug } from "@/lib/i18n/english";
 import type { Locale } from "@/lib/i18n/config";
 import { ChevronRight, Home, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -52,25 +54,35 @@ export async function generateMetadata({
       });
 
   const seo = (collection?.seo as SeoConfig) || undefined;
-  const themeName =
+  const themeNameRaw =
     (isEn ? seo?.h1En || seo?.titleEn : seo?.h1Zh || seo?.titleZh) ||
     (collection
       ? isEn
         ? collection.nameEn || collection.name
         : collection.name
       : tag?.name || decodeURIComponent(slug));
+  const themeName = isEn
+    ? ensureEnglish(
+        themeNameRaw,
+        ensureEnglish(titleFromSlug(slug), "Theme")
+      )
+    : themeNameRaw;
+  const metaTitleFallback = t("recipe.theme.metaTitle", locale).replace(
+    "{name}",
+    themeName
+  );
+  const metaDescriptionFallback = t("recipe.theme.metaDescription", locale).replace(
+    "{name}",
+    themeName
+  );
 
   return {
     title:
-      (isEn ? seo?.titleEn : seo?.titleZh) ||
-      (isEn
-        ? `${themeName} Recipes - Recipe Zen`
-        : `${themeName}食谱 - Recipe Zen`),
+      (isEn ? ensureEnglish(seo?.titleEn, "") : seo?.titleZh) ||
+      metaTitleFallback,
     description:
-      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
-      (isEn
-        ? `Explore ${themeName} recipes, curated for home cooking.`
-        : `精选${themeName}相关食谱，家常易做。`),
+      (isEn ? ensureEnglish(seo?.descriptionEn, "") : seo?.descriptionZh) ||
+      metaDescriptionFallback,
     keywords: seo?.keywords,
     robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
@@ -123,19 +135,29 @@ export default async function ThemePage({
 
   const translation = tag?.translations.find((t) => t.locale === locale);
   const seo = (collection?.seo as SeoConfig) || undefined;
-  const themeName = collection
+  const themeNameRaw = collection
     ? (isEn ? seo?.h1En || collection.nameEn || collection.name : seo?.h1Zh || collection.name)
     : isEn
       ? seo?.h1En || translation?.name || tag!.name
       : seo?.h1Zh || tag!.name;
-  const subtitle =
+  const themeName = isEn
+    ? ensureEnglish(
+        themeNameRaw,
+        ensureEnglish(titleFromSlug(slug), "Theme")
+      )
+    : themeNameRaw;
+  const subtitleRaw =
     (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
     (collection?.description || collection?.descriptionEn
       ? isEn
         ? collection.descriptionEn || collection.description
         : collection.description || collection.descriptionEn
       : null);
-  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+  const subtitle = isEn ? (ensureEnglish(subtitleRaw, "") || null) : subtitleRaw;
+  const footerTextRaw = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+  const footerText = isEn
+    ? (ensureEnglish(footerTextRaw, "") || null)
+    : footerTextRaw;
 
   const baseWhere = collection
     ? buildRuleWhereClause(collection.rules as RuleConfig, {
@@ -222,7 +244,7 @@ export default async function ThemePage({
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <LocalizedLink href="/recipe" className="hover:text-brownWarm transition-colors">
-              {isEn ? "Recipes" : "食谱"}
+              {t("nav.recipes", locale)}
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <span className="text-textDark">{themeName}</span>
@@ -235,9 +257,7 @@ export default async function ThemePage({
           </div>
           <p className="text-textGray text-lg max-w-3xl">
             {subtitle ||
-              (isEn
-                ? `${themeName} recipes, curated for home cooking.`
-                : `${themeName}相关食谱合集，适合家庭烹饪。`)}
+              t("recipe.theme.metaDescription", locale).replace("{name}", themeName)}
           </p>
         </div>
       </div>
@@ -247,20 +267,20 @@ export default async function ThemePage({
           <div className="text-center py-20 bg-white rounded-2xl">
             <Sparkles className="w-16 h-16 mx-auto text-textGray/30 mb-4" />
             <p className="text-textGray text-lg mb-6">
-              {isEn ? "No recipes found yet." : "暂无相关食谱。"}
+              {t("common.noRecipesFound", locale)}
             </p>
             <LocalizedLink
               href="/recipe"
               className="px-6 py-3 bg-amber-500 text-white rounded-full hover:bg-amber-600 transition-colors"
             >
-              {isEn ? "Browse All Recipes" : "浏览全部食谱"}
+              {t("common.browseAll", locale)}
             </LocalizedLink>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-serif font-medium text-textDark">
-                {isEn ? "Latest Recipes" : "最新食谱"} ({total})
+                {t("common.latestRecipes", locale)} ({total})
               </h2>
             </div>
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-8 [column-fill:_balance]">
@@ -299,12 +319,12 @@ export default async function ThemePage({
                 href={buildPageUrl(page - 1)}
                 className="px-4 py-2 bg-white border border-amber-200 rounded-lg hover:border-amber-400 transition-colors"
               >
-                {isEn ? "Prev" : "上一页"}
+                {t("common.previous", locale)}
               </Link>
             )}
 
             <span className="px-4 py-2 text-amber-600">
-              {isEn ? `Page ${page} / ${totalPages}` : `第 ${page} / ${totalPages} 页`}
+              {t("common.pageOf", locale).replace("{current}", String(page)).replace("{total}", String(totalPages))}
             </span>
 
             {page < totalPages && (
@@ -312,7 +332,7 @@ export default async function ThemePage({
                 href={buildPageUrl(page + 1)}
                 className="px-4 py-2 bg-white border border-amber-200 rounded-lg hover:border-amber-400 transition-colors"
               >
-                {isEn ? "Next" : "下一页"}
+                {t("common.nextPage", locale)}
               </Link>
             )}
           </div>

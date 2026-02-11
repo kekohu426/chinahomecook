@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 import {
   seedHomeBrowseItems,
   seedHomeTestimonials,
@@ -8,6 +9,9 @@ import {
 
 export async function POST() {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     await seedHomeBrowseItems();
     await seedHomeTestimonials();
     await seedHomeThemes();

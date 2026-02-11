@@ -23,6 +23,8 @@ import { ThemeCardsSection } from "@/components/home/ThemeCardsSection";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { getScenesForHome, getSceneCountsFromDB } from "@/lib/aggregation/utils";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, titleFromSlug, toEnglishLabel } from "@/lib/i18n/english";
 
 export const revalidate = 300;
 
@@ -234,10 +236,22 @@ async function getLocations(locale: Locale, limit = 6) {
     });
     return items.map((item) => {
       const translation = pickTranslation(item.translations, locales);
+      const name =
+        translation?.name ||
+        (locale === "en"
+          ? toEnglishLabel(
+              item.name,
+              LOCATION_LABELS_EN,
+              titleFromSlug(item.slug || "Region")
+            )
+          : item.name);
+      const description =
+        translation?.description ||
+        (locale === "en" ? ensureEnglish(item.description, "") : item.description);
       return {
         id: item.id,
-        name: translation?.name || item.name,
-        description: translation?.description || item.description,
+        name,
+        description,
         slug: item.slug,
         filterName: item.slug,
         matchKey: item.name,
@@ -270,12 +284,24 @@ async function getCuisines(locale: Locale, limit = 6) {
     });
     return items.map((item) => {
       const translation = pickTranslation(item.translations, locales);
+      const name =
+        translation?.name ||
+        (locale === "en"
+          ? toEnglishLabel(
+              item.name,
+              CUISINE_LABELS_EN,
+              titleFromSlug(item.slug || "Cuisine")
+            )
+          : item.name);
+      const description =
+        translation?.description ||
+        (locale === "en" ? ensureEnglish(item.description, "") : item.description);
       return {
         id: item.id,
-        name: translation?.name || item.name,
-        description: translation?.description || item.description,
+        name,
+        description,
         slug: item.slug,
-        filterName: item.slug,
+        filterName: item.name, // 保留中文名用于筛选
         matchKey: item.name,
       };
     });
@@ -381,14 +407,16 @@ async function getHotRecipes(locale: Locale, limit = 12, featuredConfig?: { reci
 
     const allRecipes = [...featuredRecipes, ...autoRecipes];
     return allRecipes.map((recipe) => {
-      const translation = pickTranslation(recipe.translations, locales) as { locale: string; title: string; summary: any } | null;
-      // 使用翻译或原始标题
-      const displayTitle = translation?.title || recipe.title;
+      const translation = pickTranslation(recipe.translations, locales) as {
+        locale: string;
+        title: string;
+        summary: any;
+      } | null;
       const displaySummary = translation?.summary || recipe.summary;
       return {
         id: recipe.id,
         slug: recipe.slug,
-        titleZh: displayTitle,
+        titleZh: recipe.title,
         titleEn: translation?.title || null,
         summary: displaySummary,
         coverImage: recipe.coverImage,
@@ -457,13 +485,16 @@ async function getCustomRecipes(locale: Locale, limit = 8, featuredConfig?: { re
 
     const allRecipes = [...featuredRecipes, ...autoRecipes];
     return allRecipes.map((recipe) => {
-      const translation = pickTranslation(recipe.translations, locales) as { locale: string; title: string; summary: any } | null;
-      const displayTitle = translation?.title || recipe.title;
+      const translation = pickTranslation(recipe.translations, locales) as {
+        locale: string;
+        title: string;
+        summary: any;
+      } | null;
       const displaySummary = translation?.summary || recipe.summary;
       return {
         id: recipe.id,
         slug: recipe.slug,
-        titleZh: displayTitle,
+        titleZh: recipe.title,
         titleEn: translation?.title || null,
         summary: displaySummary,
         coverImage: recipe.coverImage,
@@ -536,7 +567,8 @@ async function getGalleryImages(locale: Locale, limit = 16, featuredConfig?: { r
           slug: recipe.slug,
           coverImage: recipe.coverImage,
           title: translation?.title || recipe.title,
-          titleZh: translation?.title || recipe.title,
+          titleZh: recipe.title,
+          titleEn: translation?.title || null,
           cuisine: recipe.cuisine?.name || null,
         };
       });
@@ -772,12 +804,9 @@ export async function generateMetadata({
   params,
 }: HomePageProps): Promise<Metadata> {
   const { locale } = await params;
-  const isEn = locale === "en";
   return {
-    title: isEn ? "Recipe Zen - AI Cooking Companion" : "Recipe Zen - 食谱研习",
-    description: isEn
-      ? "AI-powered recipes reviewed by experts, with voice guidance and smart timers."
-      : "极致治愈 × 极致实用的中国美食指南",
+    title: t("meta.homeTitle", locale),
+    description: t("meta.homeDescription", locale),
   };
 }
 
@@ -795,23 +824,24 @@ function pickTranslation<T extends { locale: string }>(
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   const isEn = locale === "en";
-  const getCachedHomeConfig = unstable_cache(getHomeConfig, ["home-config"], { revalidate: 900 });
-  const getCachedLocations = unstable_cache(getLocations, ["home-locations"], { revalidate: 900 });
-  const getCachedCuisines = unstable_cache(getCuisines, ["home-cuisines"], { revalidate: 900 });
+  // 缓存 key 必须包含 locale，避免中英文数据混用
+  const getCachedHomeConfig = unstable_cache(getHomeConfig, [`home-config-${locale}`], { revalidate: 900 });
+  const getCachedLocations = unstable_cache(getLocations, [`home-locations-${locale}`], { revalidate: 900 });
+  const getCachedCuisines = unstable_cache(getCuisines, [`home-cuisines-${locale}`], { revalidate: 900 });
   const getCachedIngredients = unstable_cache(getPopularIngredients, ["home-ingredients"], { revalidate: 600 });
   const getCachedCoverRecipes = unstable_cache(getCoverRecipes, ["home-cover-recipes"], { revalidate: 900 });
   const getCachedBrowseItems = unstable_cache(
     (loc: Locale) => getHomeBrowseItemsByType(loc, ["REGION", "CUISINE", "INGREDIENT", "SCENE"], 12),
-    ["home-browse-items"],
+    [`home-browse-items-${locale}`],
     { revalidate: 900 }
   );
-  const getCachedTestimonials = unstable_cache(getHomeTestimonials, ["home-testimonials"], { revalidate: 900 });
-  const getCachedThemes = unstable_cache(getHomeThemes, ["home-theme-cards"], { revalidate: 900 });
+  const getCachedTestimonials = unstable_cache(getHomeTestimonials, [`home-testimonials-${locale}`], { revalidate: 900 });
+  const getCachedThemes = unstable_cache(getHomeThemes, [`home-theme-cards-${locale}`], { revalidate: 900 });
   const getCachedRealStats = unstable_cache(getRealStats, ["home-stats"], { revalidate: 600 });
   const getCachedCuisineCounts = unstable_cache(getRecipeCountsByCuisine, ["home-cuisine-counts"], { revalidate: 900 });
   const getCachedLocationCounts = unstable_cache(getRecipeCountsByLocation, ["home-location-counts"], { revalidate: 900 });
   const getCachedSceneCounts = unstable_cache(getSceneCountsFromDB, ["home-scene-counts"], { revalidate: 900 });
-  const getCachedScenesForHome = unstable_cache(getScenesForHome, ["home-scenes-for-home"], { revalidate: 900 });
+  const getCachedScenesForHome = unstable_cache(getScenesForHome, [`home-scenes-for-home-${locale}`], { revalidate: 900 });
 
   // 第一阶段：获取基础配置和分类数据
   const [
@@ -1053,14 +1083,18 @@ export default async function HomePage({ params }: HomePageProps) {
       : quickBrowseLocations.map((loc, index) => {
           const filterName = loc.filterName || loc.name;
           const matchKey = loc.matchKey || loc.name;
+          // 直接使用已翻译的 loc.name（来自 getLocations 函数的翻译处理）
           const displayName = isEn
-            ? LOCATION_LABELS_EN[filterName] || loc.name
+            ? ensureEnglish(
+                loc.name,
+                titleFromSlug(loc.slug || "Region")
+              )
             : loc.name;
-          const description = isEn
-            ? LOCATION_DESCRIPTIONS_EN[filterName] ||
-              loc.description ||
-              LOCATION_DESCRIPTIONS[filterName]
-            : loc.description || LOCATION_DESCRIPTIONS[filterName];
+          const description =
+            loc.description ||
+            (isEn
+              ? ensureEnglish(LOCATION_DESCRIPTIONS_EN[filterName], "")
+              : LOCATION_DESCRIPTIONS[filterName]);
           return {
             id: loc.id,
             name: displayName,
@@ -1087,14 +1121,18 @@ export default async function HomePage({ params }: HomePageProps) {
       : quickBrowseCuisines.map((cuisine, index) => {
           const filterName = cuisine.filterName || cuisine.name;
           const matchKey = cuisine.matchKey || cuisine.name;
+          // 直接使用已翻译的 cuisine.name（来自 getCuisines 函数的翻译处理）
           const displayName = isEn
-            ? CUISINE_LABELS_EN[filterName] || cuisine.name
+            ? ensureEnglish(
+                cuisine.name,
+                titleFromSlug(cuisine.slug || "Cuisine")
+              )
             : cuisine.name;
-          const description = isEn
-            ? CUISINE_DESCRIPTIONS_EN[filterName] ||
-              cuisine.description ||
-              CUISINE_DESCRIPTIONS[filterName]
-            : cuisine.description || CUISINE_DESCRIPTIONS[filterName];
+          const description =
+            cuisine.description ||
+            (isEn
+              ? ensureEnglish(CUISINE_DESCRIPTIONS_EN[filterName], "")
+              : CUISINE_DESCRIPTIONS[filterName]);
           return {
             id: cuisine.id,
             name: displayName,
@@ -1121,12 +1159,18 @@ export default async function HomePage({ params }: HomePageProps) {
       : quickBrowseIngredients.map((ingredient, index) => {
           const filterName = ingredient.filterName || ingredient.name;
           const displayName = isEn
-            ? INGREDIENT_LABELS_EN[filterName] || ingredient.name
+            ? ensureEnglish(
+                INGREDIENT_LABELS_EN[filterName] || ingredient.name,
+                "Ingredient"
+              )
             : ingredient.name;
           const description = isEn
-            ? INGREDIENT_DESCRIPTIONS_EN[filterName] ||
-              INGREDIENT_DESCRIPTIONS[filterName] ||
-              `${displayName} recipes`
+            ? ensureEnglish(
+                INGREDIENT_DESCRIPTIONS_EN[filterName] ||
+                  INGREDIENT_DESCRIPTIONS[filterName] ||
+                  `${displayName} recipes`,
+                `${displayName} recipes`
+              )
             : INGREDIENT_DESCRIPTIONS[filterName] || `${displayName}家常做法`;
           return {
             id: ingredient.id,
@@ -1260,33 +1304,39 @@ export default async function HomePage({ params }: HomePageProps) {
       />
 
       {/* 模块10: 转化收口区 */}
-      <section className="py-20 bg-[#FFF8F0]">
-        <div className="max-w-3xl mx-auto px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-serif font-medium text-textDark mb-4">
-            {homeConfig.conversionCta?.title ||
-              (locale === "en" ? "Start Your Simple Kitchen Journey" : "开始你的简单厨房之旅")}
-          </h2>
-          <p className="text-lg text-textGray mb-8">
-            {homeConfig.conversionCta?.subtitle ||
-              (locale === "en"
-                ? "No registration, no fees. Browse 1000+ curated home recipes now."
-                : "无需注册，无需付费，立即浏览 1000+ 精选家常菜。")}
-          </p>
-          <div className="flex flex-wrap justify-center gap-6">
-            <a
-              href={`/${locale}${homeConfig.conversionCta?.primaryCta?.href || "/recipe"}`}
-              className="px-8 py-4 bg-brownWarm text-white rounded-lg font-medium shadow-lg hover:bg-brownDark transition-colors"
-            >
-              {homeConfig.conversionCta?.primaryCta?.label ||
-                (locale === "en" ? "Start Exploring Recipes →" : "开始探索食谱 →")}
-            </a>
-            <a
-              href={`/${locale}${homeConfig.conversionCta?.secondaryCta?.href || "/ai-custom"}`}
-              className="px-8 py-4 border-2 border-brownWarm text-brownWarm rounded-lg font-medium hover:bg-brownWarm hover:text-white transition-colors"
-            >
-              {homeConfig.conversionCta?.secondaryCta?.label ||
-                (locale === "en" ? "Or Try AI Custom →" : "或尝试AI定制 →")}
-            </a>
+      <section className="editorial-section editorial-section--warm">
+        <div className="editorial-container">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <div className="editorial-eyebrow">
+                <span className="editorial-eyebrow-line" />
+                <span>Recipe Zen</span>
+              </div>
+              <h2 className="editorial-title mt-4">
+                {homeConfig.conversionCta?.title ||
+                  t("home.startJourney", locale)}
+              </h2>
+              <p className="editorial-subtitle mt-3">
+                {homeConfig.conversionCta?.subtitle ||
+                  t("home.noRegistration", locale)}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <a
+                href={`/${locale}${homeConfig.conversionCta?.primaryCta?.href || "/recipe"}`}
+                className="editorial-button-primary"
+              >
+                {homeConfig.conversionCta?.primaryCta?.label ||
+                  t("home.startExploring", locale)}
+              </a>
+              <a
+                href={`/${locale}${homeConfig.conversionCta?.secondaryCta?.href || "/ai-custom"}`}
+                className="editorial-button-outline"
+              >
+                {homeConfig.conversionCta?.secondaryCta?.label ||
+                  t("home.tryAiCustom", locale)}
+              </a>
+            </div>
           </div>
         </div>
       </section>

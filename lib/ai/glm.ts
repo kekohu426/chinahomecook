@@ -5,11 +5,29 @@
  * 文档：https://open.bigmodel.cn/dev/api
  */
 
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 import type {
   AIProvider,
   ChatCompletionOptions,
   ChatCompletionResponse,
 } from "./types";
+
+// 获取代理配置
+function getProxyDispatcher() {
+  // 优先使用完整 URL，其次使用端口号构建
+  let proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+
+  // 如果没有完整 URL，但有端口号配置，则自动构建
+  if (!proxyUrl && process.env.PROXY_PORT) {
+    proxyUrl = `http://127.0.0.1:${process.env.PROXY_PORT}`;
+  }
+
+  console.log("[GLM] 代理配置:", proxyUrl || "无代理");
+  if (proxyUrl) {
+    return new ProxyAgent(proxyUrl);
+  }
+  return undefined;
+}
 
 export class GLMProvider implements AIProvider {
   private apiKey: string;
@@ -35,7 +53,8 @@ export class GLMProvider implements AIProvider {
   }
 
   async chat(options: ChatCompletionOptions): Promise<ChatCompletionResponse> {
-    const response = await fetch(`${this.baseURL}/chat/completions`, {
+    const dispatcher = getProxyDispatcher();
+    const response = await undiciFetch(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +67,8 @@ export class GLMProvider implements AIProvider {
         max_tokens: options.maxTokens ?? 4000,
         stream: false,
       }),
-    });
+      ...(dispatcher ? { dispatcher } : {}),
+    } as any);
 
     if (!response.ok) {
       const error = await response.text();
@@ -73,7 +93,8 @@ export class GLMProvider implements AIProvider {
     options: ChatCompletionOptions,
     onChunk: (chunk: string) => void
   ): Promise<ChatCompletionResponse> {
-    const response = await fetch(`${this.baseURL}/chat/completions`, {
+    const dispatcher = getProxyDispatcher();
+    const response = await undiciFetch(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +107,8 @@ export class GLMProvider implements AIProvider {
         max_tokens: options.maxTokens ?? 4000,
         stream: true,
       }),
-    });
+      ...(dispatcher ? { dispatcher } : {}),
+    } as any);
 
     if (!response.ok) {
       const error = await response.text();

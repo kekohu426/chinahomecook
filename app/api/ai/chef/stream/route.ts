@@ -8,9 +8,26 @@
 import { NextRequest } from "next/server";
 import { chatStream } from "@/lib/ai";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    // 速率限制：每分钟最多 20 次请求
+    const rateLimitResult = rateLimit(request, { limit: 20, windowMs: 60000 });
+    if (!rateLimitResult.success) {
+      return new Response(
+        JSON.stringify({ error: "请求过于频繁，请稍后再试" }),
+        {
+          status: 429,
+          headers: {
+            "Content-Type": "application/json",
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(rateLimitResult.resetAt),
+          }
+        }
+      );
+    }
+
     const body = await request.json();
     const { question, recipeTitle, recipeContext } = body;
 

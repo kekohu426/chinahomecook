@@ -1,0 +1,1914 @@
+app\layout.tsx:27:     title: isEn ? "Recipe Zen - Food Companion" : "Recipe Zen - 食谱研习",
+app\layout.tsx:30:       : "极致治愈 × 极致实用的中国美食指南",
+app\login\page.tsx:73:               {isEn ? "Healing Food Studio" : "治愈系美食研习所"}
+app\login\page.tsx:79:           {isEn ? "Sign in to continue" : "登录以继续"}
+app\login\page.tsx:87:           {isEn ? "Sign in with Google" : "使用 Google 账号登录"}
+app\login\page.tsx:93:             : "使用 Google 账号登录以访问您的收藏"}
+app\login\page.tsx:101:             {isEn ? "Back to Home" : "返回首页"}
+app\unauthorized\page.tsx:19:           {isEn ? "Access denied" : "访问受限"}
+app\unauthorized\page.tsx:24:             : "抱歉，您没有权限访问此页面。如需管理员权限，请联系网站管理员。"}
+app\unauthorized\page.tsx:31:             {isEn ? "Back to Home" : "返回首页"}
+app\unauthorized\page.tsx:37:             {isEn ? "Sign in again" : "重新登录"}
+app\[locale]\layout.tsx:31:       template: isEn ? "%s | Recipe Zen" : "%s | Recipe Zen 食谱研习",
+app\[locale]\layout.tsx:32:       default: isEn ? "Recipe Zen - AI Cooking Companion" : "Recipe Zen - 食谱研习",
+app\[locale]\layout.tsx:36:       : "极致治愈 × 极致实用的中国美食指南",
+app\[locale]\page.tsx:31:   { id: "loc-sichuan", name: "川渝", filterName: "川渝", matchKey: "川渝", slug: "chuanyu", description: "麻辣鲜香，经典川味" },
+app\[locale]\page.tsx:32:   { id: "loc-guangdong", name: "粤港澳", filterName: "粤港澳", matchKey: "粤港澳", slug: "yuegangao", description: "清淡鲜美，原汁原味" },
+app\[locale]\page.tsx:33:   { id: "loc-jiangzhe", name: "江浙", filterName: "江浙", matchKey: "江浙", slug: "jiangzhe", description: "甜润细腻，精致讲究" },
+app\[locale]\page.tsx:34:   { id: "loc-dongbei", name: "东北", filterName: "东北", matchKey: "东北", slug: "dongbei", description: "豪爽厚重，实惠下饭" },
+app\[locale]\page.tsx:35:   { id: "loc-hunan", name: "湖南", filterName: "湖南", matchKey: "湖南", slug: "hunan", description: "酸辣浓郁，重口开胃" },
+app\[locale]\page.tsx:36:   { id: "loc-yungui", name: "云贵", filterName: "云贵", matchKey: "云贵", slug: "yungui", description: "酸辣鲜香，民族风味" },
+app\[locale]\page.tsx:40:   { id: "loc-sichuan", name: "Sichuan & Chongqing", filterName: "川渝", matchKey: "川渝", slug: "chuanyu", description: "Bold, spicy, classic Sichuan flavors" },
+app\[locale]\page.tsx:41:   { id: "loc-guangdong", name: "Cantonese & Greater Bay", filterName: "粤港澳", matchKey: "粤港澳", slug: "yuegangao", description: "Light, fresh, and true to the ingredient" },
+app\[locale]\page.tsx:42:   { id: "loc-jiangzhe", name: "Jiangsu & Zhejiang", filterName: "江浙", matchKey: "江浙", slug: "jiangzhe", description: "Soft, delicate, and refined" },
+app\[locale]\page.tsx:43:   { id: "loc-dongbei", name: "Northeast", filterName: "东北", matchKey: "东北", slug: "dongbei", description: "Hearty, comforting, and filling" },
+app\[locale]\page.tsx:44:   { id: "loc-hunan", name: "Hunan", filterName: "湖南", matchKey: "湖南", slug: "hunan", description: "Hot, tangy, and bold" },
+app\[locale]\page.tsx:45:   { id: "loc-yungui", name: "Yunnan & Guizhou", filterName: "云贵", matchKey: "云贵", slug: "yungui", description: "Sour-spicy, aromatic, ethnic flair" },
+app\[locale]\page.tsx:49:   { id: "cui-sichuan", name: "川菜", filterName: "川菜", matchKey: "川菜", slug: "chuancai", description: "麻辣鲜香，百菜百味" },
+app\[locale]\page.tsx:50:   { id: "cui-canton", name: "粤菜", filterName: "粤菜", matchKey: "粤菜", slug: "yuecai", description: "清淡鲜美，突出原味" },
+app\[locale]\page.tsx:51:   { id: "cui-jiangzhe", name: "江浙菜", filterName: "江浙菜", matchKey: "江浙菜", slug: "jiangzhecai", description: "清雅鲜甜，刀工细腻" },
+app\[locale]\page.tsx:52:   { id: "cui-shandong", name: "鲁菜", filterName: "鲁菜", matchKey: "鲁菜", slug: "lucai", description: "咸鲜醇厚，讲究火候" },
+app\[locale]\page.tsx:53:   { id: "cui-hunan", name: "湘菜", filterName: "湘菜", matchKey: "湘菜", slug: "xiangcai", description: "香辣浓郁，重口开胃" },
+app\[locale]\page.tsx:54:   { id: "cui-northwest", name: "西北菜", filterName: "西北菜", matchKey: "西北菜", slug: "xibeicai", description: "面食为主，香料独特" },
+app\[locale]\page.tsx:58:   { id: "cui-sichuan", name: "Sichuan", filterName: "川菜", matchKey: "川菜", slug: "chuancai", description: "Spicy, bold, and deeply savory" },
+app\[locale]\page.tsx:59:   { id: "cui-canton", name: "Cantonese", filterName: "粤菜", matchKey: "粤菜", slug: "yuecai", description: "Light, fresh, and ingredient-forward" },
+app\[locale]\page.tsx:60:   { id: "cui-jiangzhe", name: "Jiangsu & Zhejiang", filterName: "江浙菜", matchKey: "江浙菜", slug: "jiangzhecai", description: "Clean, sweet, and delicate" },
+app\[locale]\page.tsx:61:   { id: "cui-shandong", name: "Shandong", filterName: "鲁菜", matchKey: "鲁菜", slug: "lucai", description: "Savory, rich, and technique-driven" },
+app\[locale]\page.tsx:62:   { id: "cui-hunan", name: "Hunan", filterName: "湘菜", matchKey: "湘菜", slug: "xiangcai", description: "Spicy, aromatic, and hearty" },
+app\[locale]\page.tsx:63:   { id: "cui-northwest", name: "Northwest", filterName: "西北菜", matchKey: "西北菜", slug: "xibeicai", description: "Noodle-centered with bold spices" },
+app\[locale]\page.tsx:67:   { id: "ing-chicken", name: "鸡肉", filterName: "鸡肉", description: "高蛋白家常做法" },
+app\[locale]\page.tsx:68:   { id: "ing-pork", name: "猪肉", filterName: "猪肉", description: "经典家常味，百吃不腻" },
+app\[locale]\page.tsx:69:   { id: "ing-beef", name: "牛肉", filterName: "牛肉", description: "耐嚼有滋味，补充能量" },
+app\[locale]\page.tsx:70:   { id: "ing-fish", name: "鱼", filterName: "鱼", description: "鲜嫩少刺，清爽好入口" },
+app\[locale]\page.tsx:71:   { id: "ing-shrimp", name: "虾", filterName: "虾", description: "鲜甜弹牙，宴客好选择" },
+app\[locale]\page.tsx:72:   { id: "ing-tofu", name: "豆腐", filterName: "豆腐", description: "百搭素食，营养均衡" },
+app\[locale]\page.tsx:73:   { id: "ing-egg", name: "鸡蛋", filterName: "鸡蛋", description: "家常必备，百变做法" },
+app\[locale]\page.tsx:74:   { id: "ing-tomato", name: "番茄", filterName: "番茄", description: "酸甜开胃，色泽诱人" },
+app\[locale]\page.tsx:75:   { id: "ing-potato", name: "土豆", filterName: "土豆", description: "软糯饱腹，孩子最爱" },
+app\[locale]\page.tsx:76:   { id: "ing-mushroom", name: "菌菇", filterName: "菌菇", description: "鲜香浓郁，提升层次" },
+app\[locale]\page.tsx:77:   { id: "ing-pepper", name: "辣椒", filterName: "辣椒", description: "微辣开胃，香气更足" },
+app\[locale]\page.tsx:78:   { id: "ing-greens", name: "青菜", filterName: "青菜", description: "清爽解腻，搭配更均衡" },
+app\[locale]\page.tsx:82:   { id: "ing-chicken", name: "Chicken", filterName: "鸡肉", description: "High-protein, everyday classics" },
+app\[locale]\page.tsx:83:   { id: "ing-pork", name: "Pork", filterName: "猪肉", description: "Comforting, family-style staples" },
+app\[locale]\page.tsx:84:   { id: "ing-beef", name: "Beef", filterName: "牛肉", description: "Rich, hearty, and satisfying" },
+app\[locale]\page.tsx:85:   { id: "ing-fish", name: "Fish", filterName: "鱼", description: "Light, tender, and fresh" },
+app\[locale]\page.tsx:86:   { id: "ing-shrimp", name: "Shrimp", filterName: "虾", description: "Sweet, springy, and festive" },
+app\[locale]\page.tsx:87:   { id: "ing-tofu", name: "Tofu", filterName: "豆腐", description: "Versatile, light, and balanced" },
+app\[locale]\page.tsx:88:   { id: "ing-egg", name: "Eggs", filterName: "鸡蛋", description: "Simple, flexible, and fast" },
+app\[locale]\page.tsx:89:   { id: "ing-tomato", name: "Tomato", filterName: "番茄", description: "Bright, tangy, and appetizing" },
+app\[locale]\page.tsx:90:   { id: "ing-potato", name: "Potato", filterName: "土豆", description: "Soft, filling, and kid-friendly" },
+app\[locale]\page.tsx:91:   { id: "ing-mushroom", name: "Mushrooms", filterName: "菌菇", description: "Umami-rich and fragrant" },
+app\[locale]\page.tsx:92:   { id: "ing-pepper", name: "Chili Pepper", filterName: "辣椒", description: "Gentle heat, big aroma" },
+app\[locale]\page.tsx:93:   { id: "ing-greens", name: "Greens", filterName: "青菜", description: "Fresh, light, and balanced" },
+app\[locale]\page.tsx:161:     console.error("获取首页配置失败:", error);
+app\[locale]\page.tsx:207:     console.error("获取快捷浏览失败:", error);
+app\[locale]\page.tsx:248:     console.error("获取地点失败:", error);
+app\[locale]\page.tsx:284:     console.error("获取菜系失败:", error);
+app\[locale]\page.tsx:327:     console.error("获取食材失败:", error);
+app\[locale]\page.tsx:402:     console.error("获取热门食谱失败:", error);
+app\[locale]\page.tsx:477:     console.error("获取定制食谱失败:", error);
+app\[locale]\page.tsx:545:     console.error("获取图片失败:", error);
+app\[locale]\page.tsx:606:     console.error("获取封面食谱失败:", error);
+app\[locale]\page.tsx:638:     console.error("获取菜系统计失败:", error);
+app\[locale]\page.tsx:670:     console.error("获取地域统计失败:", error);
+app\[locale]\page.tsx:697:     console.error("获取统计数据失败:", error);
+app\[locale]\page.tsx:733:     console.error("获取用户证言失败:", error);
+app\[locale]\page.tsx:763:     console.error("获取主题卡片失败:", error);
+app\[locale]\page.tsx:778:     title: isEn ? "Recipe Zen - AI Cooking Companion" : "Recipe Zen - 食谱研习",
+app\[locale]\page.tsx:781:       : "极致治愈 × 极致实用的中国美食指南",
+app\[locale]\page.tsx:878:         title: "做饭，可以更简单",
+app\[locale]\page.tsx:879:         displayTitle: "做饭，可以更简单",
+app\[locale]\page.tsx:881:         subtitle: "专业审校 + 智能工具，让每道家常菜都能轻松上手。",
+app\[locale]\page.tsx:882:         placeholder: "从查找食谱到完成烹饪，我们把步骤与工具都准备好",
+app\[locale]\page.tsx:883:         chips: ["团队审核把关", "智能推荐菜谱", "免费好用"],
+app\[locale]\page.tsx:1124:             : INGREDIENT_DESCRIPTIONS[filterName] || `${displayName}家常做法`;
+app\[locale]\page.tsx:1261:               (locale === "en" ? "Start Your Simple Kitchen Journey" : "开始你的简单厨房之旅")}
+app\[locale]\page.tsx:1267:                 : "无需注册，无需付费，立即浏览 1000+ 精选家常菜。")}
+app\[locale]\page.tsx:1275:                 (locale === "en" ? "Start Exploring Recipes →" : "开始探索食谱 →")}
+app\[locale]\page.tsx:1282:                 (locale === "en" ? "Or Try AI Custom →" : "或尝试AI定制 →")}
+app\[locale]\about\page.tsx:41:     title: isEn ? "About Recipe Zen" : "关于 Recipe Zen",
+app\[locale]\about\page.tsx:44:       : "了解我们的使命：让做饭更简单、更有温度、更值得信赖。",
+app\[locale]\about\page.tsx:93:   founder: { zh: "创始人 & 主编", en: "Founder & Editor-in-Chief" },
+app\[locale]\about\page.tsx:94:   explorer: { zh: "美食探寻者", en: "Food Explorer" },
+app\[locale]\about\page.tsx:95:   chef: { zh: "专业厨师", en: "Professional Chef" },
+app\[locale]\about\page.tsx:96:   nutritionist: { zh: "注册营养师", en: "Registered Dietitian" },
+app\[locale]\about\page.tsx:97:   photographer: { zh: "美食摄影师", en: "Food Photographer" },
+app\[locale]\about\page.tsx:153:     : `我们是一群真心热爱做饭的人，也是一支专业而多元的团队。以下是陪你一起做饭的 ${members.length} 位伙伴：`;
+app\[locale]\about\page.tsx:202:     console.warn("TeamMember 表查询失败（可能表不存在）:", error);
+app\[locale]\about\page.tsx:226:       section.titleZh.includes("团队") ||
+app\[locale]\about\page.tsx:237:         title={isEn ? "About Us" : "关于我们"}
+app\[locale]\about\page.tsx:242:             : "让做饭更简单、更有温度、更值得信赖"
+app\[locale]\about\page.tsx:245:         breadcrumbs={[{ label: isEn ? "About" : "关于我们" }]}
+app\[locale]\blog\page.tsx:104:     title: isEn ? "Food Blog - Recipe Zen" : "美食博客 - Recipe Zen",
+app\[locale]\blog\page.tsx:107:       : "分享烹饪技巧、美食文化、健康饮食知识，让你成为厨房达人",
+app\[locale]\blog\page.tsx:131:         title={locale === "en" ? "Food Blog" : "美食博客"}
+app\[locale]\blog\page.tsx:135:           : "烹饪技巧 · 美食文化 · 健康饮食"}
+app\[locale]\blog\page.tsx:137:         breadcrumbs={[{ label: locale === "en" ? "Blog" : "博客" }]}
+app\[locale]\blog\page.tsx:146:               {locale === "en" ? "Filter:" : "当前筛选："}
+app\[locale]\blog\page.tsx:153:               {locale === "en" ? "Clear" : "清除"}
+app\[locale]\blog\page.tsx:167:               {locale === "en" ? "No posts yet" : "暂无博客文章"}
+app\[locale]\blog\page.tsx:172:                 : "精彩内容即将上线，敬请期待"}
+app\[locale]\blog\page.tsx:210:                       {post.summary || (isEn ? "Read more..." : "点击查看详情...")}
+app\[locale]\blog\[slug]\page.tsx:133:     return { title: locale === "en" ? "Post not found" : "文章不存在" };
+app\[locale]\blog\[slug]\page.tsx:142:     title: `${post.title} | Recipe Zen ${locale === "en" ? "Blog" : "美食博客"}`,
+app\[locale]\blog\[slug]\page.tsx:254:     articleSection: locale === "en" ? "Food Blog" : "美食博客",
+app\[locale]\blog\[slug]\page.tsx:266:         name: locale === "en" ? "Home" : "首页",
+app\[locale]\blog\[slug]\page.tsx:272:         name: locale === "en" ? "Blog" : "博客",
+app\[locale]\blog\[slug]\page.tsx:302:             {locale === "en" ? "Home" : "首页"}
+app\[locale]\blog\[slug]\page.tsx:306:             {locale === "en" ? "Blog" : "博客"}
+app\[locale]\blog\[slug]\page.tsx:353:                 {locale === "en" ? "min read" : "分钟阅读"}
+app\[locale]\blog\[slug]\page.tsx:361:                   {locale === "en" ? "Other languages:" : "其他语言："}
+app\[locale]\blog\[slug]\page.tsx:372:                       {targetLocale === "en" ? "English" : "中文"}
+app\[locale]\blog\[slug]\page.tsx:405:               {locale === "en" ? "Share:" : "分享文章："}
+app\[locale]\blog\[slug]\page.tsx:423:                     : "Recipe Zen 美食博主"}
+app\[locale]\blog\[slug]\page.tsx:437:             {locale === "en" ? "Back to Blog" : "返回博客列表"}
+app\[locale]\copyright\page.tsx:23:     title: isEn ? "Copyright Notice | Recipe Zen" : "版权声明 | Recipe Zen",
+app\[locale]\copyright\page.tsx:26:       : "Recipe Zen 版权声明，了解本网站内容的版权归属和使用规则。",
+app\[locale]\copyright\page.tsx:33:   const lastUpdated = isEn ? "December 31, 2024" : "2024年12月31日";
+app\[locale]\copyright\page.tsx:44:             {isEn ? "Home" : "首页"}
+app\[locale]\copyright\page.tsx:48:             {isEn ? "Copyright Notice" : "版权声明"}
+app\[locale]\copyright\page.tsx:54:             {isEn ? "Copyright Notice" : "版权声明"}
+app\[locale]\copyright\page.tsx:57:             {isEn ? "Last updated: " : "最后更新："}
+app\[locale]\copyright\page.tsx:64:               {isEn ? "All rights reserved." : "保留所有权利。"}
+app\[locale]\copyright\page.tsx:67:             <h2>{isEn ? "1. Copyright Ownership" : "一、版权归属"}</h2>
+app\[locale]\copyright\page.tsx:71:                 : "除特别注明外，本网站（Recipe Zen）上发布的所有内容，包括但不限于："}
+app\[locale]\copyright\page.tsx:74:               <li>{isEn ? "Site design, layout, visual elements" : "网站设计、界面布局、视觉元素"}</li>
+app\[locale]\copyright\page.tsx:75:               <li>{isEn ? "Recipes, cooking steps, nutrition information" : "食谱内容、烹饪步骤、营养信息"}</li>
+app\[locale]\copyright\page.tsx:76:               <li>{isEn ? "Blog articles and editorial content" : "博客文章、资讯内容"}</li>
+app\[locale]\copyright\page.tsx:77:               <li>{isEn ? "Images, illustrations, photography" : "图片、插图、摄影作品"}</li>
+app\[locale]\copyright\page.tsx:78:               <li>{isEn ? "Brand assets, logos, icons" : "品牌标识、Logo、图标"}</li>
+app\[locale]\copyright\page.tsx:79:               <li>{isEn ? "Software code and databases" : "软件代码、数据库"}</li>
+app\[locale]\copyright\page.tsx:84:                 : "均为 Recipe Zen 及其内容创作者的知识产权，受中华人民共和国著作权法及相关法律法规保护。"}
+app\[locale]\copyright\page.tsx:87:             <h2>{isEn ? "2. AI-Generated Content" : "二、AI 生成内容说明"}</h2>
+app\[locale]\copyright\page.tsx:91:                 : "本网站部分食谱内容由人工智能技术辅助生成。关于 AI 生成内容的版权："}
+app\[locale]\copyright\page.tsx:94:               <li>{isEn ? "AI recipes are edited and reviewed before publication; copyrights belong to Recipe Zen." : "AI 生成的食谱经过编辑审核后发布，版权归属于 Recipe Zen"}</li>
+app\[locale]\copyright\page.tsx:95:               <li>{isEn ? "Personal recipes generated via AI custom are licensed for user use." : "用户使用 AI 定制功能生成的个人食谱，用户享有使用权"}</li>
+app\[locale]\copyright\page.tsx:96:               <li>{isEn ? "AI content may resemble existing works; contact us for infringement concerns." : "AI 生成内容可能与已有作品存在相似性，如有侵权请联系我们处理"}</li>
+app\[locale]\copyright\page.tsx:99:             <h2>{isEn ? "3. Image Copyrights" : "三、图片版权"}</h2>
+app\[locale]\copyright\page.tsx:100:             <h3>{isEn ? "3.1 Original images" : "3.1 原创图片"}</h3>
+app\[locale]\copyright\page.tsx:104:                 : "本网站的原创美食摄影作品版权归 Recipe Zen 所有，未经许可不得使用。"}
+app\[locale]\copyright\page.tsx:107:             <h3>{isEn ? "3.2 AI-generated images" : "3.2 AI 生成图片"}</h3>
+app\[locale]\copyright\page.tsx:111:                 : "部分食谱配图由 AI 图像生成技术创作，这些图片："}
+app\[locale]\copyright\page.tsx:114:               <li>{isEn ? "Are for display and illustrative purposes only." : "仅用于展示和说明目的"}</li>
+app\[locale]\copyright\page.tsx:115:               <li>{isEn ? "May differ from real cooking results." : "可能与实际烹饪成品存在差异"}</li>
+app\[locale]\copyright\page.tsx:116:               <li>{isEn ? "Follow the usage terms of the AI service provider." : "版权归属遵循相关 AI 服务的使用条款"}</li>
+app\[locale]\copyright\page.tsx:119:             <h3>{isEn ? "3.3 User-uploaded images" : "3.3 用户上传图片"}</h3>
+app\[locale]\copyright\page.tsx:123:                 : "用户上传的图片，用户应确保拥有相应版权或使用授权。上传即视为授权 Recipe Zen 在本网站范围内使用。"}
+app\[locale]\copyright\page.tsx:126:             <h2>{isEn ? "4. Fair Use" : "四、合理使用"}</h2>
+app\[locale]\copyright\page.tsx:127:             <p>{isEn ? "You may use site content in the following cases:" : "在以下情况下，您可以合理使用本网站内容："}</p>
+app\[locale]\copyright\page.tsx:130:                 <strong>{isEn ? "Personal study" : "个人学习"}</strong>
+app\[locale]\copyright\page.tsx:133:                   : "：出于个人学习、研究目的，可以适量引用并注明出处"}
+app\[locale]\copyright\page.tsx:136:                 <strong>{isEn ? "Social sharing" : "社交分享"}</strong>
+app\[locale]\copyright\page.tsx:139:                   : "：可以通过网站提供的分享功能，分享食谱链接到社交媒体"}
+app\[locale]\copyright\page.tsx:142:                 <strong>{isEn ? "News reporting" : "新闻报道"}</strong>
+app\[locale]\copyright\page.tsx:145:                   : "：媒体进行新闻报道时，可以适当引用并注明来源"}
+app\[locale]\copyright\page.tsx:148:                 <strong>{isEn ? "Education" : "教育目的"}</strong>
+app\[locale]\copyright\page.tsx:151:                   : "：教育机构用于教学目的时，可以适当使用并注明来源"}
+app\[locale]\copyright\page.tsx:155:             <h2>{isEn ? "5. Prohibited Uses" : "五、禁止行为"}</h2>
+app\[locale]\copyright\page.tsx:156:             <p>{isEn ? "Without written permission, the following are prohibited:" : "未经书面许可，禁止以下行为："}</p>
+app\[locale]\copyright\page.tsx:158:               <li>{isEn ? "Copying or republishing recipes for commercial use." : "复制、转载本网站的食谱内容用于商业目的"}</li>
+app\[locale]\copyright\page.tsx:159:               <li>{isEn ? "Bulk downloading or scraping site content." : "批量下载或抓取网站内容"}</li>
+app\[locale]\copyright\page.tsx:160:               <li>{isEn ? "Removing or altering copyright notices." : "去除或修改版权标识"}</li>
+app\[locale]\copyright\page.tsx:161:               <li>{isEn ? "Using site content to create derivative commercial products." : "将本网站内容用于制作衍生商业产品"}</li>
+app\[locale]\copyright\page.tsx:162:               <li>{isEn ? "Impersonating the Recipe Zen brand." : "冒用 Recipe Zen 品牌或标识"}</li>
+app\[locale]\copyright\page.tsx:163:               <li>{isEn ? "Publishing content under our name on other platforms." : "在其他平台上以本网站名义发布内容"}</li>
+app\[locale]\copyright\page.tsx:166:             <h2>{isEn ? "6. Reprint Guidelines" : "六、转载规范"}</h2>
+app\[locale]\copyright\page.tsx:167:             <p>{isEn ? "If you wish to reprint our content, please follow these rules:" : "如需转载本网站内容，请遵守以下规范："}</p>
+app\[locale]\copyright\page.tsx:169:               <li>{isEn ? "Contact us in advance for written permission." : "事先联系我们获得书面授权"}</li>
+app\[locale]\copyright\page.tsx:170:               <li>{isEn ? 'Clearly attribute the source: "Source: Recipe Zen (recipezen.com)".' : "在显著位置注明来源：\"来源：Recipe Zen (recipezen.com)\""}</li>
+app\[locale]\copyright\page.tsx:171:               <li>{isEn ? "Provide a link to the original page." : "提供指向原文的链接"}</li>
+app\[locale]\copyright\page.tsx:172:               <li>{isEn ? "Do not distort or modify the content." : "不得对内容进行歪曲或篡改"}</li>
+app\[locale]\copyright\page.tsx:173:               <li>{isEn ? 'For non-commercial use, add: "For learning only; copyright belongs to the author".' : "非商业性转载需注明\"仅供学习交流，版权归原作者所有\""}</li>
+app\[locale]\copyright\page.tsx:176:             <h2>{isEn ? "7. Infringement Claims" : "七、侵权投诉"}</h2>
+app\[locale]\copyright\page.tsx:180:                 : "如果您认为本网站上的内容侵犯了您的合法权益，请提供以下信息联系我们："}
+app\[locale]\copyright\page.tsx:183:               <li>{isEn ? "Your identification" : "您的身份证明"}</li>
+app\[locale]\copyright\page.tsx:184:               <li>{isEn ? "Links to the allegedly infringing content" : "涉嫌侵权内容的链接"}</li>
+app\[locale]\copyright\page.tsx:185:               <li>{isEn ? "Proof of copyright ownership" : "您拥有版权的证明材料"}</li>
+app\[locale]\copyright\page.tsx:186:               <li>{isEn ? "A detailed description of the infringement" : "侵权情况的详细说明"}</li>
+app\[locale]\copyright\page.tsx:187:               <li>{isEn ? "Your contact information" : "您的联系方式"}</li>
+app\[locale]\copyright\page.tsx:192:                 : "我们会在收到有效投诉后尽快核实处理，并在合理时间内给予回复。"}
+app\[locale]\copyright\page.tsx:195:             <h2>{isEn ? "8. Third-Party Content" : "八、第三方内容"}</h2>
+app\[locale]\copyright\page.tsx:199:                 : "本网站可能包含第三方的链接或内容。这些第三方内容的版权归其原始创作者所有，我们仅作为信息展示平台。如有版权问题，请直接联系相关权利人。"}
+app\[locale]\copyright\page.tsx:202:             <h2>{isEn ? "9. Updates to This Notice" : "九、版权声明更新"}</h2>
+app\[locale]\copyright\page.tsx:206:                 : "我们可能会根据法律变化或业务需要更新本版权声明。更新后的声明将在本页面发布，建议您定期查阅。"}
+app\[locale]\copyright\page.tsx:209:             <h2>{isEn ? "10. Contact Us" : "十、联系我们"}</h2>
+app\[locale]\copyright\page.tsx:213:                 : "如有版权相关问题，请通过以下方式联系我们："}
+app\[locale]\copyright\page.tsx:216:               <li>{isEn ? "Copyright: copyright@recipezen.com" : "版权事务邮箱：copyright@recipezen.com"}</li>
+app\[locale]\copyright\page.tsx:217:               <li>{isEn ? "General inquiries: support@recipezen.com" : "一般咨询邮箱：support@recipezen.com"}</li>
+app\[locale]\copyright\page.tsx:222:                 <strong>{isEn ? "Statement" : "声明"}</strong>
+app\[locale]\copyright\page.tsx:225:                   : "：Recipe Zen 尊重知识产权，致力于保护原创内容。我们呼吁所有用户共同维护健康的网络版权环境。"}
+app\[locale]\copyright\page.tsx:237:             {isEn ? "Privacy Policy" : "隐私政策"}
+app\[locale]\copyright\page.tsx:244:             {isEn ? "Terms" : "使用条款"}
+app\[locale]\copyright\page.tsx:251:             {isEn ? "About" : "关于我们"}
+app\[locale]\custom-recipes\layout.tsx:12:     title: isEn ? "AI Custom Recipes - Recipe Zen" : "AI 定制食谱 - Recipe Zen",
+app\[locale]\custom-recipes\layout.tsx:15:       : "输入需求即可生成专属食谱，专业审核更安心。",
+app\[locale]\custom-recipes\page.tsx:46:     steps: ["输入需求", "选择食谱", "生成中"],
+app\[locale]\custom-recipes\page.tsx:47:     needTitle: "告诉我们您的需求",
+app\[locale]\custom-recipes\page.tsx:49:       "例如：糖尿病可以吃的鸡的食谱、适合减肥的低热量晚餐、小孩爱吃的营养早餐...",
+app\[locale]\custom-recipes\page.tsx:51:       "糖尿病可以吃的鸡的食谱",
+app\[locale]\custom-recipes\page.tsx:52:       "适合减肥的低热量晚餐",
+app\[locale]\custom-recipes\page.tsx:53:       "小孩爱吃的营养早餐",
+app\[locale]\custom-recipes\page.tsx:54:       "高蛋白健身餐",
+app\[locale]\custom-recipes\page.tsx:56:     analyzing: "正在分析...",
+app\[locale]\custom-recipes\page.tsx:57:     getSuggestions: "获取推荐",
+app\[locale]\custom-recipes\page.tsx:58:     yourNeed: "您的需求：",
+app\[locale]\custom-recipes\page.tsx:59:     recommended: "为您推荐以下食谱",
+app\[locale]\custom-recipes\page.tsx:60:     generateThis: "生成这道菜",
+app\[locale]\custom-recipes\page.tsx:61:     retry: "重新输入需求",
+app\[locale]\custom-recipes\page.tsx:62:     generating: "正在生成",
+app\[locale]\custom-recipes\page.tsx:63:     generatingDesc: "AI 正在为您精心制作这道食谱，包括详细步骤和配图...",
+app\[locale]\custom-recipes\page.tsx:64:     generatingHint: "预计需要 30-60 秒",
+app\[locale]\custom-recipes\page.tsx:65:     success: "食谱生成成功！",
+app\[locale]\custom-recipes\page.tsx:66:     ready: "已为您准备好",
+app\[locale]\custom-recipes\page.tsx:67:     viewRecipe: "查看食谱",
+app\[locale]\custom-recipes\page.tsx:68:     continue: "继续定制",
+app\[locale]\custom-recipes\page.tsx:69:     listTitle: "定制食谱列表",
+app\[locale]\custom-recipes\page.tsx:70:     listDesc: "来自真实需求的定制结果，已审核可复现。",
+app\[locale]\custom-recipes\page.tsx:71:     loading: "加载中...",
+app\[locale]\custom-recipes\page.tsx:72:     empty: "暂无定制食谱，快试试你的第一个需求吧。",
+app\[locale]\custom-recipes\page.tsx:73:     reviewed: "已审核",
+app\[locale]\custom-recipes\page.tsx:74:     minutes: "分钟",
+app\[locale]\custom-recipes\page.tsx:75:     errorNeed: "请输入您的需求（至少2个字符）",
+app\[locale]\custom-recipes\page.tsx:76:     errorSuggest: "获取推荐失败",
+app\[locale]\custom-recipes\page.tsx:77:     errorGenerate: "生成食谱失败",
+app\[locale]\custom-recipes\page.tsx:149:         console.error("加载定制食谱失败:", err);
+app\[locale]\custom-recipes\page.tsx:216:         throw new Error("未获取到任务ID");
+app\[locale]\custom-recipes\page.tsx:248:               {locale === "en" ? "AI Custom Recipes" : "AI 定制食谱"}
+app\[locale]\custom-recipes\page.tsx:255:               {locale === "en" ? "Custom Recipes" : "定制菜谱"}
+app\[locale]\custom-recipes\page.tsx:264:               : "告诉我们您的需求，AI 为您推荐并生成专属食谱"}
+app\[locale]\custom-recipes\page.tsx:494:                         alt={recipe.titleZh || "食谱图片"}
+app\[locale]\custom-recipes\page.tsx:515:                           : "适合家常复现的定制口味。")}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:16:   { phase: 1, label: { zh: "食谱研发", en: "Recipe Development" } },
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:17:   { phase: 3, label: { zh: "拍摄准备", en: "Photo Preparation" } },
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:18:   { phase: 4, label: { zh: "拍摄中", en: "Photo Shoot" } },
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:19:   { phase: 5, label: { zh: "质量审核", en: "Quality Review" } },
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:20:   { phase: 6, label: { zh: "最终呈现", en: "Final Presentation" } },
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:79:         setError(getErrorMessage(data.error, "获取任务状态失败"));
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:82:       setError("网络错误，请刷新页面");
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:115:         setError(getErrorMessage(data.error, "重试失败"));
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:118:       setError("重试失败，请稍后再试");
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:137:         ? `${minutes} 分 ${remainingSeconds} 秒`
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:140:     return isZh ? `${seconds} 秒` : `${seconds}s`;
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:148:           <p className="text-textGray">{isZh ? "加载中..." : "Loading..."}</p>
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:160:             {isZh ? "出错了" : "Error"}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:167:             {isZh ? "返回定制页面" : "Back to Custom Recipes"}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:200:           {isZh ? "返回" : "Back"}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:211:                   ? "制作完成！"
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:215:                     ? "制作遇到问题"
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:218:                     ? `正在为您制作《${task.recipeName}》`
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:243:                   (isZh ? "制作过程中遇到问题" : "An error occurred")}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:269:                   {isZh ? "预计剩余：" : "Estimated: "}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:279:               {isZh ? "制作流程" : "Process"}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:334:                   {isZh ? "查看食谱" : "View Recipe"}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:340:                   {isZh ? "继续定制" : "Create Another"}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:353:                     ? "重试中..."
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:356:                     ? "重新制作"
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:366:                 {isZh ? "制作用时：" : "Duration: "}
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:372:                     ? `共生成 ${task.totalImages} 张图片`
+app\[locale]\custom-recipes\progress\[taskId]\page.tsx:385:                 ? "💡 我们的专业团队正在确保每一个细节都完美"
+app\[locale]\favorites\page.tsx:27:     title: "我的收藏",
+app\[locale]\favorites\page.tsx:28:     subtitle: "保存你喜欢的食谱，随时查看",
+app\[locale]\favorites\page.tsx:29:     breadcrumbHome: "首页",
+app\[locale]\favorites\page.tsx:30:     breadcrumbFavorites: "我的收藏",
+app\[locale]\favorites\page.tsx:31:     emptyTitle: "还没有收藏任何食谱",
+app\[locale]\favorites\page.tsx:32:     emptySubtitle: "浏览食谱并点击收藏按钮，将喜欢的食谱保存在这里",
+app\[locale]\favorites\page.tsx:33:     browseRecipes: "浏览食谱",
+app\[locale]\favorites\page.tsx:34:     totalCount: "共收藏",
+app\[locale]\favorites\page.tsx:35:     recipesUnit: "道食谱",
+app\[locale]\favorites\page.tsx:83:       passwordHash: "", // OAuth 用户不需要密码
+app\[locale]\gallery\page.tsx:25:     title: "中国美食图库 - 500+道家常菜高清图片与做法 | Recipe Zen",
+app\[locale]\gallery\page.tsx:27:       "浏览500+道中国家常菜高清图片，涵盖川菜、粤菜、湘菜等八大菜系。每道菜都有详细做法、食材清单和烹饪技巧。点击查看完整菜谱，轻松学做中餐。",
+app\[locale]\gallery\page.tsx:28:     h1: "中国美食图库",
+app\[locale]\gallery\page.tsx:30:       "这里收录了500+道中国家常菜的高清成品图，涵盖川菜、粤菜、湘菜、鲁菜等八大菜系。每道菜都有详细的做法步骤和食材清单，从经典的麻婆豆腐、宫保鸡丁，到家常的番茄炒蛋、红烧肉，应有尽有。点击任意图片，即可查看完整菜谱。",
+app\[locale]\gallery\page.tsx:31:     countLabel: "当前收录",
+app\[locale]\gallery\page.tsx:32:     countUnit: "道菜谱",
+app\[locale]\gallery\page.tsx:33:     footerTitle: "关于中国美食图库",
+app\[locale]\gallery\page.tsx:35:       "我们精心整理了中国各地的经典家常菜，每道菜都配有高清成品图、详细步骤和营养信息。无论你想学川菜的麻辣、粤菜的鲜香，还是江浙菜的清甜，这里都能找到灵感。所有食谱完全免费，永久访问。",
+app\[locale]\gallery\page.tsx:36:     breadcrumbHome: "首页",
+app\[locale]\gallery\page.tsx:37:     breadcrumbGallery: "美食图库",
+app\[locale]\gallery\page.tsx:78:             "中国美食图片",
+app\[locale]\gallery\page.tsx:79:             "家常菜图片",
+app\[locale]\gallery\page.tsx:80:             "菜谱图片",
+app\[locale]\gallery\page.tsx:81:             "美食摄影",
+app\[locale]\gallery\page.tsx:82:             "高清食谱图",
+app\[locale]\gallery\[id]\page.tsx:37:     return { title: locale === "en" ? "Image not found" : "图片不存在" };
+app\[locale]\gallery\[id]\page.tsx:48:     title: `${displayTitle} - ${isEn ? "Food Photo" : "美食图片"} | Recipe Zen`,
+app\[locale]\gallery\[id]\page.tsx:51:       : `${displayTitle}的美食摄影图片，高清下载`,
+app\[locale]\gallery\[id]\page.tsx:53:       title: `${displayTitle} - ${isEn ? "Food Photo" : "美食图片"}`,
+app\[locale]\login\page.tsx:63:               {isEn ? "Healing Food Studio" : "治愈系美食研习所"}
+app\[locale]\login\page.tsx:69:           {isEn ? "Sign in to continue" : "登录以继续"}
+app\[locale]\login\page.tsx:77:           {isEn ? "Sign in with Google" : "使用 Google 账号登录"}
+app\[locale]\login\page.tsx:83:             : "使用 Google 账号登录以访问您的收藏"}
+app\[locale]\login\page.tsx:91:             {isEn ? "Back to Home" : "返回首页"}
+app\[locale]\privacy\page.tsx:23:     title: isEn ? "Privacy Policy | Recipe Zen" : "隐私政策 | Recipe Zen",
+app\[locale]\privacy\page.tsx:26:       : "Recipe Zen 隐私政策，了解我们如何收集、使用和保护您的个人信息。",
+app\[locale]\privacy\page.tsx:33:   const lastUpdated = isEn ? "December 31, 2024" : "2024年12月31日";
+app\[locale]\privacy\page.tsx:43:             {isEn ? "Home" : "首页"}
+app\[locale]\privacy\page.tsx:47:             {isEn ? "Privacy Policy" : "隐私政策"}
+app\[locale]\privacy\page.tsx:53:             {isEn ? "Privacy Policy" : "隐私政策"}
+app\[locale]\privacy\page.tsx:56:             {isEn ? "Last updated: " : "最后更新："}
+app\[locale]\privacy\page.tsx:64:                 : '欢迎使用 Recipe Zen（以下简称"我们"或"本网站"）。我们深知个人信息对您的重要性，' +
+app\[locale]\privacy\page.tsx:65:                   "并会尽全力保护您的隐私安全。本隐私政策旨在帮助您了解我们如何收集、使用、存储和保护您的个人信息。"}
+app\[locale]\privacy\page.tsx:68:             <h2>{isEn ? "1. Information Collection" : "一、信息收集"}</h2>
+app\[locale]\privacy\page.tsx:69:             <p>{isEn ? "We may collect the following types of information:" : "我们可能收集以下类型的信息："}</p>
+app\[locale]\privacy\page.tsx:71:             <h3>{isEn ? "1.1 Information you provide" : "1.1 您主动提供的信息"}</h3>
+app\[locale]\privacy\page.tsx:74:                 <strong>{isEn ? "Account information" : "账户信息"}</strong>
+app\[locale]\privacy\page.tsx:77:                   : "：当您注册账户时，我们会收集您的用户名、电子邮箱等信息"}
+app\[locale]\privacy\page.tsx:80:                 <strong>{isEn ? "Recipe preferences" : "食谱偏好"}</strong>
+app\[locale]\privacy\page.tsx:83:                   : "：您使用 AI 定制食谱功能时输入的食材偏好、口味喜好、饮食限制等"}
+app\[locale]\privacy\page.tsx:86:                 <strong>{isEn ? "Feedback" : "反馈信息"}</strong>
+app\[locale]\privacy\page.tsx:89:                   : "：您提交的评论、建议或问题反馈"}
+app\[locale]\privacy\page.tsx:93:             <h3>{isEn ? "1.2 Information collected automatically" : "1.2 自动收集的信息"}</h3>
+app\[locale]\privacy\page.tsx:96:                 <strong>{isEn ? "Device information" : "设备信息"}</strong>
+app\[locale]\privacy\page.tsx:97:                 {isEn ? ": device type, operating system, browser type." : "：设备类型、操作系统、浏览器类型"}
+app\[locale]\privacy\page.tsx:100:                 <strong>{isEn ? "Log information" : "日志信息"}</strong>
+app\[locale]\privacy\page.tsx:101:                 {isEn ? ": visit time, pages viewed, time spent." : "：访问时间、浏览页面、停留时长"}
+app\[locale]\privacy\page.tsx:104:                 <strong>{isEn ? "Cookie information" : "Cookie 信息"}</strong>
+app\[locale]\privacy\page.tsx:105:                 {isEn ? ": used to remember your preferences and login status." : "：用于记住您的偏好设置和登录状态"}
+app\[locale]\privacy\page.tsx:109:             <h2>{isEn ? "2. How We Use Information" : "二、信息使用"}</h2>
+app\[locale]\privacy\page.tsx:110:             <p>{isEn ? "We use the information for the following purposes:" : "我们收集的信息将用于以下目的："}</p>
+app\[locale]\privacy\page.tsx:112:               <li>{isEn ? "Provide, maintain, and improve our services." : "提供、维护和改进我们的服务"}</li>
+app\[locale]\privacy\page.tsx:113:               <li>{isEn ? "Generate personalized AI recipe recommendations." : "为您生成个性化的 AI 食谱推荐"}</li>
+app\[locale]\privacy\page.tsx:114:               <li>{isEn ? "Analyze site usage to improve user experience." : "分析网站使用情况以优化用户体验"}</li>
+app\[locale]\privacy\page.tsx:115:               <li>{isEn ? "Send service-related notifications when necessary." : "发送服务相关的通知（如有必要）"}</li>
+app\[locale]\privacy\page.tsx:116:               <li>{isEn ? "Prevent fraud and ensure site security." : "防止欺诈和确保网站安全"}</li>
+app\[locale]\privacy\page.tsx:119:             <h2>{isEn ? "3. AI-Generated Content" : "三、AI 生成内容说明"}</h2>
+app\[locale]\privacy\page.tsx:120:             <p>{isEn ? "This site uses AI to generate recipe content. Please note:" : "本网站使用人工智能技术生成食谱内容。请注意："}</p>
+app\[locale]\privacy\page.tsx:122:               <li>{isEn ? "AI-generated recipes are for reference; adjust as needed." : "AI 生成的食谱仅供参考，请根据实际情况调整"}</li>
+app\[locale]\privacy\page.tsx:123:               <li>{isEn ? "Your ingredient preferences may be used to personalize content." : "您输入的食材偏好等信息会被用于生成个性化内容"}</li>
+app\[locale]\privacy\page.tsx:124:               <li>{isEn ? "We do not use your personal preferences to train AI models." : "我们不会将您的个人偏好数据用于训练 AI 模型"}</li>
+app\[locale]\privacy\page.tsx:125:               <li>{isEn ? "AI content may contain errors; please judge food safety yourself." : "AI 生成的内容可能存在误差，请自行判断食材安全性"}</li>
+app\[locale]\privacy\page.tsx:128:             <h2>{isEn ? "4. Information Sharing" : "四、信息共享"}</h2>
+app\[locale]\privacy\page.tsx:129:             <p>{isEn ? "We do not sell your personal information. We may share information only when:" : "我们不会出售您的个人信息。仅在以下情况下可能共享信息："}</p>
+app\[locale]\privacy\page.tsx:131:               <li>{isEn ? "You provide explicit consent." : "获得您的明确同意"}</li>
+app\[locale]\privacy\page.tsx:132:               <li>{isEn ? "Required by laws or government authorities." : "法律法规要求或政府部门依法要求"}</li>
+app\[locale]\privacy\page.tsx:133:               <li>{isEn ? "With trusted service providers (e.g., cloud storage) who agree to this policy." : "与可信赖的服务提供商合作（如云存储服务），且他们同意遵守本隐私政策"}</li>
+app\[locale]\privacy\page.tsx:136:             <h2>{isEn ? "5. Information Security" : "五、信息安全"}</h2>
+app\[locale]\privacy\page.tsx:137:             <p>{isEn ? "We take reasonable technical and administrative measures to protect your information, including:" : "我们采取合理的技术和管理措施保护您的信息安全，包括但不限于："}</p>
+app\[locale]\privacy\page.tsx:139:               <li>{isEn ? "HTTPS encryption for data transmission." : "使用 HTTPS 加密传输数据"}</li>
+app\[locale]\privacy\page.tsx:140:               <li>{isEn ? "Encrypted storage for sensitive data." : "对敏感信息进行加密存储"}</li>
+app\[locale]\privacy\page.tsx:141:               <li>{isEn ? "Regular security audits and vulnerability scanning." : "定期安全审计和漏洞检测"}</li>
+app\[locale]\privacy\page.tsx:142:               <li>{isEn ? "Access controls for employee data access." : "限制员工访问用户数据的权限"}</li>
+app\[locale]\privacy\page.tsx:145:             <h2>{isEn ? "6. Cookies" : "六、Cookie 使用"}</h2>
+app\[locale]\privacy\page.tsx:146:             <p>{isEn ? "We use cookies and similar technologies to:" : "我们使用 Cookie 和类似技术来："}</p>
+app\[locale]\privacy\page.tsx:148:               <li>{isEn ? "Remember your login status." : "记住您的登录状态"}</li>
+app\[locale]\privacy\page.tsx:149:               <li>{isEn ? "Save your browsing preferences." : "保存您的浏览偏好"}</li>
+app\[locale]\privacy\page.tsx:150:               <li>{isEn ? "Analyze site traffic and usage." : "分析网站流量和使用情况"}</li>
+app\[locale]\privacy\page.tsx:155:                 : "您可以通过浏览器设置管理或删除 Cookie，但这可能影响某些功能的正常使用。"}
+app\[locale]\privacy\page.tsx:158:             <h2>{isEn ? "7. Your Rights" : "七、您的权利"}</h2>
+app\[locale]\privacy\page.tsx:159:             <p>{isEn ? "You have the following rights regarding your personal information:" : "您对个人信息享有以下权利："}</p>
+app\[locale]\privacy\page.tsx:162:                 <strong>{isEn ? "Access" : "访问权"}</strong>
+app\[locale]\privacy\page.tsx:163:                 {isEn ? ": view your personal information we hold." : "：查看我们持有的您的个人信息"}
+app\[locale]\privacy\page.tsx:166:                 <strong>{isEn ? "Correction" : "更正权"}</strong>
+app\[locale]\privacy\page.tsx:167:                 {isEn ? ": request corrections to inaccurate information." : "：要求更正不准确的个人信息"}
+app\[locale]\privacy\page.tsx:170:                 <strong>{isEn ? "Deletion" : "删除权"}</strong>
+app\[locale]\privacy\page.tsx:171:                 {isEn ? ": request deletion of your personal information." : "：要求删除您的个人信息"}
+app\[locale]\privacy\page.tsx:174:                 <strong>{isEn ? "Withdraw consent" : "撤回同意"}</strong>
+app\[locale]\privacy\page.tsx:175:                 {isEn ? ": withdraw consent you previously provided." : "：撤回之前给予的同意"}
+app\[locale]\privacy\page.tsx:181:                 : "如需行使上述权利，请通过本页面底部的联系方式与我们联系。"}
+app\[locale]\privacy\page.tsx:184:             <h2>{isEn ? "8. Minors" : "八、未成年人保护"}</h2>
+app\[locale]\privacy\page.tsx:188:                 : "我们的服务主要面向成年人。如果您是未满 18 周岁的未成年人，请在监护人的陪同和指导下使用本网站。"}
+app\[locale]\privacy\page.tsx:191:             <h2>{isEn ? "9. Policy Updates" : "九、政策更新"}</h2>
+app\[locale]\privacy\page.tsx:195:                 : '我们可能会不时更新本隐私政策。更新后的政策将在本页面发布，并更新"最后更新"日期。重大变更时，我们会通过网站公告等方式通知您。'}
+app\[locale]\privacy\page.tsx:198:             <h2>{isEn ? "10. Contact Us" : "十、联系我们"}</h2>
+app\[locale]\privacy\page.tsx:202:                 : "如果您对本隐私政策有任何疑问、意见或建议，请通过以下方式联系我们："}
+app\[locale]\privacy\page.tsx:205:               <li>{isEn ? "Email: privacy@recipezen.com" : "邮箱：privacy@recipezen.com"}</li>
+app\[locale]\privacy\page.tsx:216:             {isEn ? "Terms" : "使用条款"}
+app\[locale]\privacy\page.tsx:223:             {isEn ? "Copyright" : "版权声明"}
+app\[locale]\privacy\page.tsx:230:             {isEn ? "About" : "关于我们"}
+app\[locale]\recipe\page.tsx:64:   h1: "中国美食食谱大全",
+app\[locale]\recipe\page.tsx:65:   subtitle: "系统整理中国各地家常菜做法，按菜系/场景快速找到适合做的菜。",
+app\[locale]\recipe\page.tsx:67:     "Recipe Zen 收录了中国各地经典家常菜做法，涵盖川菜、粤菜、湘菜等八大菜系及家常快手菜、减脂餐等多种做饭场景。无论你是烹饪新手还是美食爱好者，都能在这里找到适合的食谱。我们的每道菜谱都经过精心整理，确保步骤清晰、用料准确，让你轻松做出美味中餐。点击上方分类，开始探索你的下一道拿手菜吧！",
+app\[locale]\recipe\page.tsx:100:     console.error("获取页面配置失败:", error);
+app\[locale]\recipe\page.tsx:132:     titleParts.push(isEn ? `Search "${query}"` : `搜索"${query}"`);
+app\[locale]\recipe\page.tsx:137:   if (cuisine) titleParts.push(isEn ? `${cuisine} Recipes` : `${cuisine}菜谱`);
+app\[locale]\recipe\page.tsx:138:   if (location) titleParts.push(isEn ? `${location} Flavors` : `${location}风味`);
+app\[locale]\recipe\page.tsx:139:   if (ingredient) titleParts.push(isEn ? `${ingredient} Ideas` : `${ingredient}做法`);
+app\[locale]\recipe\page.tsx:361:     if (page > 1) params.set("page", "1"); // 切换排序重置页码
+app\[locale]\recipe\page.tsx:377:       ? `${isEn ? "Search:" : "搜索:"} ${query}`
+app\[locale]\recipe\page.tsx:379:         ? `${isEn ? "Ingredient:" : "食材："}${ingredientParam}`
+app\[locale]\recipe\page.tsx:382:           : isEn ? "Recipe Results" : "筛选结果"
+app\[locale]\recipe\page.tsx:386:     ? `${isEn ? "Found" : "找到"} ${total} ${isEn ? "recipes" : "个相关食谱"}`
+app\[locale]\recipe\crowd\[slug]\page.tsx:7:  * 注意：Crowd 模型已迁移到 Tag 模型，type = "crowd"
+app\[locale]\recipe\crowd\[slug]\page.tsx:95:         : `${name}食谱大全 - Recipe Zen`),
+app\[locale]\recipe\crowd\[slug]\page.tsx:100:         : `精选适合${name}的健康食谱，营养均衡，美味可口。`),
+app\[locale]\recipe\crowd\[slug]\page.tsx:144:     : seo?.h1Zh || `${crowdName}食谱`;
+app\[locale]\recipe\crowd\[slug]\page.tsx:150:         : `精选适合${crowdName}的健康食谱，营养均衡，美味可口。`));
+app\[locale]\recipe\crowd\[slug]\page.tsx:444:                             {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+app\[locale]\recipe\cuisine\[slug]\page.tsx:122:         `${cuisineName}${isEn ? " Recipes" : "菜谱"}`,
+app\[locale]\recipe\cuisine\[slug]\page.tsx:138:         : `${cuisineName}菜谱大全 - Recipe Zen`),
+app\[locale]\recipe\cuisine\[slug]\page.tsx:143:         : `精选${cuisineName}做法大全，新手友好，步骤详解。`),
+app\[locale]\recipe\cuisine\[slug]\page.tsx:193:     : seo?.h1Zh || `${cuisineName}菜谱`;
+app\[locale]\recipe\cuisine\[slug]\page.tsx:198:       : `精选${cuisineName}家常做法，步骤详细，新手友好。`);
+app\[locale]\recipe\ingredient\[slug]\page.tsx:67:         : `${ingredientName}做法 - Recipe Zen`),
+app\[locale]\recipe\ingredient\[slug]\page.tsx:72:         : `精选${ingredientName}相关做法，家常易做。`),
+app\[locale]\recipe\ingredient\[slug]\page.tsx:139:       : `围绕${ingredientName}的家常做法合集。`);
+app\[locale]\recipe\method\[slug]\page.tsx:7:  * 注意：CookingMethod 模型已迁移到 Tag 模型，type = "method"
+app\[locale]\recipe\method\[slug]\page.tsx:95:         : `${name}菜谱大全 - Recipe Zen`),
+app\[locale]\recipe\method\[slug]\page.tsx:100:         : `精选${name}做法食谱，详细步骤指导，轻松掌握烹饪技巧。`),
+app\[locale]\recipe\method\[slug]\page.tsx:144:     : seo?.h1Zh || `${methodName}菜谱`;
+app\[locale]\recipe\method\[slug]\page.tsx:150:         : `精选${methodName}做法食谱，详细步骤指导，让你轻松掌握烹饪技巧。`));
+app\[locale]\recipe\method\[slug]\page.tsx:444:                             {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+app\[locale]\recipe\occasion\[slug]\page.tsx:7:  * 注意：Occasion 模型已迁移到 Tag 模型，type = "occasion"
+app\[locale]\recipe\occasion\[slug]\page.tsx:97:         : `${name}食谱大全 - Recipe Zen`),
+app\[locale]\recipe\occasion\[slug]\page.tsx:102:         : `精选${name}相关食谱，让每个特别时刻都充满美味。`),
+app\[locale]\recipe\occasion\[slug]\page.tsx:146:     : seo?.h1Zh || `${occasionName}食谱`;
+app\[locale]\recipe\occasion\[slug]\page.tsx:152:         : `精选${occasionName}相关食谱，让每个特别时刻都充满美味。`));
+app\[locale]\recipe\occasion\[slug]\page.tsx:446:                             {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+app\[locale]\recipe\region\[slug]\page.tsx:63:       (isEn ? `${name} Recipes - Recipe Zen` : `${name}风味食谱 - Recipe Zen`),
+app\[locale]\recipe\region\[slug]\page.tsx:68:         : `精选${name}风味家常菜谱。`),
+app\[locale]\recipe\region\[slug]\page.tsx:102:         : `精选${name}风味家常菜谱。`));
+app\[locale]\recipe\scene\[slug]\page.tsx:7:  * 注意：Scene 模型已迁移到 Tag 模型，type = "scene"
+app\[locale]\recipe\scene\[slug]\page.tsx:93:         : `${name}食谱大全 - Recipe Zen`),
+app\[locale]\recipe\scene\[slug]\page.tsx:98:         : `精选${name}相关食谱，步骤详细，适合各种烹饪场景。`),
+app\[locale]\recipe\scene\[slug]\page.tsx:142:     : seo?.h1Zh || `${sceneName}食谱`;
+app\[locale]\recipe\scene\[slug]\page.tsx:148:         : `精选${sceneName}相关食谱，步骤详细，让每个烹饪时刻都充满美味。`));
+app\[locale]\recipe\scene\[slug]\page.tsx:448:                             {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+app\[locale]\recipe\taste\[slug]\page.tsx:7:  * 注意：Taste 模型已迁移到 Tag 模型，type = "taste"
+app\[locale]\recipe\taste\[slug]\page.tsx:95:         : `${name}口味菜谱大全 - Recipe Zen`),
+app\[locale]\recipe\taste\[slug]\page.tsx:100:         : `精选${name}口味食谱，满足你的味蕾，发现更多美味。`),
+app\[locale]\recipe\taste\[slug]\page.tsx:144:     : seo?.h1Zh || `${tasteName}菜谱`;
+app\[locale]\recipe\taste\[slug]\page.tsx:150:         : `精选${tasteName}口味食谱，满足你的味蕾，发现更多美味。`));
+app\[locale]\recipe\taste\[slug]\page.tsx:444:                             {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+app\[locale]\recipe\theme\[slug]\page.tsx:69:         : `${themeName}食谱 - Recipe Zen`),
+app\[locale]\recipe\theme\[slug]\page.tsx:74:         : `精选${themeName}相关食谱，家常易做。`),
+app\[locale]\recipe\theme\[slug]\page.tsx:241:                 : `${themeName}相关食谱合集，适合家庭烹饪。`)}
+app\[locale]\recipe\[id]\page.tsx:136:       return { title: isEn ? "Recipe not found" : "食谱不存在" };
+app\[locale]\recipe\[id]\page.tsx:148:       (isEn ? "A trusted recipe reviewed by our team." : "专业审核的可靠食谱。");
+app\[locale]\recipe\[id]\page.tsx:168:     return { title: isEn ? "Recipe" : "食谱" };
+app\[locale]\recipe\[id]\page.tsx:311:             {locale === "en" ? "Recipes" : "食谱"}
+app\[locale]\recipe\[id]\page.tsx:344:               {locale === "en" ? "Related Recipes" : "相关食谱推荐"}
+app\[locale]\recipe\[id]\page.tsx:352:                 : `查看更多 ${cuisineName || "食谱"} →`}
+app\[locale]\recipe\[id]\page.v1.tsx:104:       return { title: isEn ? "Recipe not found" : "食谱不存在" };
+app\[locale]\recipe\[id]\page.v1.tsx:116:       (isEn ? "A trusted recipe reviewed by our team." : "专业审核的可靠食谱。");
+app\[locale]\recipe\[id]\page.v1.tsx:136:     return { title: isEn ? "Recipe" : "食谱" };
+app\[locale]\recipe\[id]\page.v1.tsx:254:             {locale === "en" ? "Recipes" : "食谱"}
+app\[locale]\recipe\[id]\page.v1.tsx:285:               {locale === "en" ? "Related Recipes" : "相关食谱推荐"}
+app\[locale]\recipe\[id]\page.v1.tsx:293:                 : `查看更多 ${cuisineName || "食谱"} →`}
+app\[locale]\search\page.tsx:24:   const baseTitle = isEn ? "Search Recipes - Recipe Zen" : "搜索食谱 - Recipe Zen";
+app\[locale]\search\page.tsx:29:         : `搜索“${q}” - Recipe Zen`
+app\[locale]\search\page.tsx:33:       : "在 Recipe Zen 搜索食谱、食材与烹饪灵感。",
+app\[locale]\search\page.tsx:49:           {locale === "en" ? "Type a dish to start searching" : "请输入菜名开始搜索"}
+app\[locale]\search\page.tsx:60:         cache: "no-store", // 不缓存，确保实时搜索
+app\[locale]\search\page.tsx:65:       throw new Error(locale === "en" ? "Search failed" : "搜索失败");
+app\[locale]\search\page.tsx:70:     const source = result.source; // "database" 或 "ai-generated"
+app\[locale]\search\page.tsx:87:                     : "✨ AI为您生成了新菜谱"}
+app\[locale]\search\page.tsx:92:                     : `我们没有找到"${query}"的现有菜谱，已使用AI为您生成了专属食谱！`}
+app\[locale]\search\page.tsx:102:             {locale === "en" ? "Found" : "找到"}{" "}
+app\[locale]\search\page.tsx:104:             {locale === "en" ? "recipes" : "个相关菜谱"}
+app\[locale]\search\page.tsx:127:     console.error("搜索错误:", error);
+app\[locale]\search\page.tsx:131:           {locale === "en" ? "Search failed" : "搜索出错了"}
+app\[locale]\search\page.tsx:134:           {locale === "en" ? "Please try again later" : "请稍后重试"}
+app\[locale]\search\page.tsx:162:               ? `${locale === "en" ? "Search:" : "搜索:"} ${query}`
+app\[locale]\search\page.tsx:165:               : "搜索"}
+app\[locale]\search\page.tsx:187:                     : "正在搜索..."
+app\[locale]\search\page.tsx:190:                   : "加载中..."}
+app\[locale]\terms\page.tsx:23:     title: isEn ? "Terms of Use | Recipe Zen" : "使用条款 | Recipe Zen",
+app\[locale]\terms\page.tsx:26:       : "Recipe Zen 使用条款，了解使用本网站的规则和条件。",
+app\[locale]\terms\page.tsx:33:   const lastUpdated = isEn ? "December 31, 2024" : "2024年12月31日";
+app\[locale]\terms\page.tsx:43:             {isEn ? "Home" : "首页"}
+app\[locale]\terms\page.tsx:47:             {isEn ? "Terms of Use" : "使用条款"}
+app\[locale]\terms\page.tsx:53:             {isEn ? "Terms of Use" : "使用条款"}
+app\[locale]\terms\page.tsx:56:             {isEn ? "Last updated: " : "最后更新："}
+app\[locale]\terms\page.tsx:64:                 : '欢迎使用 Recipe Zen（以下简称"本网站"）。在使用本网站提供的任何服务之前，请仔细阅读以下使用条款。使用本网站即表示您同意遵守这些条款。'}
+app\[locale]\terms\page.tsx:67:             <h2>{isEn ? "1. Services" : "一、服务说明"}</h2>
+app\[locale]\terms\page.tsx:68:             <p>{isEn ? "Recipe Zen is a food recipe platform that provides:" : "Recipe Zen 是一个美食食谱平台，提供以下服务："}</p>
+app\[locale]\terms\page.tsx:71:                 <strong>{isEn ? "Recipe browsing" : "食谱浏览"}</strong>
+app\[locale]\terms\page.tsx:72:                 {isEn ? ": curated recipes and cooking guides." : "：浏览各类精选食谱和烹饪指南"}
+app\[locale]\terms\page.tsx:75:                 <strong>{isEn ? "AI custom recipes" : "AI 定制食谱"}</strong>
+app\[locale]\terms\page.tsx:76:                 {isEn ? ": personalized recipes based on your ingredients and preferences." : "：根据您的食材和偏好生成个性化食谱"}
+app\[locale]\terms\page.tsx:79:                 <strong>{isEn ? "Food blog" : "美食博客"}</strong>
+app\[locale]\terms\page.tsx:80:                 {isEn ? ": articles and insights about food." : "：阅读美食相关的文章和资讯"}
+app\[locale]\terms\page.tsx:83:                 <strong>{isEn ? "Food gallery" : "美食图库"}</strong>
+app\[locale]\terms\page.tsx:84:                 {isEn ? ": curated food photography." : "：欣赏精美的美食摄影作品"}
+app\[locale]\terms\page.tsx:88:             <h2>{isEn ? "2. User Conduct" : "二、用户行为规范"}</h2>
+app\[locale]\terms\page.tsx:89:             <p>{isEn ? "When using the site, you agree to:" : "在使用本网站时，您同意："}</p>
+app\[locale]\terms\page.tsx:91:               <li>{isEn ? "Comply with applicable laws and regulations." : "遵守中华人民共和国相关法律法规"}</li>
+app\[locale]\terms\page.tsx:92:               <li>{isEn ? "Not post illegal, harmful, threatening, or abusive content." : "不发布违法、有害、威胁性、侮辱性的内容"}</li>
+app\[locale]\terms\page.tsx:93:               <li>{isEn ? "Not infringe others' intellectual property or lawful rights." : "不侵犯他人的知识产权或其他合法权益"}</li>
+app\[locale]\terms\page.tsx:94:               <li>{isEn ? "Not engage in actions that disrupt site operations." : "不进行任何可能损害网站正常运行的行为"}</li>
+app\[locale]\terms\page.tsx:95:               <li>{isEn ? "Not use automated tools to scrape content in bulk." : "不使用自动化工具大量抓取网站内容"}</li>
+app\[locale]\terms\page.tsx:96:               <li>{isEn ? "Not attempt unauthorized access to systems or user data." : "不尝试未经授权访问网站系统或用户数据"}</li>
+app\[locale]\terms\page.tsx:99:             <h2>{isEn ? "3. AI Content Disclaimer" : "三、AI 生成内容免责声明"}</h2>
+app\[locale]\terms\page.tsx:100:             <p>{isEn ? "Some recipes are generated with AI. Please note:" : "本网站使用人工智能技术生成部分食谱内容。关于 AI 生成内容，请注意："}</p>
+app\[locale]\terms\page.tsx:103:                 <strong>{isEn ? "For reference" : "仅供参考"}</strong>
+app\[locale]\terms\page.tsx:106:                   : "：AI 生成的食谱仅供参考，实际烹饪时请根据个人经验和实际情况调整"}
+app\[locale]\terms\page.tsx:109:                 <strong>{isEn ? "Ingredient safety" : "食材安全"}</strong>
+app\[locale]\terms\page.tsx:112:                   : "：请自行确认食材的新鲜度、过敏原和食用安全性，AI 无法判断您的具体健康状况和过敏情况"}
+app\[locale]\terms\page.tsx:115:                 <strong>{isEn ? "Nutrition" : "营养信息"}</strong>
+app\[locale]\terms\page.tsx:118:                   : "：AI 提供的营养信息为估算值，如有特殊饮食需求请咨询专业营养师"}
+app\[locale]\terms\page.tsx:121:                 <strong>{isEn ? "Cooking safety" : "烹饪技巧"}</strong>
+app\[locale]\terms\page.tsx:124:                   : "：建议初学者在有经验的人指导下进行烹饪，特别是涉及高温、明火等操作"}
+app\[locale]\terms\page.tsx:128:             <h2>{isEn ? "4. Intellectual Property" : "四、知识产权"}</h2>
+app\[locale]\terms\page.tsx:129:             <h3>{isEn ? "4.1 Site content" : "4.1 网站内容"}</h3>
+app\[locale]\terms\page.tsx:133:                 : "本网站的设计、文字、图片、代码等内容受知识产权法保护。未经授权，不得复制、修改、传播或用于商业目的。"}
+app\[locale]\terms\page.tsx:136:             <h3>{isEn ? "4.2 User-generated content" : "4.2 用户生成内容"}</h3>
+app\[locale]\terms\page.tsx:140:                 : "对于您通过本网站创建的内容（如自定义食谱），您保留相关权利，但同时授予我们在本网站展示和推广该内容的非独占许可。"}
+app\[locale]\terms\page.tsx:143:             <h3>{isEn ? "4.3 Third-party content" : "4.3 第三方内容"}</h3>
+app\[locale]\terms\page.tsx:147:                 : "本网站可能包含指向第三方网站的链接。我们不对第三方网站的内容负责，访问第三方网站时请遵守其相应的使用条款。"}
+app\[locale]\terms\page.tsx:150:             <h2>{isEn ? "5. Account Responsibility" : "五、账户责任"}</h2>
+app\[locale]\terms\page.tsx:151:             <p>{isEn ? "If you create an account:" : "如果您创建了账户："}</p>
+app\[locale]\terms\page.tsx:153:               <li>{isEn ? "You are responsible for keeping your account secure." : "您有责任保护账户的安全性"}</li>
+app\[locale]\terms\page.tsx:154:               <li>{isEn ? "Do not share your credentials with others." : "不得与他人共享账户凭证"}</li>
+app\[locale]\terms\page.tsx:155:               <li>{isEn ? "Notify us immediately if your account is compromised." : "发现账户被盗用应立即通知我们"}</li>
+app\[locale]\terms\page.tsx:156:               <li>{isEn ? "You are responsible for activities under your account." : "您对账户下的所有活动负责"}</li>
+app\[locale]\terms\page.tsx:159:             <h2>{isEn ? "6. Service Changes and Termination" : "六、服务变更与终止"}</h2>
+app\[locale]\terms\page.tsx:160:             <p>{isEn ? "We reserve the right to:" : "我们保留以下权利："}</p>
+app\[locale]\terms\page.tsx:162:               <li>{isEn ? "Modify, suspend, or terminate services at any time." : "随时修改、暂停或终止任何服务功能"}</li>
+app\[locale]\terms\page.tsx:163:               <li>{isEn ? "Restrict or terminate access for violations." : "因违反条款而限制或终止用户的访问权限"}</li>
+app\[locale]\terms\page.tsx:164:               <li>{isEn ? "Remove content that violates these terms when necessary." : "在必要时删除违规内容"}</li>
+app\[locale]\terms\page.tsx:169:                 : "我们会尽量提前通知重大变更，但紧急情况下可能无法提前通知。"}
+app\[locale]\terms\page.tsx:172:             <h2>{isEn ? "7. Disclaimers" : "七、免责声明"}</h2>
+app\[locale]\terms\page.tsx:177:                   : '本网站按"现状"提供，不提供任何明示或暗示的保证'}
+app\[locale]\terms\page.tsx:182:                   : "我们不保证服务不会中断或完全没有错误"}
+app\[locale]\terms\page.tsx:187:                   : "对于因使用本网站食谱导致的任何直接或间接损失，我们不承担责任"}
+app\[locale]\terms\page.tsx:192:                   : "如有食物过敏、特殊疾病等情况，请在使用食谱前咨询医生"}
+app\[locale]\terms\page.tsx:196:             <h2>{isEn ? "8. Limitation of Liability" : "八、责任限制"}</h2>
+app\[locale]\terms\page.tsx:200:                 : "在法律允许的最大范围内，Recipe Zen 及其运营方不对以下情况承担责任："}
+app\[locale]\terms\page.tsx:203:               <li>{isEn ? "Service interruptions due to force majeure." : "因不可抗力导致的服务中断"}</li>
+app\[locale]\terms\page.tsx:204:               <li>{isEn ? "Losses caused by user actions." : "因用户自身原因导致的损失"}</li>
+app\[locale]\terms\page.tsx:205:               <li>{isEn ? "Losses caused by third parties." : "因第三方行为导致的损失"}</li>
+app\[locale]\terms\page.tsx:206:               <li>{isEn ? "Any indirect, incidental, or punitive damages." : "任何间接性、附带性、惩罚性损失"}</li>
+app\[locale]\terms\page.tsx:209:             <h2>{isEn ? "9. Changes to Terms" : "九、条款修改"}</h2>
+app\[locale]\terms\page.tsx:213:                 : "我们可能会不时修改本使用条款。修改后的条款将在本页面发布。继续使用本网站即表示您接受修改后的条款。"}
+app\[locale]\terms\page.tsx:216:             <h2>{isEn ? "10. Governing Law and Disputes" : "十、法律适用与争议解决"}</h2>
+app\[locale]\terms\page.tsx:220:                 : "本条款受中华人民共和国法律管辖。因本条款引起的任何争议，双方应友好协商解决；协商不成的，任何一方可向有管辖权的人民法院提起诉讼。"}
+app\[locale]\terms\page.tsx:223:             <h2>{isEn ? "11. Contact" : "十一、联系方式"}</h2>
+app\[locale]\terms\page.tsx:227:                 : "如果您对本使用条款有任何疑问，请联系我们："}
+app\[locale]\terms\page.tsx:230:               <li>{isEn ? "Email: support@recipezen.com" : "邮箱：support@recipezen.com"}</li>
+app\[locale]\terms\page.tsx:241:             {isEn ? "Privacy Policy" : "隐私政策"}
+app\[locale]\terms\page.tsx:248:             {isEn ? "Copyright" : "版权声明"}
+app\[locale]\terms\page.tsx:255:             {isEn ? "About" : "关于我们"}
+components\README.md:15: - CookModeView - 全屏"COOK NOW"模式
+components\README.md:35: - `docs/UI_DESIGN.md` - 完整UI设计规范
+components\README.md:36: - `docs/DESIGN_REFERENCE.md` - 设计还原验收标准
+components\README.md:37: - `docs/prd-images/` - 设计稿截图
+components\README.md:49: 2. 使用 `types/recipe.ts` 中的类型定义
+components\config\SiteConfigProvider.tsx:20:   siteTagline: "治愈系美食研习所",
+components\config\SiteConfigProvider.tsx:23:   footerDescription: "用心烹饪每一餐",
+components\config\SiteConfigProvider.tsx:60:         console.error("加载网站配置失败:", error);
+components\filter\FilterBar.tsx:145:         console.error("加载配置失败:", error);
+components\filter\RecipeSquareFilters.tsx:125:         console.error("加载配置失败:", error);
+components\gallery\GalleryGrid.tsx:56:       console.error("加载更多失败:", error);
+components\gallery\GalleryGrid.tsx:105:       console.error("下载失败:", error);
+components\gallery\GalleryPageClient.tsx:61:     searchPlaceholder: "搜索菜谱...比如：宫保鸡丁、红烧肉",
+components\gallery\GalleryPageClient.tsx:62:     searchButton: "搜索",
+components\gallery\GalleryPageClient.tsx:63:     aiHint: "找不到？我们会为您智能生成！",
+components\gallery\GalleryPageClient.tsx:64:     locationLabel: "地点",
+components\gallery\GalleryPageClient.tsx:65:     cuisineLabel: "菜系",
+components\gallery\GalleryPageClient.tsx:66:     sceneLabel: "场景",
+components\gallery\GalleryPageClient.tsx:67:     methodLabel: "做法",
+components\gallery\GalleryPageClient.tsx:68:     tasteLabel: "口味",
+components\gallery\GalleryPageClient.tsx:69:     crowdLabel: "人群",
+components\gallery\GalleryPageClient.tsx:70:     occasionLabel: "场合",
+components\gallery\GalleryPageClient.tsx:71:     all: "全部",
+components\gallery\GalleryPageClient.tsx:72:     clearFilters: "清除所有筛选",
+components\gallery\GalleryPageClient.tsx:73:     moreFilters: "更多筛选",
+components\gallery\GalleryPageClient.tsx:74:     lessFilters: "收起筛选",
+components\gallery\GalleryPageClient.tsx:75:     showing: "正在显示",
+components\gallery\GalleryPageClient.tsx:76:     found: "共找到",
+components\gallery\GalleryPageClient.tsx:77:     dishes: "道菜",
+components\gallery\GalleryPageClient.tsx:78:     minutes: "分钟",
+components\gallery\GalleryPageClient.tsx:79:     beginner: "新手",
+components\gallery\GalleryPageClient.tsx:80:     medium: "中等",
+components\gallery\GalleryPageClient.tsx:81:     advanced: "进阶",
+components\gallery\GalleryPageClient.tsx:82:     noResults: "没有找到匹配的菜谱",
+components\gallery\GalleryPageClient.tsx:83:     tryOther: "试试其他筛选条件",
+components\gallery\GalleryPageClient.tsx:84:     viewRecipe: "查看做法",
+components\gallery\GalleryPageClient.tsx:85:     showingAll: "已展示全部",
+components\gallery\GalleryPageClient.tsx:86:     recipesText: "道菜谱",
+components\gallery\GalleryPageClient.tsx:120:   zh: { easy: "新手", medium: "中等", hard: "进阶" },
+components\gallery\GalleryPageClient.tsx:179:         console.error("加载标签失败:", error);
+components\home\BlogPreviewSection.tsx:19:     title: "新手必看：掌握这5个技巧，炒菜再也不翻车",
+components\home\BlogPreviewSection.tsx:21:       "从火候控制到调味顺序，这些基础技巧能让你的厨艺突飞猛进。很多人做菜不好吃，往往就是忽略了这些细节...",
+components\home\BlogPreviewSection.tsx:24:     tags: ["烹饪技巧", "新手入门"],
+components\home\BlogPreviewSection.tsx:28:     title: "川菜的灵魂：郫县豆瓣酱的前世今生",
+components\home\BlogPreviewSection.tsx:30:       "被誉为'川菜之魂'的郫县豆瓣酱，有着300多年的历史。从一颗蚕豆到餐桌上的美味，经历了怎样的蜕变？",
+components\home\BlogPreviewSection.tsx:33:     tags: ["美食文化", "川菜"],
+components\home\BlogPreviewSection.tsx:37:     title: "减脂期怎么吃？这份食谱清单请收好",
+components\home\BlogPreviewSection.tsx:39:       "减脂不等于节食，掌握正确的饮食方法，既能享受美食又能保持好身材。这份经过营养师认证的食谱清单...",
+components\home\BlogPreviewSection.tsx:42:     tags: ["健康饮食", "减脂"],
+components\home\BlogPreviewSection.tsx:46:     title: "新手做饭常见的5个误区，你中了几个？",
+components\home\BlogPreviewSection.tsx:48:       "掌握做饭的底层规律比记食谱更重要。避开这些误区，厨艺提升会更快...",
+components\home\BlogPreviewSection.tsx:51:     tags: ["新手入门", "做饭误区"],
+components\home\CustomRecipesSection.tsx:20:   "jianfei": { emoji: "🎯", label: "减脂", labelEn: "Diet", color: "bg-green-100 text-green-700" },
+components\home\CustomRecipesSection.tsx:21:   "kuaishou": { emoji: "⚡", label: "快手", labelEn: "Quick", color: "bg-yellow-100 text-yellow-700" },
+components\home\CustomRecipesSection.tsx:22:   "jiachang": { emoji: "🏠", label: "家常", labelEn: "Home", color: "bg-blue-100 text-blue-700" },
+components\home\CustomRecipesSection.tsx:23:   "yanke": { emoji: "🍽️", label: "宴客", labelEn: "Feast", color: "bg-purple-100 text-purple-700" },
+components\home\CustomRecipesSection.tsx:24:   "zaofan": { emoji: "☀️", label: "早餐", labelEn: "Breakfast", color: "bg-orange-100 text-orange-700" },
+components\home\CustomRecipesSection.tsx:25:   "xiaochi": { emoji: "🍡", label: "小吃", labelEn: "Snack", color: "bg-pink-100 text-pink-700" },
+components\home\HeroSection.tsx:47:   // 根据设计规范：主CTA是"浏览全部食谱"，次CTA是"AI定制"
+components\home\HeroSection.tsx:57:       return `${(num / 10000).toFixed(1)}万`;
+components\home\HotRecipesSection.tsx:10:   "川菜": "Sichuan",
+components\home\HotRecipesSection.tsx:11:   "粤菜": "Cantonese",
+components\home\HotRecipesSection.tsx:12:   "湘菜": "Hunan",
+components\home\HotRecipesSection.tsx:13:   "鲁菜": "Shandong",
+components\home\HotRecipesSection.tsx:14:   "苏菜": "Jiangsu",
+components\home\HotRecipesSection.tsx:15:   "浙菜": "Zhejiang",
+components\home\HotRecipesSection.tsx:16:   "闽菜": "Fujian",
+components\home\HotRecipesSection.tsx:17:   "徽菜": "Anhui",
+components\home\HotRecipesSection.tsx:18:   "江浙菜": "Jiangsu & Zhejiang",
+components\home\HotRecipesSection.tsx:19:   "西北菜": "Northwest",
+components\home\StatsSection.tsx:48:       return `${(num / 10000).toFixed(1)}万`;
+components\home\TestimonialsSection.tsx:73:                         locale === "en" ? `${item.name} avatar` : `${item.name} 头像`
+components\home\ToolsShowcaseSection.tsx:80:                   {locale === "en" ? "Cook mode preview" : "烹饪模式预览"}
+components\home\ToolsShowcaseSection.tsx:121:                   {locale === "en" ? "Toolkit preview" : "工具界面预览"}
+components\home\TrustBar.tsx:6:       title: "已收录 1,200+ 道菜",
+components\home\TrustBar.tsx:7:       description: "持续更新的家常菜单",
+components\home\TrustBar.tsx:10:       title: "4.9/5 用户评分",
+components\home\TrustBar.tsx:11:       description: "真实用户口碑认可",
+components\home\TrustBar.tsx:14:       title: "专业厨师审核",
+components\home\TrustBar.tsx:15:       description: "步骤与口感更可复现",
+components\home\ValueLoopSection.tsx:13:       title: "告诉我们你想做什么",
+components\home\ValueLoopSection.tsx:14:       description: "输入需求或浏览分类，快速给出方向。",
+components\home\ValueLoopSection.tsx:15:       example: "例如：我有鸡蛋和西红柿",
+components\home\ValueLoopSection.tsx:19:       title: "获得详细食谱",
+components\home\ValueLoopSection.tsx:20:       description: "智能推荐 + 团队审核，把关可复现。",
+components\home\ValueLoopSection.tsx:21:       example: "番茄炒蛋完整步骤",
+components\home\ValueLoopSection.tsx:25:       title: "工具辅助烹饪",
+components\home\ValueLoopSection.tsx:26:       description: "语音朗读 + 计时提醒，做饭更轻松。",
+components\home\ValueLoopSection.tsx:27:       example: "烹饪模式界面预览",
+components\home\ValueLoopSection.tsx:31:       title: "做出家的味道",
+components\home\ValueLoopSection.tsx:32:       description: "完成后可分享给家人朋友。",
+components\home\ValueLoopSection.tsx:33:       example: "真实用户成品",
+components\layout\Header.tsx:18:   { href: "/", label: { zh: "首页", en: "Home", ja: "ホーム", ko: "홈", es: "Inicio", fr: "Accueil", de: "Start", pt: "Início", it: "Home", ru: "Главная" } },
+components\layout\Header.tsx:19:   { href: "/recipe", label: { zh: "食谱", en: "Recipes", ja: "レシピ", ko: "레시피", es: "Recetas", fr: "Recettes", de: "Rezepte", pt: "Receitas", it: "Ricette", ru: "Рецепты" } },
+components\layout\Header.tsx:20:   { href: "/gallery", label: { zh: "美食图库", en: "Gallery", ja: "ギャラリー", ko: "갤러리", es: "Galería", fr: "Galerie", de: "Galerie", pt: "Galeria", it: "Galleria", ru: "Галерея" } },
+components\layout\Header.tsx:21:   { href: "/ai-custom", label: { zh: "AI 定制", en: "AI Custom", ja: "AIカスタム", ko: "AI 맞춤", es: "IA Personal", fr: "IA Sur Mesure", de: "KI-Anpassung", pt: "IA Personalizada", it: "IA Personalizzata", ru: "ИИ-рецепты" } },
+components\layout\Header.tsx:22:   { href: "/blog", label: { zh: "博客", en: "Blog", ja: "ブログ", ko: "블로그", es: "Blog", fr: "Blog", de: "Blog", pt: "Blog", it: "Blog", ru: "Блог" } },
+components\layout\Header.tsx:23:   { href: "/about", label: { zh: "关于", en: "About", ja: "概要", ko: "소개", es: "Acerca de", fr: "À propos", de: "Über uns", pt: "Sobre", it: "Chi siamo", ru: "О нас" } },
+components\recipe\CookModeModal.tsx:419:                       : `跳转到步骤 ${idx + 1}`
+components\recipe\CookModeView.tsx:4:  * 全屏"COOK NOW"模式：沉浸式烹饪助手
+components\recipe\CookModeView.tsx:184:         case " ": // 空格键控制计时器
+components\recipe\FavoriteButton.tsx:46:         console.error("检查收藏状态失败:", error);
+components\recipe\FavoriteButton.tsx:89:       console.error("收藏操作失败:", error);
+components\recipe\FavoriteButton.tsx:118:         {showText && <span className="text-gray-400">{isEn ? "Loading..." : "加载中..."}</span>}
+components\recipe\FavoriteButton.tsx:151:             ? "已收藏"
+components\recipe\FavoriteButton.tsx:153:             ? "收藏"
+components\recipe\FavoriteButton.tsx:154:             : "收藏"}
+components\recipe\IngredientSidebar.tsx:69:     section.includes("主料") || section.toLowerCase().includes("main");
+components\recipe\IngredientSidebar.tsx:83:         {isEn ? "Mode: Everyday" : "模式：生活化"}
+components\recipe\RecipeCard.tsx:18:   "川菜": "Sichuan",
+components\recipe\RecipeCard.tsx:19:   "粤菜": "Cantonese",
+components\recipe\RecipeCard.tsx:20:   "湘菜": "Hunan",
+components\recipe\RecipeCard.tsx:21:   "鲁菜": "Shandong",
+components\recipe\RecipeCard.tsx:22:   "苏菜": "Jiangsu",
+components\recipe\RecipeCard.tsx:23:   "浙菜": "Zhejiang",
+components\recipe\RecipeCard.tsx:24:   "闽菜": "Fujian",
+components\recipe\RecipeCard.tsx:25:   "徽菜": "Anhui",
+components\recipe\RecipeCard.tsx:26:   "江浙菜": "Jiangsu & Zhejiang",
+components\recipe\RecipeCard.tsx:27:   "西北菜": "Northwest",
+components\recipe\RecipeCard.tsx:32:   "川渝": "Sichuan & Chongqing",
+components\recipe\RecipeCard.tsx:33:   "粤港澳": "Cantonese",
+components\recipe\RecipeCard.tsx:34:   "江浙": "Jiangsu & Zhejiang",
+components\recipe\RecipeCard.tsx:35:   "东北": "Northeast",
+components\recipe\RecipeCard.tsx:36:   "湖南": "Hunan",
+components\recipe\RecipeCard.tsx:37:   "云贵": "Yunnan & Guizhou",
+components\recipe\RecipeCard.tsx:38:   "山东": "Shandong",
+components\recipe\RecipeCard.tsx:39:   "福建": "Fujian",
+components\recipe\RecipeCard.tsx:40:   "安徽": "Anhui",
+components\recipe\RecipeCard.tsx:89:     if (value === "easy" || value === "简单") return t("recipe.easy", locale);
+components\recipe\RecipeCard.tsx:90:     if (value === "medium" || value === "中等") return t("recipe.medium", locale);
+components\recipe\RecipeCard.tsx:91:     if (value === "hard" || value === "困难") return t("recipe.hard", locale);
+components\recipe\RecipeDetailClient.tsx:93:     if (value === "easy" || value === "简单") return t("recipe.easy", locale);
+components\recipe\RecipeDetailClient.tsx:94:     if (value === "medium" || value === "中等") return t("recipe.medium", locale);
+components\recipe\RecipeDetailClient.tsx:95:     if (value === "hard" || value === "困难") return t("recipe.hard", locale);
+components\recipe\RecipeDetailClient.tsx:305:       console.error("下载失败:", error);
+components\recipe\RecipeDetailClient.tsx:556:     section.includes("主料") || section.toLowerCase().includes("main");
+components\recipe\RecipeDetailClient.tsx:607:             : "已加入收藏"
+components\recipe\RecipeDetailClient.tsx:610:           : "已取消收藏"
+components\recipe\StepCardNew.tsx:27:     return locale === "en" ? `${mins} min` : `${mins}分钟`;
+components\recipe\StepCardNew.tsx:37:   const statusLabel = locale === "en" ? "Check:" : "状态检查：";
+components\recipe\StepCardNew.tsx:38:   const failLabel = locale === "en" ? "Pitfall:" : "失败点：";
+components\search\EmptyStateGenerator.tsx:41:       console.error("生成失败:", error);
+components\search\SearchResultCard.tsx:81:                 {locale === "en" ? "✨ AI" : "✨ AI生成"}
+lib\image-utils.ts:6:  * - IMAGE_SOURCE: 图片来源 "auto" | "r2" | "origin"
+lib\image-utils.ts:17: // 图片来源配置: "auto" | "r2" | "origin"
+lib\README.md:7: - `provider.ts` - AI Provider 接口定义
+lib\README.md:8: - `deepseek.ts` - DeepSeek 实现
+lib\README.md:9: - `openai.ts` - OpenAI 实现
+lib\README.md:10: - `stability.ts` - Stability AI（图片生成）
+lib\README.md:11: - `config.ts` - 配置和切换逻辑
+lib\README.md:20: - `prisma.ts` - Prisma 客户端单例
+lib\README.md:21: - `queries/` - 数据查询函数
+lib\README.md:22: - `migrations/` - 数据库迁移脚本
+lib\README.md:26: - `cn.ts` - Tailwind 类名合并
+lib\README.md:27: - `format.ts` - 格式化函数（时间、数量等）
+lib\README.md:28: - `validation.ts` - Zod 验证 Schema
+lib\README.md:29: - `storage.ts` - Cloudflare R2 图片上传
+lib\README.md:37: const ai = getAIProvider("text"); // 根据环境变量自动选择
+lib\README.md:38: const response = await ai.chat("没放啤酒可以用白酒代替吗？");
+lib\README.md:54: const time = formatDuration(120); // "2分钟"
+lib\recipe-utils.ts:127:     a.download = `步骤${stepNumber}-${stepTitle}.png`;
+lib\recipe-utils.ts:194:     a.download = `${recipeTitle}-完整步骤.png`;
+lib\aggregation\qualified-collections.ts:136:     title: "按菜系浏览",
+lib\aggregation\qualified-collections.ts:138:     subtitle: "探索中国各地经典菜系",
+lib\aggregation\qualified-collections.ts:148:     title: "按场景浏览",
+lib\aggregation\qualified-collections.ts:150:     subtitle: "根据做饭场景找食谱",
+lib\aggregation\qualified-collections.ts:160:     title: "按烹饪方式浏览",
+lib\aggregation\qualified-collections.ts:162:     subtitle: "炒、炖、蒸、煮...",
+lib\aggregation\qualified-collections.ts:172:     title: "按口味浏览",
+lib\aggregation\qualified-collections.ts:174:     subtitle: "酸甜苦辣咸",
+lib\aggregation\qualified-collections.ts:184:     title: "按人群浏览",
+lib\aggregation\qualified-collections.ts:186:     subtitle: "减脂、增肌、儿童...",
+lib\aggregation\qualified-collections.ts:196:     title: "按食材浏览",
+lib\aggregation\qualified-collections.ts:198:     subtitle: "猪肉、鸡肉、豆腐...",
+lib\aggregation\qualified-collections.ts:208:     title: "专题精选",
+lib\aggregation\qualified-collections.ts:210:     subtitle: "策划主题合集",
+lib\aggregation\qualified-collections.ts:264:     console.error("获取区块配置失败:", error);
+lib\aggregation\utils.ts:5:  * 用于首页和一级聚合页的"按 XX 浏览"模块
+lib\aggregation\utils.ts:88:  * 场景现在通过 Tag 模型实现，type = "scene"
+lib\aggregation\utils.ts:125:  * 烹饪方式现在通过 Tag 模型实现，type = "method"
+lib\aggregation\utils.ts:157:  * 口味现在通过 Tag 模型实现，type = "taste"
+lib\aggregation\utils.ts:189:  * 人群现在通过 Tag 模型实现，type = "crowd"
+lib\aggregation\utils.ts:221:  * 场合现在通过 Tag 模型实现，type = "occasion"
+lib\aggregation\utils.ts:317:     // 格式: [{ section: "主料", items: [{ name: "猪肉", ... }] }]
+lib\ai\cuisine-guides.ts:17:     name: "川菜",
+lib\ai\cuisine-guides.ts:18:     flavorProfile: "麻辣鲜香，一菜一格，百菜百味。突出花椒的麻和辣椒的辣，讲究复合味型（麻辣、香辣、酸辣、鱼香、怪味等）",
+lib\ai\cuisine-guides.ts:19:     techniques: ["炝锅（花椒辣椒爆香）", "小炒（急火快炒）", "干煸（炒至干香）", "水煮（麻辣汤汁）", "回锅（二次烹饪）"],
+lib\ai\cuisine-guides.ts:20:     visualElements: ["红油光泽", "花椒粒点缀", "辣椒段或辣椒面", "葱花蒜末", "热气腾腾的汤汁"],
+lib\ai\cuisine-guides.ts:21:     toneGuidance: "强调麻辣刺激但层次丰富，下饭是核心诉求，适合喜欢重口味的食客"
+lib\ai\cuisine-guides.ts:25:     name: "粤菜",
+lib\ai\cuisine-guides.ts:26:     flavorProfile: "清淡鲜美，讲究食材本味。追求鲜、嫩、爽、滑，调味以盐、糖、生抽为主，不掩盖食材原味",
+lib\ai\cuisine-guides.ts:27:     techniques: ["清蒸（保持原味）", "白灼（快速焯水）", "滑炒（滑油锁水）", "煲汤（文火慢炖）", "烧腊（明炉烤制）"],
+lib\ai\cuisine-guides.ts:28:     visualElements: ["食材原色", "清澈的汤汁", "油亮但不油腻", "精致摆盘", "葱姜丝点缀"],
+lib\ai\cuisine-guides.ts:29:     toneGuidance: "强调食材品质和火候控制，追求鲜嫩口感，适合注重健康和原味的食客"
+lib\ai\cuisine-guides.ts:33:     name: "湘菜",
+lib\ai\cuisine-guides.ts:34:     flavorProfile: "香辣酸鲜，口味偏重。以剁椒、腊味、酸菜为特色，辣而不燥，酸而不酷",
+lib\ai\cuisine-guides.ts:35:     techniques: ["干煸（炒至焦香）", "焖（小火收汁）", "蒸（剁椒蒸）", "炒（大火爆炒）", "腊制（风干腌制）"],
+lib\ai\cuisine-guides.ts:36:     visualElements: ["剁椒红色", "腊肉色泽", "焦香边缘", "蒜末葱花", "浓稠汤汁"],
+lib\ai\cuisine-guides.ts:37:     toneGuidance: "强调香辣下饭，适合重口味和喜欢腊味的食客，突出湖南特色食材"
+lib\ai\cuisine-guides.ts:41:     name: "鲁菜",
+lib\ai\cuisine-guides.ts:42:     flavorProfile: "咸鲜为主，讲究火候。注重原汁原味，善用葱姜蒜提味，汤菜尤为出色",
+lib\ai\cuisine-guides.ts:43:     techniques: ["爆炒（急火快炒）", "扒（慢火收汁）", "烧（红烧白烧）", "炸（外酥里嫩）", "熬汤（浓白高汤）"],
+lib\ai\cuisine-guides.ts:44:     visualElements: ["金黄色泽", "浓稠汤汁", "葱段姜片", "酱色光泽", "整齐摆盘"],
+lib\ai\cuisine-guides.ts:45:     toneGuidance: "强调传统正宗，火候精准，适合喜欢咸鲜口味和传统烹饪的食客"
+lib\ai\cuisine-guides.ts:49:     name: "苏菜（淮扬菜）",
+lib\ai\cuisine-guides.ts:50:     flavorProfile: "清鲜平和，咸甜适中。讲究刀工和造型，口味偏甜，注重原汁原味",
+lib\ai\cuisine-guides.ts:51:     techniques: ["炖（文火慢炖）", "焖（小火收汁）", "煨（密封慢煮）", "蒸（清蒸保鲜）", "炒（清炒嫩滑）"],
+lib\ai\cuisine-guides.ts:52:     visualElements: ["清澈汤汁", "精致刀工", "食材原色", "糖色光泽", "雅致摆盘"],
+lib\ai\cuisine-guides.ts:53:     toneGuidance: "强调精致细腻，刀工讲究，适合喜欢清淡微甜口味的食客"
+lib\ai\cuisine-guides.ts:57:     name: "浙菜",
+lib\ai\cuisine-guides.ts:58:     flavorProfile: "清鲜脆嫩，口味清淡。善用河鲜海鲜，注重原汁原味，略带甜味",
+lib\ai\cuisine-guides.ts:59:     techniques: ["炒（嫩炒滑炒）", "炸（酥炸）", "烩（勾芡收汁）", "蒸（清蒸）", "烧（红烧）"],
+lib\ai\cuisine-guides.ts:60:     visualElements: ["清澈汤汁", "食材鲜嫩", "油亮色泽", "葱姜点缀", "清爽摆盘"],
+lib\ai\cuisine-guides.ts:61:     toneGuidance: "强调江南水乡特色，食材新鲜，适合喜欢清淡鲜美的食客"
+lib\ai\cuisine-guides.ts:65:     name: "闽菜",
+lib\ai\cuisine-guides.ts:66:     flavorProfile: "鲜香清淡，善用海鲜。讲究汤菜，调味偏甜酸，善用红糟、虾油等特色调料",
+lib\ai\cuisine-guides.ts:67:     techniques: ["炒（滑炒）", "蒸（清蒸）", "煨（文火慢煮）", "炸（酥炸）", "糟（红糟腌制）"],
+lib\ai\cuisine-guides.ts:68:     visualElements: ["海鲜原色", "清澈汤汁", "红糟色泽", "姜葱点缀", "精致摆盘"],
+lib\ai\cuisine-guides.ts:69:     toneGuidance: "强调海鲜鲜美，汤菜精华，适合喜欢海鲜和清淡口味的食客"
+lib\ai\cuisine-guides.ts:73:     name: "徽菜",
+lib\ai\cuisine-guides.ts:74:     flavorProfile: "重油重色，咸鲜微辣。善用火腿、笋干等山珍，讲究火功，汁浓味重",
+lib\ai\cuisine-guides.ts:75:     techniques: ["烧（红烧）", "炖（文火慢炖）", "蒸（清蒸）", "熏（烟熏）", "腌（腌制）"],
+lib\ai\cuisine-guides.ts:76:     visualElements: ["酱红色泽", "浓稠汤汁", "火腿笋干", "油亮光泽", "朴实摆盘"],
+lib\ai\cuisine-guides.ts:77:     toneGuidance: "强调山野风味，火功深厚，适合喜欢浓郁口味的食客"
+lib\ai\cuisine-guides.ts:81:     name: "东北菜",
+lib\ai\cuisine-guides.ts:82:     flavorProfile: "咸鲜为主，分量大。口味偏重，善用酱料，讲究实惠和下饭",
+lib\ai\cuisine-guides.ts:83:     techniques: ["炖（大锅炖）", "炒（大火爆炒）", "拌（凉拌）", "酱（酱制）", "烤（烧烤）"],
+lib\ai\cuisine-guides.ts:84:     visualElements: ["大块食材", "浓稠汤汁", "酱色光泽", "葱姜蒜", "豪放摆盘"],
+lib\ai\cuisine-guides.ts:85:     toneGuidance: "强调分量足、下饭、实惠，适合喜欢大口吃肉的食客"
+lib\ai\cuisine-guides.ts:89:     name: "家常菜",
+lib\ai\cuisine-guides.ts:90:     flavorProfile: "咸鲜适中，口味大众。食材常见，做法简单，适合日常烹饪",
+lib\ai\cuisine-guides.ts:91:     techniques: ["炒（家常炒）", "炖（家常炖）", "蒸（清蒸）", "煮（水煮）", "煎（煎制）"],
+lib\ai\cuisine-guides.ts:92:     visualElements: ["家常食材", "自然色泽", "简单摆盘", "葱花点缀", "温馨氛围"],
+lib\ai\cuisine-guides.ts:93:     toneGuidance: "强调简单易做、食材常见、适合新手，突出家的温暖感"
+lib\ai\cuisine-guides.ts:109: - 核心技法：${guide.techniques.join("、")}
+lib\ai\cuisine-guides.ts:110: - 视觉元素：${guide.visualElements.join("、")}
+lib\ai\deepseek.ts:98:       throw new Error("无法读取响应流");
+lib\ai\default-prompts.ts:25:     name: "AI 主厨问答",
+lib\ai\default-prompts.ts:26:     description: "用户在菜谱页面提问时使用的提示词",
+lib\ai\default-prompts.ts:28:     systemPrompt: `你是一位经验丰富的中国美食主厨，专注于帮助用户理解和制作中国菜肴。
+lib\ai\default-prompts.ts:38: - 保持温暖治愈的语气`,
+lib\ai\default-prompts.ts:49:     systemPrompt: `﻿系统提示词 (System Prompt)
+lib\ai\default-prompts.ts:102: 顶层结构: 顶层结构必须为: { "schemaVersion": "2.0.0", "recipe": { ... } }。缺少 schemaVersion 字段将被视为严重格式错误。
+lib\ai\default-prompts.ts:113:     "titleZh": "string（中文菜名，必填）",
+lib\ai\default-prompts.ts:114:     "titleEn": "string（英文菜名，必填，如 Kung Pao Chicken）",
+lib\ai\default-prompts.ts:117:       "country": "string（产地国家，默认中国）",
+lib\ai\default-prompts.ts:118:       "region": "string（产地地区，如四川、广东）",
+lib\ai\default-prompts.ts:119:       "cuisine": "string（所属菜系，如川菜、粤菜、湘菜）",
+lib\ai\default-prompts.ts:120:       "notes": "string（产地说明）"
+lib\ai\default-prompts.ts:122:     "primaryIngredients": ["string（主要食材，如鸡肉、豆腐、青椒，至少列出2-3个）"],
+lib\ai\default-prompts.ts:126:       "flavorTags": ["string（风味标签，如麻辣、咸鲜、香辣，至少2个）"],
+lib\ai\default-prompts.ts:131:       "scaleHint": "string（份量调整提示，如食材用量可按人数等比例调整）"
+lib\ai\default-prompts.ts:136:         "name": "string（设备名称，如炒锅、蒸锅、砧板、菜刀）",
+lib\ai\default-prompts.ts:137:         "required": "boolean（是否必需）",
+lib\ai\default-prompts.ts:138:         "notes": "string（设备说明）"
+lib\ai\default-prompts.ts:161:         "speechText": "string（语音朗读文本，用于语音播报，口语化描述该步骤）",
+lib\ai\default-prompts.ts:166:         "visualCue": "string（视觉检查提示，如表面金黄、冒泡、汁水收干）",
+lib\ai\default-prompts.ts:167:         "failPoint": "string（失败点提示，如火太大会焦、翻炒不均会粘锅）",
+lib\ai\default-prompts.ts:173:       "dietaryLabels": ["string（饮食标签，如低脂、高蛋白、素食、无麸质）"],
+lib\ai\default-prompts.ts:174:       "disclaimer": "string（营养声明，如营养数据仅供参考，实际值可能因食材和烹饪方式有所不同）"
+lib\ai\default-prompts.ts:176:     "faq": [ { "question": "string（常见问题，至少2个）", "answer": "string" } ],
+lib\ai\default-prompts.ts:177:     "tips": ["string（烹饪小贴士，至少3条）"],
+lib\ai\default-prompts.ts:178:     "troubleshooting": [ { "problem": "string（常见问题，至少2个）", "cause": "string", "fix": "string" } ],
+lib\ai\default-prompts.ts:179:     "relatedRecipes": { "similar": ["string（相似菜品名称）"], "pairing": ["string（搭配菜品名称）"] },
+lib\ai\default-prompts.ts:181:       "suggestions": ["string（搭配建议，如米饭、馒头、啤酒）"],
+lib\ai\default-prompts.ts:182:       "sauceOrSide": ["string（酱料或配菜建议）"]
+lib\ai\default-prompts.ts:185:     "seo": { "slug": "string（URL友好的英文标识，如kung-pao-chicken）", "metaTitle": "string", "metaDescription": "string", "keywords": ["string"] }
+lib\ai\default-prompts.ts:196: 完整性: 必须包含上述JSON结构中的所有字段，不允许省略。若信息不确定，允许使用 "" 或 [] 或 0（按字段类型），但字段必须存在。
+lib\ai\default-prompts.ts:219: 知识边界判断: 如果用户输入的菜名是你知识库中数据较少的地方特色菜，必须在 recipe.notes 数组中添加一条说明，例如："AI对本菜品的知识有限，菜谱内容可能为基于通用烹饪知识的推断，建议人工审核其准确性。"
+lib\ai\default-prompts.ts:234: JSON的顶层是否有且仅有 schemaVersion 和 recipe 两个键？schemaVersion 的值是否为 "2.0.0"？
+lib\ai\default-prompts.ts:246: steps 的 id 是否从 step01 开始连续递增？`,
+lib\ai\default-prompts.ts:247:     prompt: `﻿用户提示词 (User Prompt)
+lib\ai\default-prompts.ts:291: 现在请为菜品【{dishName}】生成完整的菜谱JSON。`,
+lib\ai\default-prompts.ts:296:     name: "定制菜谱推荐",
+lib\ai\default-prompts.ts:297:     description: "根据用户需求推荐适合的菜谱名称",
+lib\ai\default-prompts.ts:299:     systemPrompt: `你是 Recipe Zen 的专业美食顾问，精通中国各地菜系和健康饮食营养学。你的任务是根据用户的健康需求或饮食限制，推荐 3-5 个适合的中国菜谱。
+lib\ai\default-prompts.ts:303: - 必须避免：夸张营销词（"最好"、"必吃"、"绝对"）、空洞承诺（"零失败"、"保证成功"）
+lib\ai\default-prompts.ts:319: 严格返回 JSON 格式，不要 markdown 代码块，不要额外说明。`,
+lib\ai\default-prompts.ts:320:     prompt: `用户需求：{userPrompt}
+lib\ai\default-prompts.ts:327:       "name": "菜谱名称",
+lib\ai\default-prompts.ts:328:       "reason": "推荐理由（20-30字，说明为什么适合这个需求）",
+lib\ai\default-prompts.ts:329:       "difficulty": "简单|中等|困难",
+lib\ai\default-prompts.ts:331:       "nutritionHighlights": ["低糖", "高蛋白", "富含膳食纤维"],
+lib\ai\default-prompts.ts:332:       "healthBenefits": "健康益处说明（15-20字）",
+lib\ai\default-prompts.ts:333:       "cautions": "注意事项（可选，如有特殊注意事项则填写）"
+lib\ai\default-prompts.ts:338: 请严格按照以上格式输出。`,
+lib\ai\default-prompts.ts:343:     name: "菜名推荐",
+lib\ai\default-prompts.ts:344:     description: "为聚合页推荐适合的菜名",
+lib\ai\default-prompts.ts:346:     systemPrompt: `你是一位资深的中国美食顾问，精通各地菜系、地方特色菜和家常菜。你的任务是为美食聚合页推荐适合的菜名。
+lib\ai\default-prompts.ts:349: 2. 多样性：避免只推荐"网红菜"，要挖掘地方特色和传统老菜
+lib\ai\default-prompts.ts:366: - 避免推荐同类菜品（如已有"红烧肉"，不推荐"东坡肉"）
+lib\ai\default-prompts.ts:367: - 同一食材不要重复推荐（如已有"清蒸鲈鱼"，不推荐"红烧鲈鱼"）
+lib\ai\default-prompts.ts:370: 严格返回 JSON 数组格式，不要 markdown 代码块`,
+lib\ai\default-prompts.ts:371:     prompt: `请为以下合集推荐 {count} 个适合的菜名。
+lib\ai\default-prompts.ts:404:     "name": "菜名",
+lib\ai\default-prompts.ts:405:     "reason": "推荐理由（20字内，说明为什么适合这个合集）",
+lib\ai\default-prompts.ts:407:     "category": "经典名菜|家常菜|特色菜",
+lib\ai\default-prompts.ts:408:     "difficulty": "简单|中等|困难",
+lib\ai\default-prompts.ts:410:     "season": "春|夏|秋|冬|四季"
+lib\ai\default-prompts.ts:414: 请严格按照以上要求推荐 {count} 个菜名。`,
+lib\ai\default-prompts.ts:440:     name: "博客一键生成",
+lib\ai\default-prompts.ts:441:     description: "一次性生成博客所有内容（SEO专家+营销文案视角）",
+lib\ai\default-prompts.ts:443:     systemPrompt: `你是一位资深的SEO专家和营销文案作家，专注于美食领域内容创作。
+lib\ai\default-prompts.ts:453: 必须严格返回 JSON 格式，不要包含 markdown 代码块或其他文字说明。`,
+lib\ai\default-prompts.ts:454:     prompt: `请为关键词「{keyword}」生成完整的博客内容。
+lib\ai\default-prompts.ts:460:   "title": "SEO优化标题（包含关键词，50-60字符）",
+lib\ai\default-prompts.ts:461:   "slug": "url-friendly-slug（英文，使用连字符分隔）",
+lib\ai\default-prompts.ts:462:   "excerpt": "吸引点击的摘要（150-160字符，包含关键词）",
+lib\ai\default-prompts.ts:463:   "metaTitle": "Meta标题（50-60字符）",
+lib\ai\default-prompts.ts:464:   "metaDescription": "Meta描述（150-160字符）",
+lib\ai\default-prompts.ts:465:   "tags": ["标签1", "标签2", "标签3", "标签4", "标签5"],
+lib\ai\default-prompts.ts:467:     { "level": 2, "heading": "章节标题", "points": ["要点1", "要点2"] }
+lib\ai\default-prompts.ts:469:   "content": "完整的Markdown正文（1500-2500字，包含H2/H3标题结构，在合适位置插入 [IMAGE_1]、[IMAGE_2]、[IMAGE_3] 占位符）",
+lib\ai\default-prompts.ts:470:   "coverImagePrompt": "封面图AI生成提示词（英文，治愈美学风格）",
+lib\ai\default-prompts.ts:472:     { "position": 1, "altText": "图片描述", "prompt": "英文图片生成提示词" },
+lib\ai\default-prompts.ts:473:     { "position": 2, "altText": "图片描述", "prompt": "英文图片生成提示词" },
+lib\ai\default-prompts.ts:474:     { "position": 3, "altText": "图片描述", "prompt": "英文图片生成提示词" }
+lib\ai\default-prompts.ts:493: 只返回 JSON，不要有其他说明文字。`,
+lib\ai\default-prompts.ts:500:     name: "翻译-菜谱",
+lib\ai\default-prompts.ts:501:     description: "将菜谱内容翻译为目标语言",
+lib\ai\default-prompts.ts:503:     systemPrompt: "你是严格的 JSON 翻译器，只返回有效 JSON，禁止输出多余文本。",
+lib\ai\default-prompts.ts:504:     prompt: `你是一位专业的翻译。请把以下食谱内容从{sourceLangName}翻译成{targetLangName}，保持结构和数字不变。
+lib\ai\default-prompts.ts:507:   "title": "标题",
+lib\ai\default-prompts.ts:508:   "description": "一句话介绍",
+lib\ai\default-prompts.ts:512:   "ingredients": [ { "section": "", "items": [ { "name": "", "iconKey": "meat", "amount": 500, "unit": "克", "notes": "" } ] } ],
+lib\ai\default-prompts.ts:528:     name: "翻译-菜谱（含配图与风格）",
+lib\ai\default-prompts.ts:529:     description: "将菜谱内容（含风格与配图）翻译为目标语言",
+lib\ai\default-prompts.ts:531:     systemPrompt: "你是严格的 JSON 翻译器，只返回有效 JSON，禁止输出多余文本。",
+lib\ai\default-prompts.ts:532:     prompt: `你是一位专业的翻译。请把以下食谱内容从{sourceLangName}翻译成{targetLangName}，保持结构和数字不变。
+lib\ai\default-prompts.ts:535:   "title": "标题",
+lib\ai\default-prompts.ts:538:   "ingredients": [ { "section": "", "items": [ { "name": "", "iconKey": "meat", "amount": 500, "unit": "克", "notes": "" } ] } ],
+lib\ai\default-prompts.ts:555:     name: "翻译-首页配置",
+lib\ai\default-prompts.ts:556:     description: "翻译首页配置 JSON",
+lib\ai\default-prompts.ts:558:     systemPrompt: "你是严格的 JSON 翻译器，只返回 JSON。",
+lib\ai\default-prompts.ts:559:     prompt: `你是一位专业的翻译。请将以下 JSON 中的所有文本翻译为目标语言，保持 JSON 结构和键名不变。
+lib\ai\default-prompts.ts:571:     name: "翻译-菜系",
+lib\ai\default-prompts.ts:572:     description: "将菜系信息翻译为目标语言",
+lib\ai\default-prompts.ts:574:     prompt: `翻译以下菜系信息到{targetLangName}，返回 JSON：
+lib\ai\default-prompts.ts:576:   "name": "名称",
+lib\ai\default-prompts.ts:577:   "description": "描述"
+lib\ai\default-prompts.ts:584: 只返回 JSON。`,
+lib\ai\default-prompts.ts:589:     name: "翻译-地域",
+lib\ai\default-prompts.ts:590:     description: "将地域信息翻译为目标语言",
+lib\ai\default-prompts.ts:592:     prompt: `翻译以下地域信息到{targetLangName}，返回 JSON：
+lib\ai\default-prompts.ts:594:   "name": "名称",
+lib\ai\default-prompts.ts:595:   "description": "描述"
+lib\ai\default-prompts.ts:602: 只返回 JSON。`,
+lib\ai\default-prompts.ts:607:     name: "翻译-标签",
+lib\ai\default-prompts.ts:608:     description: "将标签名称翻译为目标语言",
+lib\ai\default-prompts.ts:610:     prompt: `翻译以下标签名称到{targetLangName}，返回 JSON：
+lib\ai\default-prompts.ts:612:   "name": "名称"
+lib\ai\default-prompts.ts:618: 只返回 JSON。`,
+lib\ai\default-prompts.ts:623:     name: "翻译-合集",
+lib\ai\default-prompts.ts:624:     description: "将合集信息翻译为目标语言",
+lib\ai\default-prompts.ts:626:     prompt: `翻译以下合集信息到{targetLangName}，返回 JSON：
+lib\ai\default-prompts.ts:628:   "name": "名称",
+lib\ai\default-prompts.ts:629:   "description": "描述",
+lib\ai\default-prompts.ts:638: 只返回 JSON。`,
+lib\ai\default-prompts.ts:643:     name: "翻译-食材",
+lib\ai\default-prompts.ts:644:     description: "将食材名称翻译为目标语言",
+lib\ai\default-prompts.ts:646:     prompt: `翻译以下食材名称到{targetLangName}，返回 JSON：
+lib\ai\default-prompts.ts:648:   "name": "名称",
+lib\ai\default-prompts.ts:649:   "unit": "默认单位"
+lib\ai\default-prompts.ts:656: 只返回 JSON。`,
+lib\ai\default-prompts.ts:663:     name: "治愈美学步骤图提示词",
+lib\ai\default-prompts.ts:664:     description: "一次性生成所有步骤的治愈美学风格图片提示词，确保场景一致性",
+lib\ai\default-prompts.ts:666:     systemPrompt: `你是一位专业的美食摄影提示词生成专家，专注于中国家庭厨房的治愈美学风格。
+lib\ai\default-prompts.ts:680: 每张步骤图必须有"人在做菜"的感觉，但不固定人物形象：
+lib\ai\default-prompts.ts:688: 每张图必须捕捉"动作瞬间"：
+lib\ai\default-prompts.ts:716:     prompt: `请为以下中国菜谱生成治愈美学风格的图片提示词。
+lib\ai\default-prompts.ts:729: 4. 严格输出 JSON 格式`,
+lib\ai\default-prompts.ts:759:   chat: "问答/助手",
+lib\ai\default-prompts.ts:760:   generate: "生成内容",
+lib\ai\default-prompts.ts:761:   recommend: "推荐算法",
+lib\ai\default-prompts.ts:762:   translate: "翻译服务",
+lib\ai\default-prompts.ts:763:   seo: "SEO 优化",
+lib\ai\default-prompts.ts:764:   image: "图片生成",
+lib\ai\default-prompts.ts:772:   name: "治愈美学步骤图提示词",
+lib\ai\default-prompts.ts:773:   description: "一次性生成所有步骤的治愈美学风格图片提示词",
+lib\ai\default-prompts.ts:775:   systemPrompt: `你是一位专业的美食摄影提示词生成专家，专注于中国家庭厨房的治愈美学风格。
+lib\ai\default-prompts.ts:789: 每张步骤图必须有"人在做菜"的感觉，但不固定人物形象：
+lib\ai\default-prompts.ts:797: 每张图必须捕捉"动作瞬间"：
+lib\ai\default-prompts.ts:825:     "kitchenStyle": "具体的厨房风格描述",
+lib\ai\default-prompts.ts:826:     "lightingMood": "光线氛围描述",
+lib\ai\default-prompts.ts:827:     "colorPalette": "主要色彩",
+lib\ai\default-prompts.ts:828:     "props": ["道具1", "道具2", "道具3"]
+lib\ai\default-prompts.ts:835:       "cameraAngle": "相机角度描述",
+lib\ai\default-prompts.ts:836:       "prompt": "完整的英文正向提示词...",
+lib\ai\default-prompts.ts:837:       "negativePrompt": "英文负向提示词..."
+lib\ai\default-prompts.ts:841:   prompt: `请为以下中国菜谱生成治愈美学风格的图片提示词。
+lib\ai\default-prompts.ts:856: 5. 严格按照 JSON 格式输出`,
+lib\ai\evolink.ts:94:     console.error("获取图像配置失败，使用环境变量:", error);
+lib\ai\evolink.ts:171:     let lastError = "图片生成失败";
+lib\ai\evolink.ts:179:       const error = "图像生成 API Key 未配置，请在管理后台 AI 配置中设置，或配置 EVOLINK_API_KEY 环境变量";
+lib\ai\evolink.ts:228:           let errorMessage = `图片生成失败（HTTP ${response.status}）`;
+lib\ai\evolink.ts:253:           console.log(`Evolink 任务已创建，ID: ${taskId}，开始轮询...`);
+lib\ai\evolink.ts:258:             console.error(`❌ 轮询任务 ${taskId} 失败，未获取到图片 URL`);
+lib\ai\evolink.ts:259:             lastError = "轮询任务失败，未获取到图片 URL";
+lib\ai\evolink.ts:270:           console.error("❌ 未能从响应中提取图片 URL 或 Base64");
+lib\ai\evolink.ts:271:           console.error("响应数据结构:", {
+lib\ai\evolink.ts:281:           lastError = "未获取到图片 URL";
+lib\ai\evolink.ts:313:           lastError = "请求超时";
+lib\ai\evolink.ts:317:           lastError = "图片生成失败";
+lib\ai\evolink.ts:319:         console.error("Evolink API 调用失败:", error);
+lib\ai\evolink.ts:547:           console.warn(`轮询任务失败: HTTP ${response.status}`);
+lib\ai\evolink.ts:553:         console.log(`任务 ${taskId} 状态: ${data.status}`);
+lib\ai\evolink.ts:554:         console.log(`任务 ${taskId} 完整响应:`, JSON.stringify(data, null, 2));
+lib\ai\evolink.ts:559:             console.log(`✅ 从 results 数组获取到图片 URL: ${data.results[0]}`);
+lib\ai\evolink.ts:566:               console.log(`✅ 从 data 数组获取到图片 URL: ${url}`);
+lib\ai\evolink.ts:573:             console.log(`✅ 从顶层字段获取到图片 URL: ${url}`);
+lib\ai\evolink.ts:577:           console.error(`❌ 任务 ${taskId} 已完成，但未找到图片 URL`);
+lib\ai\evolink.ts:578:           console.error("响应数据结构:", {
+lib\ai\evolink.ts:589:           console.error(`任务 ${taskId} 失败:`, data.error);
+lib\ai\evolink.ts:596:         console.error("轮询出错:", e);
+lib\ai\evolink.ts:601:     console.error(`任务 ${taskId} 轮询超时`);
+lib\ai\evolink.ts:612:     style: string = "清新自然，美食摄影"
+lib\ai\evolink.ts:614:     return `${recipeName}制作过程，${stepDescription}，${style}，高质量，专业摄影，自然光，美食博客风格`;
+lib\ai\evolink.ts:633:         throw new Error("请求超时");
+lib\ai\generate-recipe-with-logging-example.ts:33:     const prompt = `生成${params.cuisine || ""}菜谱：${params.dishName}`;
+lib\ai\generate-recipe.ts:47:     console.error("获取 AI 配置失败:", error);
+lib\ai\generate-recipe.ts:70:     equipment = "家用厨房常见设备",
+lib\ai\generate-recipe.ts:71:     dietary = "无特殊限制",
+lib\ai\generate-recipe.ts:84:     cuisine: cuisine || "家常菜",
+lib\ai\generate-recipe.ts:89:     throw new Error("未找到可用的提示词配置");
+lib\ai\generate-recipe.ts:351:  * AI经常生成类似 "加入"豆腐"翻炒" 这样的内容
+lib\ai\generate-recipe.ts:429:   cleaned = cleaned.replace(/\/\/.*$/gm, '');  // 单行注释
+lib\ai\generate-recipe.ts:430:   cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, ''); // 多行注释
+lib\ai\generate-recipe.ts:581:     if (["easy", "simple", "beginner", "简单", "易"].some((k) => raw.includes(k))) {
+lib\ai\generate-recipe.ts:584:     if (["hard", "difficult", "复杂", "难"].some((k) => raw.includes(k))) {
+lib\ai\generate-recipe.ts:587:     if (["medium", "moderate", "中等"].some((k) => raw.includes(k))) {
+lib\ai\generate-recipe.ts:599:       let unit = "份";
+lib\ai\generate-recipe.ts:615:       const unit = (item.unit ?? item.uom ?? "份") as string;
+lib\ai\generate-recipe.ts:619:         unit: String(unit).trim() || "份",
+lib\ai\generate-recipe.ts:636:     return { section: sectionName || "主料", items: normalizedItems };
+lib\ai\generate-recipe.ts:702:       data.ingredients = [{ section: "主料", items }];
+lib\ai\generate-recipe.ts:825:           title: step.title || (action ? String(action).slice(0, 12) : `步骤${index + 1}`),
+lib\ai\generate-recipe.ts:826:           action: action || step.title || "继续烹饪",
+lib\ai\generate-recipe.ts:834:           title: step.slice(0, 12) || `步骤${index + 1}`,
+lib\ai\generate-recipe.ts:939:         oneLine: `${fallbackTitle}，家常易做、风味温暖。`,
+lib\ai\generate-recipe.ts:940:         healingTone: "一口下去，暖胃又安心。",
+lib\ai\generate-recipe.ts:946:       ingredients: [{ section: "主料", items: [] }],
+lib\ai\generate-recipe.ts:954:   console.log(`🔍 菜名校验: 用户输入="${normalizedFallbackTitle}", AI返回="${normalizedTitle}"`);
+lib\ai\generate-recipe.ts:963:     console.log(`⚠️ 菜名不一致！AI擅自改名，正在校正: "${normalizedTitle}" → "${normalizedFallbackTitle}"`);
+lib\ai\generate-recipe.ts:978:     const correctionNote = `菜名已按用户输入校正为“${normalizedFallbackTitle}”，原始标题为“${normalizedTitle}”。`;
+lib\ai\generate-recipe.ts:1004:     data.summary.oneLine || `${fallbackTitle}，家常易做、风味温暖。`;
+lib\ai\generate-recipe.ts:1005:   data.summary.healingTone = data.summary.healingTone || "一口下去，暖胃又安心。";
+lib\ai\generate-recipe.ts:1015:     data.ingredients = [{ section: "主料", items: [] }];
+lib\ai\generate-recipe.ts:1018:     section: section?.section || "主料",
+lib\ai\generate-recipe.ts:1027:           unit: "份",
+lib\ai\generate-recipe.ts:1041:         title: "准备",
+lib\ai\generate-recipe.ts:1042:         action: "整理食材，准备烹饪。",
+lib\ai\generate-recipe.ts:1065:       小火: "low",
+lib\ai\generate-recipe.ts:1066:       微火: "low",
+lib\ai\generate-recipe.ts:1067:       中小火: "medium-low",
+lib\ai\generate-recipe.ts:1068:       中火: "medium",
+lib\ai\generate-recipe.ts:1069:       中大火: "medium-high",
+lib\ai\generate-recipe.ts:1070:       大火: "high",
+lib\ai\generate-recipe.ts:1079:       title: step.title || `步骤${index + 1}`,
+lib\ai\generate-recipe.ts:1080:       action: step.action || step.title || "继续烹饪",
+lib\ai\generate-recipe.ts:1089:     data.story = data.summary.oneLine || `${fallbackTitle}的家常做法，简单可靠。`;
+lib\ai\generate-recipe.ts:1105:       country: "中国",
+lib\ai\generate-recipe.ts:1110:     data.origin.country = data.origin.country || "中国";
+lib\ai\generate-recipe.ts:1125:       disclaimer: "营养数据仅供参考，实际值可能因食材和烹饪方式有所不同。",
+lib\ai\generate-recipe.ts:1142:       data.nutrition.disclaimer = "营养数据仅供参考，实际值可能因食材和烹饪方式有所不同。";
+lib\ai\generate-recipe.ts:1149:       { name: "炒锅", required: true, notes: null },
+lib\ai\generate-recipe.ts:1150:       { name: "锅铲", required: true, notes: null },
+lib\ai\generate-recipe.ts:1151:       { name: "砧板", required: true, notes: null },
+lib\ai\generate-recipe.ts:1152:       { name: "菜刀", required: true, notes: null },
+lib\ai\generate-recipe.ts:1160:         question: `${fallbackTitle}可以提前准备吗？`,
+lib\ai\generate-recipe.ts:1161:         answer: "可以提前将食材处理好，烹饪时会更加便捷。",
+lib\ai\generate-recipe.ts:1164:         question: `${fallbackTitle}可以保存多久？`,
+lib\ai\generate-recipe.ts:1165:         answer: "建议现做现吃，冷藏保存不超过2天，食用前需充分加热。",
+lib\ai\generate-recipe.ts:1173:       "食材新鲜是美味的基础，尽量选用当季食材。",
+lib\ai\generate-recipe.ts:1174:       "火候掌握是关键，注意观察食材变化。",
+lib\ai\generate-recipe.ts:1175:       "调味可根据个人口味适当调整。",
+lib\ai\generate-recipe.ts:1183:         problem: "味道偏淡",
+lib\ai\generate-recipe.ts:1184:         cause: "调味料用量不足或食材出水过多",
+lib\ai\generate-recipe.ts:1185:         fix: "适当增加调味料，或在烹饪前将食材沥干水分。",
+lib\ai\generate-recipe.ts:1188:         problem: "口感不佳",
+lib\ai\generate-recipe.ts:1189:         cause: "火候或时间控制不当",
+lib\ai\generate-recipe.ts:1190:         fix: "注意控制火候和烹饪时间，避免过生或过熟。",
+lib\ai\generate-recipe.ts:1213:       suggestions: ["米饭", "馒头"],
+lib\ai\generate-recipe.ts:1218:       data.pairing.suggestions = ["米饭", "馒头"];
+lib\ai\generate-recipe.ts:1229:       metaTitle: `${fallbackTitle} - 家常做法`,
+lib\ai\generate-recipe.ts:1230:       metaDescription: data.summary.oneLine || `${fallbackTitle}的详细做法，简单易学，适合家庭烹饪。`,
+lib\ai\generate-recipe.ts:1231:       keywords: [fallbackTitle, "家常菜", "食谱", "做法"],
+lib\ai\generate-recipe.ts:1238:       data.seo.metaTitle = `${fallbackTitle} - 家常做法`;
+lib\ai\generate-recipe.ts:1241:       data.seo.metaDescription = data.summary.oneLine || `${fallbackTitle}的详细做法，简单易学，适合家庭烹饪。`;
+lib\ai\generate-recipe.ts:1244:       data.seo.keywords = [fallbackTitle, "家常菜", "食谱", "做法"];
+lib\ai\generate-recipe.ts:1251:       scenes: ["家常"],
+lib\ai\generate-recipe.ts:1252:       cookingMethods: ["炒"],
+lib\ai\generate-recipe.ts:1253:       tastes: ["咸鲜"],
+lib\ai\generate-recipe.ts:1254:       crowds: ["全家"],
+lib\ai\generate-recipe.ts:1255:       occasions: ["日常"],
+lib\ai\generate-recipe.ts:1259:       data.tags.scenes = ["家常"];
+lib\ai\generate-recipe.ts:1262:       data.tags.cookingMethods = ["炒"];
+lib\ai\generate-recipe.ts:1265:       data.tags.tastes = ["咸鲜"];
+lib\ai\generate-recipe.ts:1268:       data.tags.crowds = ["全家"];
+lib\ai\generate-recipe.ts:1271:       data.tags.occasions = ["日常"];
+lib\ai\generate-recipe.ts:1277:     data.summary.flavorTags = ["家常", "咸鲜"];
+lib\ai\generate-recipe.ts:1280:     data.summary.scaleHint = "食材用量可按人数等比例调整";
+lib\ai\generate-recipe.ts:1361:       console.log("📋 AI 返回的顶层字段:", Object.keys(recipeData).join(", "));
+lib\ai\generate-recipe.ts:1384:       console.error("JSON解析失败:", parseError);
+lib\ai\generate-recipe.ts:1385:       console.error("原始内容（前1000字符）:", response.content.substring(0, 1000));
+lib\ai\generate-recipe.ts:1386:       console.error("清理后内容（前1000字符）:", cleanedContent.substring(0, 1000));
+lib\ai\generate-recipe.ts:1387:       console.error("清理后内容（后1000字符）:", cleanedContent.substring(Math.max(0, cleanedContent.length - 1000)));
+lib\ai\generate-recipe.ts:1394:           console.error("错误位置上下文（±100字符）:", context);
+lib\ai\generate-recipe.ts:1395:           console.error("错误位置字符:", cleanedContent[pos]);
+lib\ai\generate-recipe.ts:1403:               console.error(`错误在第 ${i + 1} 行:`);
+lib\ai\generate-recipe.ts:1424:           console.error(`失败的 JSON 已保存到: ${filename}`);
+lib\ai\generate-recipe.ts:1426:           console.error('无法保存失败的 JSON:', fsError);
+lib\ai\generate-recipe.ts:1432:         error: `JSON解析失败：${parseError instanceof Error ? parseError.message : String(parseError)}`,
+lib\ai\generate-recipe.ts:1445:       console.error("Schema验证失败:", validation.error.issues);
+lib\ai\generate-recipe.ts:1448:         error: `Schema验证失败：${issues.join(", ")}`,
+lib\ai\generate-recipe.ts:1459:     console.error("生成菜谱失败:", error);
+lib\ai\generate-recipe.ts:1492:     console.log("所有步骤已有图片，跳过生成");
+lib\ai\generate-recipe.ts:1496:   console.log(`开始为 ${stepsToGenerate.length} 个步骤生成图片...`);
+lib\ai\generate-recipe.ts:1506:           step.action || step.title || `步骤${index + 1}`
+lib\ai\generate-recipe.ts:1509:         console.log(`生成步骤 ${index + 1} 图片: ${prompt.substring(0, 50)}...`);
+lib\ai\generate-recipe.ts:1532:           console.log(`步骤 ${index + 1} 图片生成成功`);
+lib\ai\generate-recipe.ts:1534:           console.warn(`步骤 ${index + 1} 图片生成失败: ${result.error}`);
+lib\ai\generate-recipe.ts:1537:         console.error(`步骤 ${index + 1} 图片生成出错:`, error);
+lib\ai\glm.ts:25:   console.log("[GLM] 代理配置:", proxyUrl || "无代理");
+lib\ai\glm.ts:44:     this.model = config.model || "glm-4-flash"; // 默认使用 glm-4-flash（快速模型）
+lib\ai\glm.ts:48:     return "GLM (智谱AI)";
+lib\ai\glm.ts:120:       throw new Error("无法读取响应流");
+lib\ai\image-task-executor.ts:31:   key: string;           // 固定为 "cover"
+lib\ai\image-task-executor.ts:66:       throw new Error(`任务 ${taskId} 不存在`);
+lib\ai\image-task-executor.ts:70:       console.log(`任务 ${taskId} 状态为 ${task.status}，跳过执行`);
+lib\ai\image-task-executor.ts:176:       console.log(`[ImageTask] 图片已自动应用到食谱 (${taskId})`);
+lib\ai\image-task-executor.ts:178:       console.warn(`[ImageTask] 图片应用失败 (${taskId}): ${applyResult.error}`);
+lib\ai\image-task-executor.ts:185:     const errorMessage = error instanceof Error ? error.message : "未知错误";
+lib\ai\image-task-executor.ts:186:     console.error(`任务 ${taskId} 执行失败:`, error);
+lib\ai\image-task-executor.ts:208:       throw new Error(`任务 ${taskId} 不存在`);
+lib\ai\image-task-executor.ts:242:         status: "pending", // 回到 pending，等待用户确认后生成图片
+lib\ai\image-task-executor.ts:247:     const errorMessage = error instanceof Error ? error.message : "未知错误";
+lib\ai\image-task-executor.ts:268:       throw new Error(`任务 ${taskId} 不存在`);
+lib\ai\image-task-executor.ts:275:       throw new Error("没有可用的提示词，请先生成提示词");
+lib\ai\image-task-executor.ts:323:     const errorMessage = error instanceof Error ? error.message : "未知错误";
+lib\ai\image-task-executor.ts:344:       throw new Error(`任务 ${taskId} 不存在`);
+lib\ai\image-task-executor.ts:365:       console.log("没有需要重试的图片");
+lib\ai\image-task-executor.ts:429:     const errorMessage = error instanceof Error ? error.message : "未知错误";
+lib\ai\image-task-executor.ts:450:     return { success: false, error: "任务不存在" };
+lib\ai\image-task-executor.ts:454:     return { success: false, error: "任务未关联食谱" };
+lib\ai\image-task-executor.ts:462:     return { success: false, error: "没有生成的图片" };
+lib\ai\image-task-executor.ts:466:   // 注意：Recipe.steps 使用 id (如 "step01")，而 images 使用 stepNumber (如 1)
+lib\ai\image-task-executor.ts:473:       // 尝试从 id 提取数字，如 "step01" -> 1
+lib\ai\image-task-executor.ts:525:     recipeName || '菜谱',
+lib\ai\image-task-executor.ts:532:     console.log('[ImageTask] 使用回退逻辑生成步骤图提示词');
+lib\ai\image-task-executor.ts:534:     console.log('[ImageTask] 使用治愈美学批量生成器成功');
+lib\ai\image-task-executor.ts:574:         error: result.error || "图片生成失败",
+lib\ai\image-task-executor.ts:580:       error: error instanceof Error ? error.message : "未知错误",
+lib\ai\image-task-executor.ts:616:         error: result.error || "图片生成失败",
+lib\ai\image-task-executor.ts:624:       error: error instanceof Error ? error.message : "未知错误",
+lib\ai\job-executor.ts:184:     console.log(`[Job ${jobId}] 已创建 ImageGenTask: ${recipeData.titleZh || dishName} (${stepsForTask.length} 步骤, ${imageShotsForTask.length} 成品图)`);
+lib\ai\job-executor.ts:186:     console.error(`[Job ${jobId}] 创建 ImageGenTask 失败:`, taskError);
+lib\ai\job-executor.ts:210:         error: "任务不存在",
+lib\ai\job-executor.ts:221:         error: `任务状态异常: ${job.status}`,
+lib\ai\job-executor.ts:242:       : Array.from({ length: job.totalCount }, (_, i) => `菜品${i + 1}`);
+lib\ai\job-executor.ts:265:           error: "任务已取消",
+lib\ai\job-executor.ts:269:       console.log(`[Job ${jobId}] 生成 ${i + 1}/${recipeNames.length}: ${dishName}`);
+lib\ai\job-executor.ts:291:             console.error(`[Job ${jobId}] 食材图标同步失败，继续保存草稿:`, iconError);
+lib\ai\job-executor.ts:369:               console.log(`[Job ${jobId}] 发现 ${validatedTags.unknown.length} 个未知标签:`, validatedTags.unknown.map(t => t.slug));
+lib\ai\job-executor.ts:372:             console.error(`[Job ${jobId}] 标签处理失败:`, tagError);
+lib\ai\job-executor.ts:377:             warnings.push(`已保存草稿，但生成校验失败: ${generateWarning}`);
+lib\ai\job-executor.ts:396:         console.error(`[Job ${jobId}] 生成 ${dishName} 失败:`, error);
+lib\ai\job-executor.ts:434:     console.error(`[Job ${jobId}] 执行失败:`, error);
+lib\ai\job-executor.ts:449:       console.error(`[Job ${jobId}] 更新失败状态失败:`, updateError);
+lib\ai\job-executor.ts:469:       console.error(`[Job ${jobId}] 异步执行失败:`, error);
+lib\ai\job-executor.ts:500:     console.error(`[Job ${jobId}] 取消失败:`, error);
+lib\ai\job-executor.ts:546:     console.error(`[Job ${jobId}] 重试创建失败:`, error);
+lib\ai\openai.ts:98:       throw new Error("无法读取响应流");
+lib\ai\prompt-manager.ts:55:     console.error("读取旧版提示词失败:", error);
+lib\ai\prompt-manager.ts:104:     console.error(`获取提示词配置失败 [${key}]:`, error);
+lib\ai\prompt-manager.ts:149:     console.error("获取数据库提示词失败:", error);
+lib\ai\prompt-manager.ts:210:     throw new Error(`未知的提示词 key: ${key}`);
+lib\ai\prompt-manager.ts:250:     throw new Error(`未知的提示词 key: ${key}`);
+lib\ai\provider.ts:17:  * - "glm" → 智谱AI (推荐用于菜谱生成)
+lib\ai\provider.ts:31:           "GLM_API_KEY 未配置。请在 .env 文件中设置 GLM_API_KEY"
+lib\ai\provider.ts:45:           "DEEPSEEK_API_KEY 未配置。请在 .env 文件中设置 DEEPSEEK_API_KEY"
+lib\ai\provider.ts:59:           "OPENAI_API_KEY 未配置。请在 .env 文件中设置 OPENAI_API_KEY"
+lib\ai\provider.ts:70:         `不支持的 AI Provider: ${provider}。支持的选项：glm, deepseek, openai`
+lib\ai\recommend-dishes.ts:37:   if (month >= 3 && month <= 5) return "春";
+lib\ai\recommend-dishes.ts:38:   if (month >= 6 && month <= 8) return "夏";
+lib\ai\recommend-dishes.ts:39:   if (month >= 9 && month <= 11) return "秋";
+lib\ai\recommend-dishes.ts:40:   return "冬";
+lib\ai\recommend-dishes.ts:49:     春: "春季适合：春笋、豌豆、韭菜、香椿、草莓等时令食材",
+lib\ai\recommend-dishes.ts:50:     夏: "夏季适合：黄瓜、西红柿、茄子、苦瓜、西瓜等清爽食材",
+lib\ai\recommend-dishes.ts:51:     秋: "秋季适合：南瓜、莲藕、板栗、螃蟹、柿子等秋季食材",
+lib\ai\recommend-dishes.ts:52:     冬: "冬季适合：白菜、萝卜、羊肉、牛肉、火锅等温补食材",
+lib\ai\recommend-dishes.ts:54:   return `当前季节：${season}，优先推荐当季食材的菜品。${seasonalFoods[season]}`;
+lib\ai\recommend-dishes.ts:62:     cuisine: "重点推荐该菜系的代表菜、家常菜和地方特色菜，体现菜系特点",
+lib\ai\recommend-dishes.ts:63:     ingredient: "重点推荐该食材的经典做法、常见做法和特色做法，展示食材多样性",
+lib\ai\recommend-dishes.ts:64:     scene: "根据场景特点推荐适合的菜品，如快手菜推荐制作时间短的，宴客菜推荐有面子的",
+lib\ai\recommend-dishes.ts:65:     method: "推荐适合该烹饪方式的菜品，展示技法的多样应用",
+lib\ai\recommend-dishes.ts:66:     taste: "推荐符合该口味的菜品，体现味型特点",
+lib\ai\recommend-dishes.ts:67:     crowd: "根据人群特点推荐适合的菜品，考虑营养需求和饮食禁忌",
+lib\ai\recommend-dishes.ts:68:     occasion: "根据场合推荐适合的菜品，考虑文化寓意和传统习俗",
+lib\ai\recommend-dishes.ts:69:     region: "推荐该地域的特色菜，体现地方美食文化",
+lib\ai\recommend-dishes.ts:71:   return typeGuidanceMap[collectionType] || "推荐符合合集主题的菜品";
+lib\ai\recommend-dishes.ts:81:     ? `\n...等共 ${existingTitles.length} 个`
+lib\ai\recommend-dishes.ts:83:   return `【已有菜谱（请勿重复推荐）】\n${displayTitles.join("、")}${moreLine}`;
+lib\ai\recommend-dishes.ts:109:       console.error("AI 响应不是数组:", cleaned);
+lib\ai\recommend-dishes.ts:123:     console.error("解析 AI 推荐响应失败:", error);
+lib\ai\recommend-dishes.ts:124:     console.error("原始响应:", response);
+lib\ai\recommend-dishes.ts:162:       cuisineLine: context.cuisineName ? `- 菜系：${context.cuisineName}` : "",
+lib\ai\recommend-dishes.ts:163:       locationLine: context.locationName ? `- 地区：${context.locationName}` : "",
+lib\ai\recommend-dishes.ts:164:       tagLine: context.tagName ? `- 标签：${context.tagName}` : "",
+lib\ai\recommend-dishes.ts:165:       descriptionLine: context.description ? `- 描述：${context.description}` : "",
+lib\ai\recommend-dishes.ts:166:       styleLine: context.style ? `- 风格要求：${context.style}` : "",
+lib\ai\recommend-dishes.ts:167:       seasonLine: `- 当前季节：${season}`,
+lib\ai\recommend-dishes.ts:180:       throw new Error("未找到可用的提示词配置");
+lib\ai\recommend-dishes.ts:240:     console.error("AI 推荐菜名失败:", error);
+lib\ai\recommend-dishes.ts:256:       { name: "麻婆豆腐", reason: "川菜经典，麻辣鲜香", confidence: 0.95 },
+lib\ai\recommend-dishes.ts:257:       { name: "宫保鸡丁", reason: "川菜名菜，口味独特", confidence: 0.92 },
+lib\ai\recommend-dishes.ts:258:       { name: "回锅肉", reason: "川菜代表，香辣可口", confidence: 0.90 },
+lib\ai\recommend-dishes.ts:259:       { name: "水煮鱼", reason: "麻辣鲜香，适合聚餐", confidence: 0.88 },
+lib\ai\recommend-dishes.ts:260:       { name: "鱼香肉丝", reason: "风味独特，家常必备", confidence: 0.87 },
+lib\ai\recommend-dishes.ts:261:       { name: "夫妻肺片", reason: "凉菜经典，麻辣爽口", confidence: 0.85 },
+lib\ai\recommend-dishes.ts:262:       { name: "担担面", reason: "川味小吃，香辣开胃", confidence: 0.84 },
+lib\ai\recommend-dishes.ts:263:       { name: "口水鸡", reason: "凉菜佳品，麻辣鲜香", confidence: 0.83 },
+lib\ai\recommend-dishes.ts:264:       { name: "酸菜鱼", reason: "酸辣开胃，鱼肉鲜嫩", confidence: 0.82 },
+lib\ai\recommend-dishes.ts:265:       { name: "辣子鸡", reason: "香辣酥脆，下酒佳品", confidence: 0.81 },
+lib\ai\recommend-dishes.ts:268:       { name: "白切鸡", reason: "粤菜经典，原汁原味", confidence: 0.95 },
+lib\ai\recommend-dishes.ts:269:       { name: "清蒸鲈鱼", reason: "清淡鲜美，营养丰富", confidence: 0.92 },
+lib\ai\recommend-dishes.ts:270:       { name: "叉烧", reason: "广式烧腊，甜香可口", confidence: 0.90 },
+lib\ai\recommend-dishes.ts:271:       { name: "虾饺", reason: "早茶必点，皮薄馅鲜", confidence: 0.88 },
+lib\ai\recommend-dishes.ts:272:       { name: "烧鹅", reason: "广式烧腊，皮脆肉嫩", confidence: 0.87 },
+lib\ai\recommend-dishes.ts:273:       { name: "蒸排骨", reason: "豉汁蒸制，鲜嫩入味", confidence: 0.85 },
+lib\ai\recommend-dishes.ts:274:       { name: "煲仔饭", reason: "广式特色，锅巴香脆", confidence: 0.84 },
+lib\ai\recommend-dishes.ts:275:       { name: "老火靓汤", reason: "广式煲汤，滋补养生", confidence: 0.83 },
+lib\ai\recommend-dishes.ts:276:       { name: "肠粉", reason: "早茶经典，滑嫩爽口", confidence: 0.82 },
+lib\ai\recommend-dishes.ts:277:       { name: "糖醋咕噜肉", reason: "酸甜可口，老少皆宜", confidence: 0.81 },
+lib\ai\recommend-dishes.ts:280:       { name: "剁椒鱼头", reason: "湘菜名菜，鲜辣开胃", confidence: 0.95 },
+lib\ai\recommend-dishes.ts:281:       { name: "小炒肉", reason: "湘菜经典，香辣下饭", confidence: 0.92 },
+lib\ai\recommend-dishes.ts:282:       { name: "口味虾", reason: "长沙名吃，麻辣鲜香", confidence: 0.90 },
+lib\ai\recommend-dishes.ts:283:       { name: "毛氏红烧肉", reason: "湘菜代表，肥而不腻", confidence: 0.88 },
+lib\ai\recommend-dishes.ts:284:       { name: "干锅花菜", reason: "干香入味，下饭神器", confidence: 0.85 },
+lib\ai\recommend-dishes.ts:285:       { name: "酸辣鸡杂", reason: "酸辣开胃，口感丰富", confidence: 0.83 },
+lib\ai\recommend-dishes.ts:290:     { name: "红烧肉", reason: "经典家常菜，肥而不腻", confidence: 0.90 },
+lib\ai\recommend-dishes.ts:291:     { name: "糖醋排骨", reason: "酸甜可口，老少皆宜", confidence: 0.88 },
+lib\ai\recommend-dishes.ts:292:     { name: "番茄炒蛋", reason: "入门级家常菜，简单美味", confidence: 0.87 },
+lib\ai\recommend-dishes.ts:293:     { name: "酸辣土豆丝", reason: "开胃小菜，制作快捷", confidence: 0.85 },
+lib\ai\recommend-dishes.ts:294:     { name: "可乐鸡翅", reason: "甜咸适口，孩子喜爱", confidence: 0.84 },
+lib\ai\recommend-dishes.ts:295:     { name: "蒜蓉蒸虾", reason: "海鲜佳品，营养丰富", confidence: 0.83 },
+lib\ai\recommend-dishes.ts:296:     { name: "青椒肉丝", reason: "家常小炒，简单美味", confidence: 0.82 },
+lib\ai\recommend-dishes.ts:297:     { name: "蚂蚁上树", reason: "下饭神器，口感丰富", confidence: 0.81 },
+lib\ai\recommend-dishes.ts:298:     { name: "地三鲜", reason: "东北名菜，素菜经典", confidence: 0.80 },
+lib\ai\recommend-dishes.ts:299:     { name: "西红柿牛腩", reason: "酸甜开胃，营养丰富", confidence: 0.79 },
+lib\ai\rule-generator.ts:41:   return `你是一个食谱数据库查询规则生成器。用户会用自然语言描述他们想要的食谱类型，你需要根据可用的标签生成精确的查询规则。
+lib\ai\rule-generator.ts:99:           "value": "标签ID"
+lib\ai\rule-generator.ts:104:   "explanation": "简短解释为什么选择这些标签（中文，1-2句话）",
+lib\ai\rule-generator.ts:111: ### 示例1：用户输入 "产后产妇食谱"
+lib\ai\rule-generator.ts:131:   "explanation": "选择了月子餐场景和产妇人群标签，精确匹配产后调理需求",
+lib\ai\rule-generator.ts:136: ### 示例2：用户输入 "适合老人的清淡家常菜"
+lib\ai\rule-generator.ts:161:   "explanation": "选择了老人人群、清淡口味和家常菜场合，符合老年人饮食习惯",
+lib\ai\rule-generator.ts:166: ### 示例3：用户输入 "快手下饭菜"
+lib\ai\rule-generator.ts:181:   "explanation": "选择了快手菜和下饭菜场景标签，满足快速烹饪且适合配饭的需求",
+lib\ai\rule-generator.ts:186: 现在请根据用户输入生成规则：`;
+lib\ai\rule-generator.ts:244:       throw new Error("AI 返回格式错误：未找到 JSON");
+lib\ai\rule-generator.ts:251:       throw new Error("AI 返回格式错误：缺少 ruleGroups");
+lib\ai\rule-generator.ts:256:     console.error("AI 生成规则失败:", error);
+lib\ai\rule-generator.ts:257:     throw new Error(`AI 生成规则失败: ${error instanceof Error ? error.message : "未知错误"}`);
+lib\ai\rule-generator.ts:282:         errors.push(`无效的字段类型: ${rule.field}`);
+lib\ai\rule-generator.ts:288:         errors.push(`无效的操作符: ${rule.operator}`);
+lib\ai\rule-generator.ts:295:           errors.push(`无效的标签 ID: ${value}`);
+lib\ai\tag-relations.ts:29:   console.log("📋 AI 返回的标签:", JSON.stringify(aiTags, null, 2));
+lib\ai\tag-relations.ts:36:     console.log("⚠️ AI 未返回任何标签");
+lib\ai\tag-relations.ts:43:   console.log("✅ 标签验证结果:", {
+lib\ai\tag-relations.ts:76:   console.log(`🏷️ 成功关联 ${created} 个标签到菜谱 ${params.recipeId}`);
+lib\ai\tag-validator.ts:96:   // 2. 验证场景 (scenes) - 使用 Tag 模型，type = "scene"
+lib\ai\tag-validator.ts:115:   // 3. 验证烹饪方式 (cookingMethods) - 使用 Tag 模型，type = "method"
+lib\ai\tag-validator.ts:134:   // 4. 验证口味 (tastes) - 使用 Tag 模型，type = "taste"
+lib\ai\tag-validator.ts:147:   // 5. 验证人群 (crowds) - 使用 Tag 模型，type = "crowd"
+lib\ai\tag-validator.ts:160:   // 6. 验证场合 (occasions) - 使用 Tag 模型，type = "occasion"
+lib\ai\translate.ts:41:   zh: { zh: "中文", en: "Chinese" },
+lib\ai\translate.ts:42:   en: { zh: "英文", en: "English" },
+lib\ai\translate.ts:43:   ja: { zh: "日文", en: "Japanese" },
+lib\ai\translate.ts:44:   ko: { zh: "韩文", en: "Korean" },
+lib\ai\translate.ts:68:       .replace(/,\s*}/g, "}") // 移除尾逗号
+lib\ai\translate.ts:69:       .replace(/,\s*]/g, "]"); // 移除数组尾逗号
+lib\ai\translate.ts:112:       return { success: false, error: "菜谱不存在" };
+lib\ai\translate.ts:133:       return { success: false, error: "未找到可用的提示词配置" };
+lib\ai\translate.ts:174:       return { success: false, error: "AI 返回内容解析失败" };
+lib\ai\translate.ts:221:     console.error(`翻译菜谱 ${recipeId} 失败:`, error);
+lib\ai\translate.ts:244:       return { success: false, error: "菜系不存在" };
+lib\ai\translate.ts:254:       return { success: false, error: "未找到可用的提示词配置" };
+lib\ai\translate.ts:294:       return { success: false, error: "AI 返回内容解析失败" };
+lib\ai\translate.ts:325:     console.error(`翻译菜系 ${cuisineId} 失败:`, error);
+lib\ai\translate.ts:345:       return { success: false, error: "地域不存在" };
+lib\ai\translate.ts:355:       return { success: false, error: "未找到可用的提示词配置" };
+lib\ai\translate.ts:395:       return { success: false, error: "AI 返回内容解析失败" };
+lib\ai\translate.ts:426:     console.error(`翻译地域 ${locationId} 失败:`, error);
+lib\ai\translate.ts:446:       return { success: false, error: "标签不存在" };
+lib\ai\translate.ts:456:       return { success: false, error: "未找到可用的提示词配置" };
+lib\ai\translate.ts:496:       return { success: false, error: "AI 返回内容解析失败" };
+lib\ai\translate.ts:525:     console.error(`翻译标签 ${tagId} 失败:`, error);
+lib\ai\translate.ts:545:       return { success: false, error: "合集不存在" };
+lib\ai\translate.ts:556:       return { success: false, error: "未找到可用的提示词配置" };
+lib\ai\translate.ts:596:       return { success: false, error: "AI 返回内容解析失败" };
+lib\ai\translate.ts:628:     console.error(`翻译合集 ${collectionId} 失败:`, error);
+lib\ai\translate.ts:648:       return { success: false, error: "食材不存在" };
+lib\ai\translate.ts:658:       return { success: false, error: "未找到可用的提示词配置" };
+lib\ai\translate.ts:698:       return { success: false, error: "AI 返回内容解析失败" };
+lib\ai\translate.ts:725:     console.error(`翻译食材 ${ingredientId} 失败:`, error);
+lib\ai\translate.ts:753:       return { success: false, error: `不支持的实体类型: ${entityType}` };
+lib\ai\translation-job-executor.ts:47:       return { success: false, error: "任务不存在" };
+lib\ai\translation-job-executor.ts:54:         error: `任务状态异常: ${job.status}`,
+lib\ai\translation-job-executor.ts:69:       return { success: false, error: "任务已取消" };
+lib\ai\translation-job-executor.ts:72:     console.log(`[TranslationJob ${jobId}] 开始翻译 ${job.entityType}:${job.entityId} -> ${job.targetLang}`);
+lib\ai\translation-job-executor.ts:94:       console.log(`[TranslationJob ${jobId}] 翻译完成，质量分数: ${result.qualityScore}`);
+lib\ai\translation-job-executor.ts:116:       console.error(`[TranslationJob ${jobId}] 翻译失败: ${result.error}, 重试次数: ${newRetryCount}/${job.maxRetries}`);
+lib\ai\translation-job-executor.ts:124:     console.error(`[TranslationJob ${jobId}] 执行异常:`, error);
+lib\ai\translation-job-executor.ts:148:       console.error(`[TranslationJob ${jobId}] 更新失败状态失败:`, updateError);
+lib\ai\translation-job-executor.ts:164:       console.error(`[TranslationJob ${jobId}] 异步执行失败:`, error);
+lib\ai\translation-job-executor.ts:198:     console.error(`[TranslationJob ${jobId}] 取消失败:`, error);
+lib\ai\translation-job-executor.ts:235:     console.error(`[TranslationJob ${jobId}] 重试失败:`, error);
+lib\ai\translation-job-executor.ts:261:     console.log(`[TranslationQueue] 发现 ${pendingJobs.length} 个待翻译任务`);
+lib\ai\translation-job-executor.ts:275:     console.log(`[TranslationQueue] 完成 ${processedCount}/${pendingJobs.length} 个翻译任务`);
+lib\ai\translation-job-executor.ts:279:     console.error("[TranslationQueue] 处理队列失败:", error);
+lib\ai\url-validator.ts:29:   ".openai.azure.com", // Azure OpenAI 区域端点
+lib\ai\url-validator.ts:98:     `无效的 AI 服务地址: ${url}。请使用白名单内的 AI 服务提供商。`
+lib\ai\prompt-generator\classifier.ts:11:         '切', '洗', '准备', '腌', '码', '剁', '搅拌', '混合',
+lib\ai\prompt-generator\classifier.ts:12:         '筛', '称', '量', '剥', '去皮', '去籽', '泡',
+lib\ai\prompt-generator\classifier.ts:15:         '炒', '煮', '蒸', '炸', '烤', '煎', '焖', '炖', '烧',
+lib\ai\prompt-generator\classifier.ts:16:         '焯', '爆', '溜', '煨', '熬', '卤', '腌', '拌',
+lib\ai\prompt-generator\classifier.ts:17:         '下锅', '入锅', '加热', '翻炒', '搅动',
+lib\ai\prompt-generator\classifier.ts:20:         '装盘', '摆盘', '撒', '淋', '浇', '点缀', '码放',
+lib\ai\prompt-generator\classifier.ts:21:         '盛', '放入盘中', '倒入碗', '成品',
+lib\ai\prompt-generator\healing-prompt-generator.ts:91:       `解析治愈美学提示词响应失败: ${error instanceof Error ? error.message : '未知错误'}\n响应内容: ${response.substring(0, 500)}`
+lib\ai\prompt-generator\healing-prompt-generator.ts:102:     throw new Error('缺少 sceneContext 字段');
+lib\ai\prompt-generator\healing-prompt-generator.ts:107:     throw new Error('sceneContext 缺少必要字段 (kitchenStyle, lightingMood, colorPalette)');
+lib\ai\prompt-generator\healing-prompt-generator.ts:111:     throw new Error('sceneContext.props 必须是非空数组');
+lib\ai\prompt-generator\healing-prompt-generator.ts:116:     throw new Error('shots 必须是数组');
+lib\ai\prompt-generator\healing-prompt-generator.ts:123:       `警告: shots 数量 (${result.shots.length}) 与期望数量 (${expectedTotalShots}) 不匹配（${expectedStepCount} 步骤 + 1 封面）`
+lib\ai\prompt-generator\healing-prompt-generator.ts:131:       throw new Error(`shot ${shot.step ?? '?'} 缺少必要字段 (step, prompt)`);
+lib\ai\prompt-generator\healing-system-prompt.ts:8: export const HEALING_SYSTEM_PROMPT = `你是一位专业的美食摄影提示词生成专家，专注于中国家庭厨房的治愈美学风格。
+lib\ai\prompt-generator\healing-system-prompt.ts:67:     "kitchenStyle": "具体的厨房风格描述",
+lib\ai\prompt-generator\healing-system-prompt.ts:68:     "lightingMood": "光线氛围描述",
+lib\ai\prompt-generator\healing-system-prompt.ts:69:     "colorPalette": "主要色彩",
+lib\ai\prompt-generator\healing-system-prompt.ts:70:     "props": ["道具1", "道具2", "道具3"]
+lib\ai\prompt-generator\healing-system-prompt.ts:77:       "cameraAngle": "相机角度描述",
+lib\ai\prompt-generator\healing-system-prompt.ts:78:       "prompt": "完整的英文正向提示词...",
+lib\ai\prompt-generator\healing-system-prompt.ts:79:       "negativePrompt": "英文负向提示词..."
+lib\ai\prompt-generator\healing-system-prompt.ts:86:       "prompt": "成品图的英文正向提示词...",
+lib\ai\prompt-generator\healing-system-prompt.ts:87:       "negativePrompt": "英文负向提示词..."
+lib\ai\prompt-generator\healing-system-prompt.ts:93: **注意**：shots 数组的最后一项必须是成品图（step: 0, key: "cover"）
+lib\ai\prompt-generator\healing-system-prompt.ts:104:    - 摄影参数（如 "50mm lens, f/2.8, shallow depth of field"）
+lib\ai\prompt-generator\healing-system-prompt.ts:106: 4. **负向提示词**：始终包含 "AI generated, plastic, fake, cartoon, 3D render, oversaturated, perfect symmetry, stock photo, watermark, text, fingers, hands in frame"
+lib\ai\prompt-generator\healing-system-prompt.ts:137: - **ratio**: "16:9"（横版封面图）
+lib\ai\prompt-generator\healing-system-prompt.ts:144:   - 成品应该是真实的最终状态（如红糖馒头成品是白色带红糖痕迹的馒头）`;
+lib\ai\prompt-generator\healing-system-prompt.ts:155:     light_and_fresh: '清淡鲜爽风格，明亮高调',
+lib\ai\prompt-generator\healing-system-prompt.ts:156:     dark_and_moody: '浓郁深沉风格，温暖低调',
+lib\ai\prompt-generator\healing-system-prompt.ts:157:     baking: '烘焙风格，金黄木质',
+lib\ai\prompt-generator\healing-system-prompt.ts:161:     .map((s) => `步骤${s.number}: ${s.title || ''} - ${s.description}`)
+lib\ai\prompt-generator\healing-system-prompt.ts:164:   return `请为以下中国菜谱生成治愈美学风格的图片提示词。
+lib\ai\prompt-generator\healing-system-prompt.ts:177: 3. **重要**：在 shots 数组最后添加一张成品图（step: 0, key: "cover", ratio: "16:9"）
+lib\ai\prompt-generator\healing-system-prompt.ts:181: 7. 严格按照 JSON 格式输出，不要添加任何解释文字`;
+lib\ai\prompt-generator\index.ts:194:                 `[HealingPromptGenerator] 新版生成失败，回退到旧逻辑: ${error instanceof Error ? error.message : '未知错误'}`
+lib\ai\prompt-generator\translator.ts:21: - Input: "将黄瓜切成小丁"
+lib\ai\prompt-generator\translator.ts:24: - Input: "热锅下油，倒入鸡丁滑炒至变色"
+lib\ai\prompt-generator\translator.ts:27: - Input: "将打好的奶油裱在蛋糕上"
+lib\auth\guard.ts:18:       { success: false, error: "未登录" },
+lib\auth\guard.ts:24:       { success: false, error: "需要管理员权限" },
+lib\auth\guard.ts:39:       { success: false, error: "未登录" },
+lib\auth\index.ts:16:   session: { strategy: "jwt" }, // 使用 JWT，不需要数据库
+lib\collection\rule-engine.ts:292:       errors.push("Auto 规则必须指定 field");
+lib\collection\rule-engine.ts:295:       errors.push("Auto 规则必须指定 value");
+lib\collection\rule-engine.ts:298:       errors.push(`无效的 field: ${rules.field}`);
+lib\collection\rule-engine.ts:305:         errors.push(`规则组 ${i + 1} 的 logic 必须是 AND 或 OR`);
+lib\collection\rule-engine.ts:312:           ...conditionErrors.map((e) => `规则组 ${i + 1} 条件 ${j + 1}: ${e}`)
+lib\collection\rule-engine.ts:321:       errors.push(...conditionErrors.map((e) => `排除条件 ${i + 1}: ${e}`));
+lib\collection\rule-engine.ts:324:     errors.push("无效的规则类型");
+lib\collection\rule-engine.ts:337:     errors.push("必须指定 field");
+lib\collection\rule-engine.ts:341:     errors.push("必须指定 operator");
+lib\collection\rule-engine.ts:346:     errors.push(`无效的 operator: ${condition.operator}`);
+lib\collection\rule-engine.ts:350:     errors.push("必须指定 value");
+lib\collection\rule-engine.ts:355:     errors.push("tag 字段必须指定 tagType");
+lib\collection\rule-engine.ts:363:       errors.push(`数值字段不支持 ${condition.operator} 操作符`);
+lib\collection\rule-engine.ts:372:       errors.push(`关联字段不支持 ${condition.operator} 操作符`);
+lib\collection\rule-engine.ts:385:       cuisineId: "菜系",
+lib\collection\rule-engine.ts:386:       locationId: "地区",
+lib\collection\rule-engine.ts:387:       tagId: "标签",
+lib\collection\rule-engine.ts:389:     return `自动匹配 ${fieldLabels[rules.field] || rules.field}`;
+lib\collection\rule-engine.ts:394:       return "无规则（匹配所有）";
+lib\collection\rule-engine.ts:399:       const logic = group.logic === "OR" ? " 或 " : " 且 ";
+lib\collection\rule-engine.ts:403:     let desc = groupDescs.join(" 且 ");
+lib\collection\rule-engine.ts:407:       desc += ` 排除: ${excludeDescs.join(", ")}`;
+lib\collection\rule-engine.ts:413:   return "未知规则类型";
+lib\collection\rule-engine.ts:421:     cuisineId: "菜系",
+lib\collection\rule-engine.ts:422:     locationId: "地区",
+lib\collection\rule-engine.ts:423:     tagId: "标签",
+lib\collection\rule-engine.ts:424:     tag: "标签",
+lib\collection\rule-engine.ts:425:     cookTime: "烹饪时间",
+lib\collection\rule-engine.ts:426:     prepTime: "准备时间",
+lib\collection\rule-engine.ts:427:     difficulty: "难度",
+lib\collection\rule-engine.ts:428:     servings: "份量",
+lib\collection\rule-engine.ts:432:     eq: "等于",
+lib\collection\rule-engine.ts:433:     neq: "不等于",
+lib\collection\rule-engine.ts:434:     in: "包含",
+lib\collection\rule-engine.ts:435:     nin: "不包含",
+lib\collection\rule-engine.ts:436:     lt: "小于",
+lib\collection\rule-engine.ts:437:     lte: "小于等于",
+lib\collection\rule-engine.ts:438:     gt: "大于",
+lib\collection\rule-engine.ts:439:     gte: "大于等于",
+lib\collection\sync.ts:101:         status: "DRAFT", // 默认草稿状态
+lib\custom-recipe\phase-messages.ts:34:       zh: "任务已提交",
+lib\custom-recipe\phase-messages.ts:38:       zh: "正在排队等待处理...",
+lib\custom-recipe\phase-messages.ts:47:       zh: "食谱研发中",
+lib\custom-recipe\phase-messages.ts:51:       zh: "资深厨师正在研发您的专属食谱...",
+lib\custom-recipe\phase-messages.ts:60:       zh: "配方已完成",
+lib\custom-recipe\phase-messages.ts:64:       zh: "食谱配方已完成，正在安排摄影团队...",
+lib\custom-recipe\phase-messages.ts:73:       zh: "构思拍摄方案",
+lib\custom-recipe\phase-messages.ts:77:       zh: "美食摄影师正在构思拍摄方案...",
+lib\custom-recipe\phase-messages.ts:86:       zh: "拍摄进行中",
+lib\custom-recipe\phase-messages.ts:90:       zh: "摄影团队正在为您拍摄精美图片...",
+lib\custom-recipe\phase-messages.ts:99:       zh: "质量审核",
+lib\custom-recipe\phase-messages.ts:103:       zh: "主编正在审核食谱质量...",
+lib\custom-recipe\phase-messages.ts:112:       zh: "制作完成",
+lib\custom-recipe\phase-messages.ts:116:       zh: "排版设计师已完成最终呈现！",
+lib\custom-recipe\phase-messages.ts:125:       zh: "制作遇到问题",
+lib\custom-recipe\phase-messages.ts:129:       zh: "很抱歉，制作过程中遇到了问题，请重试",
+lib\custom-recipe\phase-messages.ts:140:       "正在分析您的需求...",
+lib\custom-recipe\phase-messages.ts:141:       "挑选最佳食材搭配...",
+lib\custom-recipe\phase-messages.ts:142:       "调配调料比例...",
+lib\custom-recipe\phase-messages.ts:143:       "记录烹饪步骤...",
+lib\custom-recipe\phase-messages.ts:144:       "添加独家烹饪技巧...",
+lib\custom-recipe\phase-messages.ts:156:       "调整灯光和场景...",
+lib\custom-recipe\phase-messages.ts:157:       "布置拍摄道具...",
+lib\custom-recipe\phase-messages.ts:158:       "拍摄步骤图...",
+lib\custom-recipe\phase-messages.ts:159:       "捕捉最美角度...",
+lib\custom-recipe\phase-messages.ts:160:       "拍摄成品封面照...",
+lib\custom-recipe\phase-messages.ts:171:     zh: ["检查食材描述...", "核对步骤完整性...", "优化文案表达..."],
+lib\custom-recipe\phase-messages.ts:182:   { status: "recipe_generating" as const, label: { zh: "食谱研发", en: "Recipe Development" } },
+lib\custom-recipe\phase-messages.ts:183:   { status: "prompts_generating" as const, label: { zh: "拍摄准备", en: "Photo Preparation" } },
+lib\custom-recipe\phase-messages.ts:184:   { status: "images_generating" as const, label: { zh: "拍摄中", en: "Photo Shoot" } },
+lib\custom-recipe\phase-messages.ts:185:   { status: "reviewing" as const, label: { zh: "质量审核", en: "Quality Review" } },
+lib\custom-recipe\phase-messages.ts:186:   { status: "completed" as const, label: { zh: "最终呈现", en: "Final Presentation" } },
+lib\custom-recipe\phase-messages.ts:227:     return locale === "zh" ? "准备中..." : "Preparing...";
+lib\custom-recipe\phase-messages.ts:230:     ? `第 ${imagesDone}/${totalImages} 张`
+lib\custom-recipe\phase-messages.ts:254:     return locale === "zh" ? "即将完成" : "Almost done";
+lib\custom-recipe\phase-messages.ts:258:   return locale === "zh" ? `约 ${minutes} 分钟` : `About ${minutes} min`;
+lib\custom-recipe\task-executor.ts:91:       throw new Error(`任务 ${taskId} 不存在`);
+lib\custom-recipe\task-executor.ts:105:       throw new Error(result.error || "食谱生成失败");
+lib\custom-recipe\task-executor.ts:139:         status: "draft", // 先设为草稿，图片完成后再发布
+lib\custom-recipe\task-executor.ts:213:       throw new Error("图片任务不存在");
+lib\custom-recipe\task-executor.ts:217:       throw new Error(completedImageTask.errorMessage || "图片生成失败");
+lib\custom-recipe\task-executor.ts:222:       throw new Error(`图片任务状态异常: ${completedImageTask.status}`);
+lib\custom-recipe\task-executor.ts:228:         `步骤图未完全生成: ${completedImageTask.imagesDone}/${completedImageTask.totalSteps}`
+lib\custom-recipe\task-executor.ts:235:         `成品图未完全生成: ${completedImageTask.shotsDone}/${completedImageTask.totalShots}`
+lib\custom-recipe\task-executor.ts:241:       throw new Error("封面图未生成");
+lib\custom-recipe\task-executor.ts:250:       throw new Error("食谱数据丢失");
+lib\custom-recipe\task-executor.ts:254:       throw new Error("食谱封面图未保存");
+lib\custom-recipe\task-executor.ts:258:       throw new Error("食谱步骤数据缺失");
+lib\custom-recipe\task-executor.ts:282:     console.log(`[CustomRecipeTask] 任务 ${taskId} 完成，食谱ID: ${recipe.id}`);
+lib\custom-recipe\task-executor.ts:284:     const errorMessage = error instanceof Error ? error.message : "未知错误";
+lib\custom-recipe\task-executor.ts:285:     console.error(`[CustomRecipeTask] 任务 ${taskId} 失败:`, error);
+lib\custom-recipe\task-executor.ts:306:     throw new Error(`任务 ${taskId} 不存在`);
+lib\custom-recipe\task-executor.ts:310:     throw new Error(`任务状态为 ${task.status}，无法重试`);
+lib\home\defaults.ts:30:     { name: "川渝", description: "麻辣鲜香，经典川味", slug: "chuanyu" },
+lib\home\defaults.ts:31:     { name: "粤港澳", description: "清淡鲜美，原汁原味", slug: "yuegangao" },
+lib\home\defaults.ts:32:     { name: "江浙", description: "甜润细腻，精致讲究", slug: "jiangzhe" },
+lib\home\defaults.ts:33:     { name: "东北", description: "豪爽厚重，实惠下饭", slug: "dongbei" },
+lib\home\defaults.ts:34:     { name: "湖南", description: "酸辣浓郁，重口开胃", slug: "hunan" },
+lib\home\defaults.ts:35:     { name: "云贵", description: "酸辣鲜香，民族风味", slug: "yungui" },
+lib\home\defaults.ts:38:     { name: "川菜", description: "麻辣鲜香，百菜百味", slug: "chuancai" },
+lib\home\defaults.ts:39:     { name: "粤菜", description: "清淡鲜美，突出原味", slug: "yuecai" },
+lib\home\defaults.ts:40:     { name: "江浙菜", description: "清雅鲜甜，刀工细腻", slug: "jiangzhecai" },
+lib\home\defaults.ts:41:     { name: "鲁菜", description: "咸鲜醇厚，讲究火候", slug: "lucai" },
+lib\home\defaults.ts:42:     { name: "湘菜", description: "香辣浓郁，重口开胃", slug: "xiangcai" },
+lib\home\defaults.ts:43:     { name: "西北菜", description: "面食为主，香料独特", slug: "xibeicai" },
+lib\home\defaults.ts:46:     { name: "鸡肉", description: "高蛋白家常做法", slug: "鸡肉" },
+lib\home\defaults.ts:47:     { name: "猪肉", description: "经典家常味，百吃不腻", slug: "猪肉" },
+lib\home\defaults.ts:48:     { name: "牛肉", description: "耐嚼有滋味，补充能量", slug: "牛肉" },
+lib\home\defaults.ts:49:     { name: "鱼", description: "鲜嫩少刺，清爽好入口", slug: "鱼" },
+lib\home\defaults.ts:50:     { name: "虾", description: "鲜甜弹牙，宴客好选择", slug: "虾" },
+lib\home\defaults.ts:51:     { name: "豆腐", description: "百搭素食，营养均衡", slug: "豆腐" },
+lib\home\defaults.ts:52:     { name: "鸡蛋", description: "家常必备，百变做法", slug: "鸡蛋" },
+lib\home\defaults.ts:53:     { name: "番茄", description: "酸甜开胃，色泽诱人", slug: "番茄" },
+lib\home\defaults.ts:54:     { name: "土豆", description: "软糯饱腹，孩子最爱", slug: "土豆" },
+lib\home\defaults.ts:55:     { name: "菌菇", description: "鲜香浓郁，提升层次", slug: "菌菇" },
+lib\home\defaults.ts:56:     { name: "辣椒", description: "微辣开胃，香气更足", slug: "辣椒" },
+lib\home\defaults.ts:57:     { name: "青菜", description: "清爽解腻，搭配更均衡", slug: "青菜" },
+lib\home\defaults.ts:80:     { name: "Chicken", description: "High-protein, everyday classics", slug: "鸡肉" },
+lib\home\defaults.ts:81:     { name: "Pork", description: "Comforting, family-style staples", slug: "猪肉" },
+lib\home\defaults.ts:82:     { name: "Beef", description: "Rich, hearty, and satisfying", slug: "牛肉" },
+lib\home\defaults.ts:83:     { name: "Fish", description: "Light, tender, and fresh", slug: "鱼" },
+lib\home\defaults.ts:84:     { name: "Shrimp", description: "Sweet, springy, and festive", slug: "虾" },
+lib\home\defaults.ts:85:     { name: "Tofu", description: "Versatile, light, and balanced", slug: "豆腐" },
+lib\home\defaults.ts:86:     { name: "Eggs", description: "Simple, flexible, and fast", slug: "鸡蛋" },
+lib\home\defaults.ts:87:     { name: "Tomato", description: "Bright, tangy, and appetizing", slug: "番茄" },
+lib\home\defaults.ts:88:     { name: "Potato", description: "Soft, filling, and kid-friendly", slug: "土豆" },
+lib\home\defaults.ts:89:     { name: "Mushrooms", description: "Umami-rich and fragrant", slug: "菌菇" },
+lib\home\defaults.ts:90:     { name: "Chili Pepper", description: "Gentle heat, big aroma", slug: "辣椒" },
+lib\home\defaults.ts:91:     { name: "Greens", description: "Fresh, light, and balanced", slug: "青菜" },
+lib\home\defaults.ts:107:     name: "王雅婷",
+lib\home\defaults.ts:108:     role: "全职妈妈",
+lib\home\defaults.ts:109:     city: "北京",
+lib\home\defaults.ts:113:       "以前做饭完全靠外卖，有了孩子后想给他做点健康的。Recipe Zen 的食谱很适合我这种小白，步骤清楚还有语音朗读，手忙脚乱也不用一直看手机。上周做的番茄炖牛腩，老公夸了好久！",
+lib\home\defaults.ts:114:     meta: "⭐⭐⭐⭐⭐ | 使用 3 个月 | 已做成 28 道菜",
+lib\home\defaults.ts:117:     name: "李建国",
+lib\home\defaults.ts:118:     role: "程序员",
+lib\home\defaults.ts:119:     city: "深圳",
+lib\home\defaults.ts:123:       "996 的生活，回家只想吃口热乎的。我用定制功能输入“快手菜 + 低油少盐”，很快推荐了适合的菜。最喜欢智能计时器，到点提醒，不用担心煮过头。",
+lib\home\defaults.ts:124:     meta: "⭐⭐⭐⭐⭐ | 使用 2 个月 | 最爱功能：定制 + 计时",
+lib\home\defaults.ts:127:     name: "张敏",
+lib\home\defaults.ts:128:     role: "糖尿病患者",
+lib\home\defaults.ts:129:     city: "上海",
+lib\home\defaults.ts:133:       "确诊糖尿病后，饮食管理成了大问题。定制食谱能根据我的控糖需求生成方案，而且每道菜都有专业团队审核，不是随便拼凑的内容，吃得很放心。",
+lib\home\defaults.ts:134:     meta: "⭐⭐⭐⭐⭐ | 使用 5 个月 | 血糖管理案例",
+lib\home\defaults.ts:137:     name: "陈思远",
+lib\home\defaults.ts:138:     role: "留学生",
+lib\home\defaults.ts:139:     city: "美国加州",
+lib\home\defaults.ts:143:       "在国外特别想吃家乡菜，但又不会做。按地域分类的食谱帮了大忙，我是湖南人，网站上的川湘菜做法很地道。照着做剁椒鱼头时，真的特别感动。",
+lib\home\defaults.ts:144:     meta: "⭐⭐⭐⭐⭐ | 使用 4 个月 | 已复刻 15 道家乡菜",
+lib\home\defaults.ts:147:     name: "刘大爷",
+lib\home\defaults.ts:148:     role: "退休教师",
+lib\home\defaults.ts:149:     city: "成都",
+lib\home\defaults.ts:153:       "年纪大了眼神不好，但语音朗读功能特别方便，字也能调大。打印食谱更绝，贴厨房墙上做菜一抬头就看见。现在老伴儿都夸我手艺见长。",
+lib\home\defaults.ts:154:     meta: "⭐⭐⭐⭐⭐ | 使用 6 个月 | 最爱功能：语音 + 打印",
+lib\home\defaults.ts:157:     name: "小鹿美食记",
+lib\home\defaults.ts:158:     role: "美食博主",
+lib\home\defaults.ts:159:     city: "杭州",
+lib\home\defaults.ts:163:       "经常需要高清菜品图做封面，Recipe Zen 的图片库真实感很强，而且免费可商用！食谱内容也扎实，步骤能复现，我会推荐粉丝来学菜。",
+lib\home\defaults.ts:164:     meta: "⭐⭐⭐⭐⭐ | 使用 8 个月 | 已下载 200+ 张图片",
+lib\i18n\config.ts:25:   zh: "中文",
+lib\i18n\translations.ts:28:       loading: "加载中...",
+lib\i18n\translations.ts:29:       error: "出错了",
+lib\i18n\translations.ts:30:       retry: "重试",
+lib\i18n\translations.ts:31:       save: "保存",
+lib\i18n\translations.ts:32:       cancel: "取消",
+lib\i18n\translations.ts:33:       confirm: "确认",
+lib\i18n\translations.ts:34:       delete: "删除",
+lib\i18n\translations.ts:35:       edit: "编辑",
+lib\i18n\translations.ts:36:       search: "搜索",
+lib\i18n\translations.ts:37:       filter: "筛选",
+lib\i18n\translations.ts:38:       sort: "排序",
+lib\i18n\translations.ts:39:       viewAll: "查看全部",
+lib\i18n\translations.ts:40:       learnMore: "了解更多",
+lib\i18n\translations.ts:41:       backToHome: "返回首页",
+lib\i18n\translations.ts:42:       noResults: "暂无结果",
+lib\i18n\translations.ts:43:       seeMore: "查看更多",
+lib\i18n\translations.ts:45:       recipesCount: "共 {count} 道菜谱",
+lib\i18n\translations.ts:46:       recipesFound: "共找到 {count} 道菜谱",
+lib\i18n\translations.ts:47:       noRecipesYet: "暂无该菜系食谱",
+lib\i18n\translations.ts:48:       tryAiCustom: "试试 AI 定制",
+lib\i18n\translations.ts:49:       browseAll: "浏览全部食谱",
+lib\i18n\translations.ts:50:       allRecipes: "全部食谱",
+lib\i18n\translations.ts:51:       signaturePicks: "本菜系精选",
+lib\i18n\translations.ts:52:       popularDishes: "最受欢迎的代表菜",
+lib\i18n\translations.ts:53:       exploreMore: "探索更多",
+lib\i18n\translations.ts:54:       otherCuisines: "其他菜系",
+lib\i18n\translations.ts:55:       previous: "上一页",
+lib\i18n\translations.ts:56:       nextPage: "下一页",
+lib\i18n\translations.ts:57:       pageOf: "第 {current} / {total} 页",
+lib\i18n\translations.ts:60:       home: "首页",
+lib\i18n\translations.ts:61:       recipes: "食谱",
+lib\i18n\translations.ts:62:       gallery: "图库",
+lib\i18n\translations.ts:63:       about: "关于",
+lib\i18n\translations.ts:64:       blog: "博客",
+lib\i18n\translations.ts:65:       search: "搜索",
+lib\i18n\translations.ts:66:       aiCustom: "AI 定制",
+lib\i18n\translations.ts:69:       signIn: "登录",
+lib\i18n\translations.ts:70:       signOut: "退出登录",
+lib\i18n\translations.ts:71:       admin: "后台管理",
+lib\i18n\translations.ts:72:       user: "用户",
+lib\i18n\translations.ts:75:       myFavorites: "我的收藏",
+lib\i18n\translations.ts:76:       addToFavorites: "添加收藏",
+lib\i18n\translations.ts:77:       removeFromFavorites: "取消收藏",
+lib\i18n\translations.ts:80:       all: "全部",
+lib\i18n\translations.ts:81:       region: "地点",
+lib\i18n\translations.ts:82:       cuisine: "菜系",
+lib\i18n\translations.ts:83:       scene: "场景",
+lib\i18n\translations.ts:84:       method: "做法",
+lib\i18n\translations.ts:85:       taste: "口味",
+lib\i18n\translations.ts:86:       crowd: "人群",
+lib\i18n\translations.ts:87:       occasion: "场合",
+lib\i18n\translations.ts:88:       moreFilters: "更多筛选",
+lib\i18n\translations.ts:89:       lessFilters: "收起筛选",
+lib\i18n\translations.ts:90:       clearAll: "清除所有筛选",
+lib\i18n\translations.ts:91:       searchPlaceholder: "搜索菜谱...比如：宫保鸡丁、红烧肉",
+lib\i18n\translations.ts:94:       copyLink: "复制链接",
+lib\i18n\translations.ts:95:       linkCopied: "链接已复制",
+lib\i18n\translations.ts:96:       shareToX: "分享到 Twitter",
+lib\i18n\translations.ts:97:       shareToWeibo: "分享到微博",
+lib\i18n\translations.ts:98:       moreOptions: "更多分享",
+lib\i18n\translations.ts:101:       loading: "加载中...",
+lib\i18n\translations.ts:102:       saving: "保存中...",
+lib\i18n\translations.ts:103:       saved: "已保存",
+lib\i18n\translations.ts:104:       success: "成功",
+lib\i18n\translations.ts:105:       failed: "失败",
+lib\i18n\translations.ts:106:       copied: "已复制",
+lib\i18n\translations.ts:107:       generating: "生成中...",
+lib\i18n\translations.ts:108:       copyFailed: "复制失败，请重试",
+lib\i18n\translations.ts:109:       downloadFailed: "下载失败，请重试",
+lib\i18n\translations.ts:112:       generateNow: "立即生成食谱",
+lib\i18n\translations.ts:113:       generateFailed: "生成失败，请重试",
+lib\i18n\translations.ts:114:       notFound: "找不到菜谱？我们会为您智能生成！",
+lib\i18n\translations.ts:115:       customRecipes: "看看别人都定制了什么",
+lib\i18n\translations.ts:116:       wantCustomize: "我也要定制 →",
+lib\i18n\translations.ts:117:       aiChefTip: "不过，我们的 AI 主厨可以为您即时创作！",
+lib\i18n\translations.ts:119:       chefTitle: "AI 智能主厨",
+lib\i18n\translations.ts:120:       chefDescription: "我是你的数字主厨。关于这道《{title}》，有任何问题，比如没放啤酒可以用什么代替，我都会守在灶台边为你解答。",
+lib\i18n\translations.ts:121:       chefPlaceholder: "例如：没放啤酒可以用白酒代替吗？",
+lib\i18n\translations.ts:122:       chefAsk: "咨询主厨",
+lib\i18n\translations.ts:123:       chefThinking: "思考中...",
+lib\i18n\translations.ts:124:       chefAdvice: "主厨的建议：",
+lib\i18n\translations.ts:125:       chefUnavailable: "AI 服务暂时不可用",
+lib\i18n\translations.ts:126:       chefError: "抱歉，AI 主厨暂时无法回答，请稍后再试。",
+lib\i18n\translations.ts:129:       loadingImage: "图片加载中...",
+lib\i18n\translations.ts:130:       stepImage: "步骤配图",
+lib\i18n\translations.ts:131:       title: "高清美食图片库",
+lib\i18n\translations.ts:132:       viewRelated: "查看相关菜谱",
+lib\i18n\translations.ts:133:       downloadFailed: "下载失败",
+lib\i18n\translations.ts:134:       downloadFailedRetry: "下载失败，请稍后重试",
+lib\i18n\translations.ts:135:       view: "查看大图",
+lib\i18n\translations.ts:136:       download: "下载图片",
+lib\i18n\translations.ts:137:       loading: "加载中...",
+lib\i18n\translations.ts:138:       loadedAll: "已加载全部",
+lib\i18n\translations.ts:139:       images: "张图片",
+lib\i18n\translations.ts:140:       viewRecipe: "查看食谱",
+lib\i18n\translations.ts:141:       recipeOf: "的做法",
+lib\i18n\translations.ts:142:       hdPhoto: "高清图片",
+lib\i18n\translations.ts:145:       minutes: "分钟",
+lib\i18n\translations.ts:146:       easy: "简单",
+lib\i18n\translations.ts:147:       medium: "中等",
+lib\i18n\translations.ts:148:       hard: "困难",
+lib\i18n\translations.ts:149:       calories: "热量",
+lib\i18n\translations.ts:150:       protein: "蛋白质",
+lib\i18n\translations.ts:151:       fat: "脂肪",
+lib\i18n\translations.ts:152:       carbs: "碳水",
+lib\i18n\translations.ts:153:       fiber: "膳食纤维",
+lib\i18n\translations.ts:154:       sodium: "钠",
+lib\i18n\translations.ts:155:       timerFinished: "计时器结束",
+lib\i18n\translations.ts:156:       copy: "复制",
+lib\i18n\translations.ts:157:       copied: "已复制",
+lib\i18n\translations.ts:158:       recipeNotFound: "食谱不存在",
+lib\i18n\translations.ts:159:       teamReviewed: "专业审核的可靠食谱。",
+lib\i18n\translations.ts:160:       ingredientsList: "食材清单",
+lib\i18n\translations.ts:161:       stepsTitle: "制作步骤",
+lib\i18n\translations.ts:162:       cookingTips: "烹饪技巧",
+lib\i18n\translations.ts:163:       nutritionTitle: "营养信息",
+lib\i18n\translations.ts:164:       faqTitle: "常见问题",
+lib\i18n\translations.ts:165:       pairingTitle: "搭配推荐",
+lib\i18n\translations.ts:166:       presentedBy: "本食谱由以下成员呈现",
+lib\i18n\translations.ts:167:       explorerLabel: "探索者",
+lib\i18n\translations.ts:168:       reviewerLabel: "审核者",
+lib\i18n\translations.ts:171:       ingredients: "食材",
+lib\i18n\translations.ts:172:       steps: "步骤",
+lib\i18n\translations.ts:173:       stepsCount: "共 {count} 步",
+lib\i18n\translations.ts:174:       servings: "份量",
+lib\i18n\translations.ts:175:       servingsUnit: "人份",
+lib\i18n\translations.ts:176:       prepTime: "准备时间",
+lib\i18n\translations.ts:177:       cookTime: "烹饪时间",
+lib\i18n\translations.ts:178:       totalTime: "总时间",
+lib\i18n\translations.ts:179:       activeTime: "操作时间",
+lib\i18n\translations.ts:180:       difficulty: "难度",
+lib\i18n\translations.ts:181:       difficultyLabel: "难度系数",
+lib\i18n\translations.ts:182:       estimated: "参考能量",
+lib\i18n\translations.ts:183:       easy: "简单",
+lib\i18n\translations.ts:184:       medium: "中等",
+lib\i18n\translations.ts:185:       hard: "困难",
+lib\i18n\translations.ts:186:       nutrition: "营养信息",
+lib\i18n\translations.ts:187:       tips: "小贴士",
+lib\i18n\translations.ts:188:       story: "文化故事",
+lib\i18n\translations.ts:189:       startCooking: "开始烹饪",
+lib\i18n\translations.ts:190:       exitCookMode: "退出",
+lib\i18n\translations.ts:191:       nextStep: "下一步",
+lib\i18n\translations.ts:192:       prevStep: "上一步",
+lib\i18n\translations.ts:193:       timer: "计时器",
+lib\i18n\translations.ts:194:       persons: "人",
+lib\i18n\translations.ts:195:       minutes: "分钟",
+lib\i18n\translations.ts:196:       min: "分钟",
+lib\i18n\translations.ts:197:       calories: "卡路里",
+lib\i18n\translations.ts:199:       downloadImage: "下载长图",
+lib\i18n\translations.ts:200:       printImage: "打印长图",
+lib\i18n\translations.ts:201:       preparing: "生成中...",
+lib\i18n\translations.ts:202:       preparingPrint: "准备中...",
+lib\i18n\translations.ts:203:       downloadImageFailed: "下载长图失败，请重试",
+lib\i18n\translations.ts:204:       printImageFailed: "打印长图失败，请重试",
+lib\i18n\translations.ts:205:       recipeLabel: "食谱",
+lib\i18n\translations.ts:206:       allowPopups: "请允许弹出窗口以打印食谱",
+lib\i18n\translations.ts:208:       timerRunning: "计时运行中",
+lib\i18n\translations.ts:209:       startTimer: "开启计时器",
+lib\i18n\translations.ts:211:       pause: "暂停",
+lib\i18n\translations.ts:212:       resume: "继续",
+lib\i18n\translations.ts:213:       start: "开始",
+lib\i18n\translations.ts:214:       reset: "重置",
+lib\i18n\translations.ts:215:       readStep: "朗读步骤",
+lib\i18n\translations.ts:216:       pressR: "(按 R 键)",
+lib\i18n\translations.ts:217:       doneWhen: "完成标志",
+lib\i18n\translations.ts:218:       clickToStart: "点击开始计时",
+lib\i18n\translations.ts:220:       exitConfirm: "退出烹饪模式将丢失进度，确定退出？",
+lib\i18n\translations.ts:221:       stepOf: "步骤",
+lib\i18n\translations.ts:222:       exit: "退出",
+lib\i18n\translations.ts:223:       doneWhenLabel: "完成标准：",
+lib\i18n\translations.ts:224:       pitfallLabel: "失败点：",
+lib\i18n\translations.ts:225:       readStepKey: "朗读步骤（按R键）",
+lib\i18n\translations.ts:226:       previous: "上一步",
+lib\i18n\translations.ts:227:       next: "下一步",
+lib\i18n\translations.ts:228:       finishCooking: "完成烹饪",
+lib\i18n\translations.ts:229:       jumpToStep: "跳转到步骤",
+lib\i18n\translations.ts:230:       timerRunningStatus: "计时进行中...",
+lib\i18n\translations.ts:231:       paused: "已暂停",
+lib\i18n\translations.ts:232:       shortcutSwitch: "← → 切换步骤",
+lib\i18n\translations.ts:233:       shortcutTimer: "空格 暂停/继续计时",
+lib\i18n\translations.ts:234:       shortcutRead: "R 朗读",
+lib\i18n\translations.ts:235:       shortcutExit: "ESC 退出",
+lib\i18n\translations.ts:236:       checkLabel: "状态检查：",
+lib\i18n\translations.ts:238:       mainIngredients: "主料",
+lib\i18n\translations.ts:239:       extras: "辅料",
+lib\i18n\translations.ts:240:       save: "收藏",
+lib\i18n\translations.ts:241:       saved: "已收藏",
+lib\i18n\translations.ts:242:       share: "分享",
+lib\i18n\translations.ts:243:       download: "下载食谱",
+lib\i18n\translations.ts:244:       print: "打印食谱",
+lib\i18n\translations.ts:245:       downloadFailed: "下载失败，请稍后重试",
+lib\i18n\translations.ts:246:       aiGenerated: "AI生成",
+lib\i18n\translations.ts:248:       byRegion: "按地点",
+lib\i18n\translations.ts:249:       byCuisine: "按菜系",
+lib\i18n\translations.ts:250:       byIngredient: "按食材",
+lib\i18n\translations.ts:251:       searchHint: "找不到菜谱？我们会为您智能生成！",
+lib\i18n\translations.ts:253:       aboutDish: "关于这道菜：",
+lib\i18n\translations.ts:254:       step: "步骤",
+lib\i18n\translations.ts:255:       check: "状态检查：",
+lib\i18n\translations.ts:256:       pitfall: "失败点：",
+lib\i18n\translations.ts:257:       printedAt: "打印时间",
+lib\i18n\translations.ts:258:       summary: "摘要：",
+lib\i18n\translations.ts:259:       faq: "常见问题",
+lib\i18n\translations.ts:260:       troubleshooting: "失败排查",
+lib\i18n\translations.ts:261:       cause: "原因：",
+lib\i18n\translations.ts:262:       fix: "解决：",
+lib\i18n\translations.ts:263:       pairingSuggestions: "搭配建议",
+lib\i18n\translations.ts:264:       suggestions: "推荐搭配",
+lib\i18n\translations.ts:265:       sauceOrSide: "酱料/配菜",
+lib\i18n\translations.ts:266:       notes: "备注",
+lib\i18n\translations.ts:267:       perServing: "（每份）",
+lib\i18n\translations.ts:268:       shareOpened: "已打开分享",
+lib\i18n\translations.ts:269:       linkCopied: "链接已复制",
+lib\i18n\translations.ts:270:       shareFailed: "分享失败",
+lib\i18n\translations.ts:273:       heroTitle: "探索中国美食的无限魅力",
+lib\i18n\translations.ts:274:       heroSubtitle: "极致治愈 × 极致实用的中国美食指南",
+lib\i18n\translations.ts:275:       featuredRecipes: "精选食谱",
+lib\i18n\translations.ts:276:       browseByCategory: "按分类浏览",
+lib\i18n\translations.ts:277:       popularCuisines: "热门菜系",
+lib\i18n\translations.ts:278:       seasonalPicks: "时令推荐",
+lib\i18n\translations.ts:279:       latestRecipes: "最新食谱",
+lib\i18n\translations.ts:280:       testimonials: "用户证言",
+lib\i18n\translations.ts:281:       weeklyFavorites: "本周精选家常菜",
+lib\i18n\translations.ts:282:       viewMore: "查看更多",
+lib\i18n\translations.ts:283:       whyChooseUs: "为什么选择 Recipe Zen",
+lib\i18n\translations.ts:284:       ourMission: "我们的初心",
+lib\i18n\translations.ts:285:       learnOurStory: "了解我们的故事 →",
+lib\i18n\translations.ts:286:       cookingTips: "美食知识与烹饪技巧",
+lib\i18n\translations.ts:287:       statsGenerated: "已生成",
+lib\i18n\translations.ts:288:       statsCollected: "已收藏",
+lib\i18n\translations.ts:289:       statsRecipes: "菜谱",
+lib\i18n\translations.ts:290:       statsTimes: "次",
+lib\i18n\translations.ts:291:       teamVerified: "专业团队审核 · 步骤可复现",
+lib\i18n\translations.ts:292:       startJourney: "开始你的简单厨房之旅",
+lib\i18n\translations.ts:293:       noRegistration: "无需注册，无需付费，立即浏览 1000+ 精选家常菜。",
+lib\i18n\translations.ts:294:       startExploring: "开始探索食谱 →",
+lib\i18n\translations.ts:295:       tryAiCustom: "或尝试AI定制 →",
+lib\i18n\translations.ts:296:       browseAllRecipes: "浏览全部食谱 →",
+lib\i18n\translations.ts:297:       aiCustomSubtitle: "或试试 AI定制你的专属菜谱 →",
+lib\i18n\translations.ts:298:       noCustomRecipes: "暂无定制食谱，欢迎创建你的第一道专属菜谱。",
+lib\i18n\translations.ts:299:       realUserFeedback: "来自真实用户的反馈，温度与专业并存。",
+lib\i18n\translations.ts:300:       notJustRecipes: "不只是菜谱，还有实用的烹饪知识与美食文化。",
+lib\i18n\translations.ts:301:       readMore: "查看更多",
+lib\i18n\translations.ts:302:       teamPlaceholder: "团队与厨房场景",
+lib\i18n\translations.ts:304:       featureExpertReview: "专业审核",
+lib\i18n\translations.ts:305:       featureExpertReviewDesc: "每道菜谱都经过人工审核，保证质量。",
+lib\i18n\translations.ts:306:       featureClearSteps: "步骤清晰",
+lib\i18n\translations.ts:307:       featureClearStepsDesc: "语音+计时辅助，不怕出错，操作更顺畅。",
+lib\i18n\translations.ts:308:       featureSaveTime: "节省时间",
+lib\i18n\translations.ts:309:       featureSaveTimeDesc: "3分钟找到今天要做的菜，简化决策流程。",
+lib\i18n\translations.ts:310:       featureFamilyFriendly: "家庭友好",
+lib\i18n\translations.ts:311:       featureFamilyFriendlyDesc: "家常口味，适合孩子和长辈的需求。",
+lib\i18n\translations.ts:313:       toolsTitle: "让做饭更轻松的智能工具",
+lib\i18n\translations.ts:314:       toolsSubtitle: "从烹饪模式到语音提醒，让每一步都更从容。",
+lib\i18n\translations.ts:315:       cookModeTitle: "烹饪模式",
+lib\i18n\translations.ts:316:       cookModeFeature1: "大字体步骤显示，远距离也能看清",
+lib\i18n\translations.ts:317:       cookModeFeature2: "单步骤智能计时，声音提醒不忘记",
+lib\i18n\translations.ts:318:       cookModeFeature3: "语音朗读步骤，解放双手边听边做",
+lib\i18n\translations.ts:319:       cookModeFeature4: "支持中英文语音朗读",
+lib\i18n\translations.ts:320:       cookModeCta: "立即体验 →",
+lib\i18n\translations.ts:321:       toolkitTitle: "实用工具集",
+lib\i18n\translations.ts:322:       toolkitFeature1: "图文打印：完整步骤+配图，贴在厨房也方便",
+lib\i18n\translations.ts:323:       toolkitFeature2: "语音朗读：手上有面粉也能跟着做",
+lib\i18n\translations.ts:324:       toolkitFeature3: "智能计时：精准提醒，不怕错过火候",
+lib\i18n\translations.ts:325:       toolkitFeature4: "背景音乐：内置轻音乐，烹饪氛围更轻松",
+lib\i18n\translations.ts:326:       toolkitFeature5: "一键分享：和家人朋友一起学做菜",
+lib\i18n\translations.ts:327:       toolkitCta: "查看所有功能 →",
+lib\i18n\translations.ts:329:       valueFree: "免费",
+lib\i18n\translations.ts:330:       valueFreeDesc: "让每个人都能轻松学做菜，不因价格而犹豫。",
+lib\i18n\translations.ts:331:       valueHealing: "治愈",
+lib\i18n\translations.ts:332:       valueHealingDesc: "用一道道家常菜，温暖每个平凡的日子。",
+lib\i18n\translations.ts:333:       valueCare: "用心",
+lib\i18n\translations.ts:334:       valueCareDesc: "AI 提供效率，团队保证质量，细节更安心。",
+lib\i18n\translations.ts:336:       themeCardsTitle: "热门主题",
+lib\i18n\translations.ts:337:       themeCardsSubtitle: "精选食谱主题，找到你想要的",
+lib\i18n\translations.ts:339:       customRecipesTitle: "看看别人都定制了什么",
+lib\i18n\translations.ts:340:       customRecipesSubtitle: "从减脂餐到快手菜，AI 已帮助 10,000+ 人找到答案。",
+lib\i18n\translations.ts:342:       galleryPreviewSubtitle: "AI生成的精美图片，可免费下载使用。",
+lib\i18n\translations.ts:344:       quickBrowseTitle: "按菜系 / 地点浏览",
+lib\i18n\translations.ts:345:       quickBrowseSubtitle: "从四川到广东，从家常菜到宴客菜，一键直达你想要的风味。",
+lib\i18n\translations.ts:347:       valueLoopTitle: "从想法到成品，只需4步",
+lib\i18n\translations.ts:348:       valueLoopSubtitle: "清晰的步骤让烹饪不再复杂，每个人都能轻松上手。",
+lib\i18n\translations.ts:351:       placeholder: "搜索食谱、食材...",
+lib\i18n\translations.ts:352:       results: "搜索结果",
+lib\i18n\translations.ts:353:       noResultsFor: "未找到相关结果",
+lib\i18n\translations.ts:354:       tryDifferent: "试试其他关键词",
+lib\i18n\translations.ts:356:         cuisine: "菜系",
+lib\i18n\translations.ts:357:         difficulty: "难度",
+lib\i18n\translations.ts:358:         time: "时间",
+lib\i18n\translations.ts:359:         ingredients: "食材",
+lib\i18n\translations.ts:363:       about: "关于我们",
+lib\i18n\translations.ts:364:       contact: "联系我们",
+lib\i18n\translations.ts:365:       privacy: "隐私政策",
+lib\i18n\translations.ts:366:       terms: "使用条款",
+lib\i18n\translations.ts:367:       copyright: "版权所有",
+lib\i18n\translations.ts:368:       allRightsReserved: "保留所有权利",
+lib\i18n\translations.ts:369:       quickLinks: "快速链接",
+lib\i18n\translations.ts:370:       aiCustom: "AI 定制",
+lib\i18n\translations.ts:371:       ourStory: "品牌故事",
+lib\i18n\translations.ts:372:       team: "团队介绍",
+lib\i18n\translations.ts:373:       legal: "法律声明",
+lib\i18n\translations.ts:376:       selectLanguage: "选择语言",
+lib\i18n\translations.ts:379:       pageNotFound: "页面未找到",
+lib\i18n\translations.ts:380:       pageNotFoundDesc: "抱歉，您访问的页面不存在",
+lib\i18n\translations.ts:381:       serverError: "服务器错误",
+lib\i18n\translations.ts:382:       serverErrorDesc: "抱歉，服务器出现问题，请稍后重试",
+lib\i18n\translations.ts:750:  * @param path 路径，如 "common.loading"
+lib\i18n\translations.ts:769:  * @param key 翻译键，如 "common.loading"
+lib\i18n\translations.ts:790:  * @param namespace 命名空间，如 "common" 或 "recipe"
+lib\team\assign-members.ts:43:       console.log("⚠️ 没有活跃的团队成员，跳过分配");
+lib\team\assign-members.ts:66:       `✅ 随机分配完成: 探寻者=${result.explorerName || "无"}, 审核者=${result.reviewerName || "无"}`
+lib\team\assign-members.ts:69:     console.error("团队成员分配失败:", error);
+lib\types\collection-api.ts:138:   linkedEntityName?: string;  // 如 "川菜"、"减脂" 等
+lib\types\collection-api.ts:146:     addMethod: "rule" | "manual" | "ai";  // 加入方式：规则匹配/手动添加/AI生成
+lib\types\collection-api.ts:267:   position?: 'start' | 'end'; // 插入位置，默认 'end'
+lib\types\collection-api.ts:318:   reviewMode?: 'manual' | 'auto';  // manual=生成为待审核，auto=直接发布
+lib\types\collection.ts:15:   CUISINE: 'cuisine',       // 菜系
+lib\types\collection.ts:16:   REGION: 'region',         // 区域/地域
+lib\types\collection.ts:17:   SCENE: 'scene',           // 场景
+lib\types\collection.ts:18:   METHOD: 'method',         // 烹饪方法
+lib\types\collection.ts:19:   TASTE: 'taste',           // 口味
+lib\types\collection.ts:20:   CROWD: 'crowd',           // 人群/饮食方式
+lib\types\collection.ts:21:   OCCASION: 'occasion',     // 场合
+lib\types\collection.ts:22:   INGREDIENT: 'ingredient', // 食材
+lib\types\collection.ts:23:   THEME: 'theme',           // 主题（自定义规则）
+lib\types\collection.ts:43:   cuisine: '菜系',
+lib\types\collection.ts:44:   region: '区域',
+lib\types\collection.ts:45:   scene: '场景',
+lib\types\collection.ts:46:   method: '烹饪方法',
+lib\types\collection.ts:47:   taste: '口味',
+lib\types\collection.ts:48:   crowd: '人群',
+lib\types\collection.ts:49:   occasion: '场合',
+lib\types\collection.ts:50:   ingredient: '食材',
+lib\types\collection.ts:51:   theme: '主题',
+lib\types\collection.ts:56:   DRAFT: 'draft',           // 草稿
+lib\types\collection.ts:57:   PUBLISHED: 'published',   // 已发布
+lib\types\collection.ts:58:   ARCHIVED: 'archived',     // 已归档
+lib\types\collection.ts:65:   draft: '草稿',
+lib\types\collection.ts:66:   published: '已发布',
+lib\types\collection.ts:67:   archived: '已归档',
+lib\types\collection.ts:72:   AUTO: 'auto',             // 单标签自动匹配
+lib\types\collection.ts:73:   CUSTOM: 'custom',         // 主题自定义规则
+lib\types\collection.ts:80:   QUALIFIED: 'qualified',       // 已达标 (publishedCount >= minRequired)
+lib\types\collection.ts:81:   UNQUALIFIED: 'unqualified',   // 未达标
+lib\types\collection.ts:82:   NEAR: 'near',                 // 接近达标 (80% <= progress < 100%)
+lib\types\collection.ts:94:   TAG: 'tag',                 // 需配合 tagType
+lib\types\collection.ts:117:   EQ: 'eq',       // 等于
+lib\types\collection.ts:118:   NEQ: 'neq',     // 不等于
+lib\types\collection.ts:119:   IN: 'in',       // 在列表中
+lib\types\collection.ts:120:   NIN: 'nin',     // 不在列表中
+lib\types\collection.ts:121:   LT: 'lt',       // 小于
+lib\types\collection.ts:122:   LTE: 'lte',     // 小于等于
+lib\types\collection.ts:123:   GT: 'gt',       // 大于
+lib\types\collection.ts:124:   GTE: 'gte',     // 大于等于
+lib\types\collection.ts:134:   tagType?: TagType | string;  // 当 field='tag' 时必填
+lib\types\collection.ts:148:   tagType?: TagType | string; // 当 field='tagId' 时，标签的类型
+lib\types\collection.ts:275:       return { label: '已达标', color: 'green', icon: '✓' };
+lib\types\collection.ts:277:       return { label: '接近达标', color: 'yellow', icon: '⚠' };
+lib\types\collection.ts:279:       return { label: '未达标', color: 'red', icon: '✗' };
+lib\utils\error.ts:1: export function getErrorMessage(error: unknown, fallback = "操作失败"): string {
+lib\utils\storage.ts:37:     throw new Error("R2 配置未完成，请检查环境变量");
+lib\utils\storage.ts:67:     console.error("R2 上传失败:", error);
+lib\utils\storage.ts:68:     throw new Error("图片上传失败");
+lib\utils\storage.ts:86:     console.error("R2 删除失败:", error);
+lib\utils\storage.ts:87:     throw new Error("图片删除失败");
+lib\validators\recipe-import.ts:13:   "小火": "low",
+lib\validators\recipe-import.ts:14:   "中小火": "medium-low",
+lib\validators\recipe-import.ts:15:   "中火": "medium",
+lib\validators\recipe-import.ts:16:   "中大火": "medium-high",
+lib\validators\recipe-import.ts:17:   "大火": "high",
+lib\validators\recipe-import.ts:18:   "余温": "low",
+lib\validators\recipe-import.ts:76:           if (s.heat === "无" || s.heat === "") {
+lib\validators\recipe-import.ts:122:       scenes: ["家常菜"],
+lib\validators\recipe-import.ts:123:       cookingMethods: ["炒"],
+lib\validators\recipe-import.ts:124:       tastes: ["咸鲜"],
+lib\validators\recipe-import.ts:125:       crowds: ["所有人"],
+lib\validators\recipe-import.ts:126:       occasions: ["正餐"]
+lib\validators\recipe-import.ts:131:     if (!tags.scenes) tags.scenes = ["其他"];
+lib\validators\recipe-import.ts:132:     if (!tags.cookingMethods) tags.cookingMethods = ["其他"];
+lib\validators\recipe-import.ts:133:     if (!tags.tastes) tags.tastes = ["其他"];
+lib\validators\recipe-import.ts:134:     if (!tags.crowds) tags.crowds = ["所有人"];
+lib\validators\recipe-import.ts:135:     if (!tags.occasions) tags.occasions = ["日常"];
+lib\validators\recipe-import.ts:154:     titleZh: "中文标题",
+lib\validators\recipe-import.ts:155:     titleEn: "英文标题",
+lib\validators\recipe-import.ts:156:     summary: "摘要信息",
+lib\validators\recipe-import.ts:157:     oneLine: "一句话简介",
+lib\validators\recipe-import.ts:158:     healingTone: "治愈文案",
+lib\validators\recipe-import.ts:159:     difficulty: "难度",
+lib\validators\recipe-import.ts:160:     timeTotalMin: "总时间",
+lib\validators\recipe-import.ts:161:     timeActiveMin: "操作时间",
+lib\validators\recipe-import.ts:162:     servings: "份量",
+lib\validators\recipe-import.ts:163:     ingredients: "食材",
+lib\validators\recipe-import.ts:164:     steps: "步骤",
+lib\validators\recipe-import.ts:165:     story: "文化故事",
+lib\validators\recipe-import.ts:166:     nutrition: "营养信息",
+lib\validators\recipe-import.ts:167:     equipment: "设备",
+lib\validators\recipe-import.ts:168:     faq: "常见问题",
+lib\validators\recipe-import.ts:169:     tips: "小贴士",
+lib\validators\recipe-import.ts:170:     troubleshooting: "失败排查",
+lib\validators\recipe-import.ts:171:     seo: "SEO信息",
+lib\validators\recipe-import.ts:172:     tags: "标签",
+lib\validators\recipe-import.ts:181:     return ["数据验证失败，无法获取详细错误信息"];
+lib\validators\recipe-import.ts:257:     title: (data?.titleZh as string) || (data?.title as string) || "未知标题",
+lib\validators\recipe-import.ts:260:     time: summary?.timeTotalMin ? `${summary.timeTotalMin}分钟` : "",
+lib\validators\recipe.ts:23:   "meat",     // 肉类
+lib\validators\recipe.ts:24:   "veg",      // 蔬菜
+lib\validators\recipe.ts:25:   "fruit",    // 水果
+lib\validators\recipe.ts:26:   "seafood",  // 海鲜
+lib\validators\recipe.ts:27:   "grain",    // 谷物
+lib\validators\recipe.ts:28:   "bean",     // 豆类
+lib\validators\recipe.ts:29:   "dairy",    // 奶制品
+lib\validators\recipe.ts:30:   "egg",      // 蛋类
+lib\validators\recipe.ts:31:   "spice",    // 香料
+lib\validators\recipe.ts:32:   "sauce",    // 酱料
+lib\validators\recipe.ts:33:   "oil",      // 油脂
+lib\validators\recipe.ts:34:   "tool",     // 工具（会自动转为other）
+lib\validators\recipe.ts:35:   "other",    // 其他
+lib\validators\recipe.ts:52:   oneLine: z.string().min(1, "一句话简介不能为空"),
+lib\validators\recipe.ts:53:   healingTone: z.string().min(1, "治愈文案不能为空"),
+lib\validators\recipe.ts:56:   timeTotalMin: z.number().positive("总时间必须大于0"),
+lib\validators\recipe.ts:57:   timeActiveMin: z.number().positive("操作时间必须大于0"),
+lib\validators\recipe.ts:58:   servings: z.number().positive("份量必须大于0"),
+lib\validators\recipe.ts:68:     title: z.string().min(1, "故事标题不能为空"),
+lib\validators\recipe.ts:69:     content: z.string().min(20, "故事内容至少20字"),
+lib\validators\recipe.ts:73:   z.string().min(20, "文化故事至少20字"),
+lib\validators\recipe.ts:118:   name: z.string().min(1, "食材名称不能为空"),
+lib\validators\recipe.ts:120:   amount: z.number().positive("数量必须大于0"),
+lib\validators\recipe.ts:121:   unit: z.string().min(1, "单位不能为空"),
+lib\validators\recipe.ts:130:   section: z.string().min(1, "分组名称不能为空"),
+lib\validators\recipe.ts:131:   items: z.array(IngredientItemSchema).min(1, "至少需要1个食材"),
+lib\validators\recipe.ts:134: const IngredientsSchema = z.array(IngredientSectionSchema).min(1, "至少需要1个食材分组");
+lib\validators\recipe.ts:139:   id: z.string().min(1, "步骤ID不能为空"),
+lib\validators\recipe.ts:140:   title: z.string().min(1, "步骤标题不能为空"),
+lib\validators\recipe.ts:141:   action: z.string().min(1, "步骤描述不能为空"),
+lib\validators\recipe.ts:168: const StepsSchema = z.array(StepSchema).min(1, "至少需要1个步骤");
+lib\validators\recipe.ts:217:   scenes: z.array(z.string()).min(1, "场景标签至少需要1个"),
+lib\validators\recipe.ts:218:   cookingMethods: z.array(z.string()).min(1, "烹饪方式标签至少需要1个"),
+lib\validators\recipe.ts:219:   tastes: z.array(z.string()).min(1, "口味标签至少需要1个"),
+lib\validators\recipe.ts:220:   crowds: z.array(z.string()).min(1, "人群标签至少需要1个"),
+lib\validators\recipe.ts:221:   occasions: z.array(z.string()).min(1, "场合标签至少需要1个"),
+lib\validators\recipe.ts:232:   titleZh: z.string().min(1, "中文标题不能为空"),
+hooks\use-ingredient-icons.ts:53:         console.warn("获取食材图标失败，使用空数据:", response.status);
+hooks\use-ingredient-icons.ts:70:         console.warn("食材图标数据格式错误，使用空数据");
+hooks\use-ingredient-icons.ts:77:       console.warn("获取食材图标异常:", err);
+hooks\use-ingredient-icons.ts:78:       setError(err instanceof Error ? err : new Error("未知错误"));
+
+TOTAL 1912 lines with CJK characters in quoted lines

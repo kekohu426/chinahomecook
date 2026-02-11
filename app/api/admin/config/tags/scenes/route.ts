@@ -23,10 +23,13 @@ async function requireAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const authError = await requireAdmin();
     if (authError) return authError;
+
+    const { searchParams } = new URL(request.url);
+    const locale = searchParams.get("locale") || "zh";
 
     // 使用 Tag 模型查询 type="scene"
     const scenes = await prisma.tag.findMany({
@@ -50,16 +53,21 @@ export async function GET() {
       : [];
     const countMap = new Map(counts.map((item) => [item.tagId, item._count._all]));
 
-    const data = scenes.map((scene) => ({
-      id: scene.id,
-      name: scene.name,
-      slug: scene.slug,
-      icon: scene.icon,
-      sortOrder: scene.sortOrder,
-      isActive: scene.isActive,
-      translations: scene.translations,
-      recipeCount: countMap.get(scene.id) || 0,
-    }));
+    const data = scenes.map((scene) => {
+      // 根据 locale 查找翻译
+      const translation = scene.translations.find((t) => t.locale === locale);
+      return {
+        id: scene.id,
+        name: translation?.name || scene.name,
+        originalName: scene.name,
+        slug: scene.slug,
+        icon: scene.icon,
+        sortOrder: scene.sortOrder,
+        isActive: scene.isActive,
+        translations: scene.translations,
+        recipeCount: countMap.get(scene.id) || 0,
+      };
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (error) {

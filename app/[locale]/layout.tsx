@@ -9,6 +9,7 @@ import {
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
 import { SiteConfigProvider } from "@/components/config/SiteConfigProvider";
 import { generateAlternates } from "@/lib/seo/alternates";
+import { t } from "@/lib/i18n/translations";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,7 +20,6 @@ export async function generateMetadata({
   params,
 }: LayoutProps): Promise<Metadata> {
   const { locale } = await params;
-  const isEn = locale === "en";
   const alternates = generateAlternates("/", locale as Locale);
   const ogLocale = LOCALE_ISO_CODES[locale as Locale] || "zh-CN";
   const alternateLocales = SUPPORTED_LOCALES
@@ -28,12 +28,10 @@ export async function generateMetadata({
 
   return {
     title: {
-      template: isEn ? "%s | Recipe Zen" : "%s | Recipe Zen 食谱研习",
-      default: isEn ? "Recipe Zen - AI Cooking Companion" : "Recipe Zen - 食谱研习",
+      template: t("meta.titleTemplate", locale as Locale),
+      default: t("meta.defaultTitle", locale as Locale),
     },
-    description: isEn
-      ? "AI-powered recipes reviewed by experts, with voice guidance and smart timers."
-      : "极致治愈 × 极致实用的中国美食指南",
+    description: t("meta.defaultDescription", locale as Locale),
     alternates,
     openGraph: {
       locale: ogLocale,

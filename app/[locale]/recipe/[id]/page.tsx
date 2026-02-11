@@ -13,7 +13,6 @@ import { Footer } from "@/components/layout/Footer";
 import { prisma } from "@/lib/db/prisma";
 import type { Recipe } from "@/types/recipe";
 import { RecipeDetailClient } from "@/components/recipe/RecipeDetailClient";
-import { RecipeDetailClientV2 } from "@/components/recipe/RecipeDetailClient.v2";
 import { ChevronRight, Home } from "lucide-react";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { getContentLocales } from "@/lib/i18n/content";
@@ -23,14 +22,36 @@ import type { Metadata } from "next";
 import { generateAlternates } from "@/lib/seo/alternates";
 import { localizePath } from "@/lib/i18n/utils";
 import { auth } from "@/lib/auth";
+import { ensureEnglish, titleFromSlug, toEnglishLabel } from "@/lib/i18n/english";
+import { CUISINE_LABELS_EN } from "@/lib/i18n/labels";
+import { t } from "@/lib/i18n/translations";
+import {
+  buildCustomRecipeSlug,
+  shouldNormalizeCustomSlug,
+  toAsciiSlugPart,
+} from "@/lib/recipe/slug";
 
 /**
  * 通过 slug 或 ID 查找食谱
  * 优先使用 slug 查找
  */
+// 团队成员类型（用于内容归属）
+type TeamMemberBrief = {
+  id: string;
+  slug: string;
+  nameZh: string;
+  nameEn: string;
+  role: string;
+  avatarUrl: string | null;
+  mottoZh: string | null;
+  mottoEn: string | null;
+} | null;
+
 type RecipeWithTranslations = Awaited<ReturnType<typeof prisma.recipe.findUnique>> & {
   cuisine: { id: string; name: string; slug: string } | null;
   location: { id: string; name: string; slug: string } | null;
+  explorer: TeamMemberBrief;
+  reviewer: TeamMemberBrief;
   translations: {
     locale: string;
     title: string;
@@ -38,8 +59,6 @@ type RecipeWithTranslations = Awaited<ReturnType<typeof prisma.recipe.findUnique
     story: any;
     ingredients: any;
     steps: any;
-    styleGuide: any;
-    imageShots: any;
   }[];
 };
 
@@ -47,10 +66,26 @@ async function findRecipeBySlugOrId(
   idOrSlug: string,
   includeTranslations?: { locales: string[] }
 ): Promise<RecipeWithTranslations | null> {
+  // 团队成员查询字段
+  const teamMemberSelect = {
+    select: {
+      id: true,
+      slug: true,
+      nameZh: true,
+      nameEn: true,
+      role: true,
+      avatarUrl: true,
+      mottoZh: true,
+      mottoEn: true,
+    },
+  };
+
   const includeOptions = includeTranslations
     ? {
         cuisine: { select: { id: true, name: true, slug: true } },
         location: { select: { id: true, name: true, slug: true } },
+        explorer: teamMemberSelect,
+        reviewer: teamMemberSelect,
         translations: {
           where: { locale: { in: includeTranslations.locales }, isReviewed: true },
         },
@@ -58,6 +93,8 @@ async function findRecipeBySlugOrId(
     : {
         cuisine: { select: { id: true, name: true, slug: true } },
         location: { select: { id: true, name: true, slug: true } },
+        explorer: teamMemberSelect,
+        reviewer: teamMemberSelect,
       };
 
   // 先尝试按 slug 查找
@@ -99,24 +136,29 @@ export async function generateMetadata({
   const idOrSlug = decodeURIComponent(rawId);
   const locales = getContentLocales(locale);
   const isEn = locale === "en";
+  const notFoundTitle = t("recipeDetail.recipeNotFound", locale);
+  const fallbackDescription = t("recipeDetail.teamReviewed", locale);
 
   try {
     const recipe = await findRecipeBySlugOrId(idOrSlug, { locales });
 
     if (!recipe || (recipe.status !== "published" && !previewAllowed)) {
-      return { title: isEn ? "Recipe not found" : "食谱不存在" };
+      return { title: notFoundTitle };
     }
 
     const translation =
       locales
         .map((loc) => recipe.translations.find((item) => item.locale === loc))
         .find(Boolean) || null;
-    const title = translation?.title || recipe.title;
+    const rawTitle = translation?.title || recipe.title;
     const summary = translation?.summary as any;
-    const description =
-      summary?.oneLine ||
-      summary?.healingTone ||
-      (isEn ? "A trusted recipe reviewed by our team." : "专业审核的可靠食谱。");
+    const rawDescription = summary?.oneLine || summary?.healingTone || "";
+    const title = isEn
+      ? ensureEnglish(rawTitle, "Recipe")
+      : rawTitle;
+    const description = isEn
+      ? ensureEnglish(rawDescription, fallbackDescription)
+      : rawDescription || fallbackDescription;
 
     // 使用 slug 生成规范 URL
     const alternates = generateAlternates(`/recipe/${recipe.slug}`, locale);
@@ -136,7 +178,7 @@ export async function generateMetadata({
     };
   } catch (error) {
     console.error("Failed to generate recipe metadata:", error);
-    return { title: isEn ? "Recipe" : "食谱" };
+    return { title: t("recipe.recipeTitle", locale) };
   }
 }
 
@@ -159,13 +201,51 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
   }
 
   // 如果通过 ID 访问且 slug 存在，重定向到 slug URL
-  if (idOrSlug === recipeData.id && recipeData.slug && recipeData.slug !== recipeData.id) {
-    redirect(localizePath(`/recipe/${recipeData.slug}`, locale));
+  let canonicalSlug = recipeData.slug;
+  if (canonicalSlug.startsWith("custom-") && shouldNormalizeCustomSlug(canonicalSlug)) {
+    const reviewedEnTitle =
+      recipeData.translations.find((item) => item.locale === "en")?.title || null;
+    let normalizedSlug = buildCustomRecipeSlug({
+      titleZh: recipeData.title,
+      titleEn: reviewedEnTitle,
+      token: recipeData.createdAt.getTime(),
+    });
+
+    const existing = await prisma.recipe.findUnique({
+      where: { slug: normalizedSlug },
+      select: { id: true },
+    });
+
+    if (existing && existing.id !== recipeData.id) {
+      const idSuffix = toAsciiSlugPart(recipeData.id).slice(-8) || "recipe";
+      normalizedSlug = `custom-recipe-${idSuffix}-${recipeData.createdAt.getTime()}`;
+    }
+
+    if (normalizedSlug !== canonicalSlug) {
+      await prisma.recipe.update({
+        where: { id: recipeData.id },
+        data: { slug: normalizedSlug },
+      });
+      canonicalSlug = normalizedSlug;
+      recipeData.slug = normalizedSlug;
+    }
+  }
+
+  if (canonicalSlug && canonicalSlug !== recipeData.id && idOrSlug !== canonicalSlug) {
+    redirect(localizePath(`/recipe/${canonicalSlug}`, locale));
   }
 
   // 菜系信息（现在是关联对象）
   const cuisineSlug = recipeData.cuisine?.slug || null;
-  const cuisineName = recipeData.cuisine?.name || null;
+  const cuisineNameRaw = recipeData.cuisine?.name || null;
+  const cuisineName =
+    locale === "en"
+      ? toEnglishLabel(
+          cuisineNameRaw,
+          CUISINE_LABELS_EN,
+          titleFromSlug(cuisineSlug || "Cuisine")
+        )
+      : cuisineNameRaw;
   const cuisineHref = cuisineSlug
     ? `/recipe/cuisine/${encodeURIComponent(cuisineSlug)}`
     : null;
@@ -205,21 +285,22 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     locales
       .map((loc) => recipeData.translations.find((item) => item.locale === loc))
       .find(Boolean) || null;
+  const hasReviewedEnTranslation = recipeData.translations.some(
+    (item) => item.locale === "en"
+  );
 
   // 转换为 Recipe 类型
   const recipe: Recipe = {
     schemaVersion: "1.1.0",
-    titleZh: translation?.title || recipeData.title,
-    titleEn: undefined,
+    titleZh: recipeData.title,
+    titleEn: translation?.title || null,
+    author: recipeData.author || undefined,
+    aiGenerated: recipeData.aiGenerated,
     summary: (translation?.summary as any) || (recipeData.summary as any),
     story: (translation?.story as any) || (recipeData.story as any),
     ingredients:
       (translation?.ingredients as any) || (recipeData.ingredients as any),
     steps: (translation?.steps as any) || (recipeData.steps as any),
-    styleGuide:
-      (translation?.styleGuide as any) || (recipeData.styleGuide as any),
-    imageShots:
-      (translation?.imageShots as any) || (recipeData.imageShots as any),
     nutrition: (recipeData.nutrition as any) || undefined,
     faq: (recipeData.faq as any) || undefined,
     tips: (recipeData.tips as any) || undefined,
@@ -230,19 +311,10 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     notes: (recipeData.notes as any) || undefined,
   };
 
-  // 构建步骤图片映射（优先步骤内 imageUrl，其次配图方案）
-  const stepImages = (recipe.imageShots || []).reduce<Record<string, string | undefined>>((acc, shot) => {
-    const url = (shot as any).imageUrl;
-    if (shot.key) {
-      acc[shot.key] = url;
-      const digits = shot.key.replace(/\D/g, "");
-      if (digits) {
-        acc[`step${digits}`] = url;
-        acc[digits] = url;
-      }
-    }
-    return acc;
-  }, {});
+  const isEn = locale === "en";
+
+  // 构建步骤图片映射（从步骤内 imageUrl 提取）
+  const stepImages: Record<string, string | undefined> = {};
   (recipe.steps || []).forEach((step: any) => {
     if (step?.id && step?.imageUrl) {
       stepImages[step.id] = step.imageUrl;
@@ -257,7 +329,7 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
   // 封面图 - 收集所有封面图用于轮播
   const coverImages: string[] = [];
 
-  // 优先使用 imageShots 中的封面图
+  // 优先使用封面 key 对应的步骤图
   const coverKeys = ["cover_main", "cover_detail", "cover_inside", "cover", "hero", "final"];
   coverKeys.forEach((key) => {
     if (stepImages[key]) {
@@ -278,8 +350,20 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     }
   }
 
+  // ??????????????????
+
+  const breadcrumbTitle = isEn
+    ? ensureEnglish(recipe.titleEn || recipe.titleZh, "Recipe")
+    : recipe.titleZh;
+  const recipesLabel = t("nav.recipes", locale);
+  const relatedRecipesLabel = t("recipe.relatedRecipes", locale);
+  const moreRecipesLabel = t("recipe.moreRecipes", locale).replace(
+    "{name}",
+    cuisineName || recipesLabel
+  );
+
   return (
-    <div className="min-h-screen bg-[#FDF8F3]">
+    <div className="min-h-screen bg-cream">
       <Header />
 
       {/* 面包屑导航 */}
@@ -290,7 +374,7 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
           </LocalizedLink>
           <ChevronRight className="w-4 h-4" />
           <LocalizedLink href="/recipe" className="hover:text-brownWarm transition-colors">
-            {locale === "en" ? "Recipes" : "食谱"}
+            {recipesLabel}
           </LocalizedLink>
           {cuisineName && cuisineHref && (
             <>
@@ -305,39 +389,32 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
           )}
           <ChevronRight className="w-4 h-4" />
           <span className="text-textDark truncate max-w-[200px]">
-            {recipe.titleZh}
+            {breadcrumbTitle}
           </span>
         </nav>
       </div>
 
-      {version === "v2" ? (
-        <RecipeDetailClientV2
-          recipe={recipe}
-          coverImages={coverImages}
-          stepImages={stepImages}
-        />
-      ) : (
-        <RecipeDetailClient
-          recipe={recipe}
-          coverImage={coverImages[0]}
-          stepImages={stepImages}
-        />
-      )}
+      <RecipeDetailClient
+        recipe={recipe}
+        coverImage={coverImages[0]}
+        stepImages={stepImages}
+        explorer={recipeData.explorer}
+        reviewer={recipeData.reviewer}
+        preferSourceTextWhenEnMissing={isEn && !hasReviewedEnTranslation}
+      />
 
       {/* 相关食谱推荐 */}
       {relatedRecipes.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12 border-t border-lightGray">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-serif font-medium text-textDark">
-              {locale === "en" ? "Related Recipes" : "相关食谱推荐"}
+              {relatedRecipesLabel}
             </h2>
             <LocalizedLink
               href={cuisineHref || "/recipe"}
               className="text-brownWarm hover:underline text-sm"
             >
-              {locale === "en"
-                ? `More ${cuisineName || "recipes"} →`
-                : `查看更多 ${cuisineName || "食谱"} →`}
+              {moreRecipesLabel}
             </LocalizedLink>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -349,19 +426,22 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
                   )
                   .find(Boolean) || null;
               return (
-              <RecipeCard
-                key={related.id}
-                id={related.id}
-                slug={related.slug}
-                titleZh={relatedTranslation?.title || related.title}
-                title={relatedTranslation?.title || related.title}
-                summary={(relatedTranslation?.summary as any) || (related.summary as any)}
-                location={related.location?.name || null}
-                cuisine={related.cuisine?.name || null}
-                aiGenerated={related.aiGenerated}
-                coverImage={related.coverImage}
-                aspectClass="aspect-[4/3]"
-              />
+                <RecipeCard
+                  key={related.id}
+                  id={related.id}
+                  slug={related.slug}
+                  titleZh={related.title}
+                  titleEn={relatedTranslation?.title || null}
+                  summary={
+                    (relatedTranslation?.summary as any) ||
+                    (related.summary as any)
+                  }
+                  location={related.location?.name || null}
+                  cuisine={related.cuisine?.name || null}
+                  aiGenerated={related.aiGenerated}
+                  coverImage={related.coverImage}
+                  aspectClass="aspect-[4/3]"
+                />
               );
             })}
           </div>

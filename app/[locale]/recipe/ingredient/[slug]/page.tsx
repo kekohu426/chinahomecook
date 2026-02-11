@@ -18,6 +18,8 @@ import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
 import type { SeoConfig } from "@/lib/types/collection";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, titleFromSlug } from "@/lib/i18n/english";
 import type { Locale } from "@/lib/i18n/config";
 import { ChevronRight, Home, Leaf } from "lucide-react";
 import Link from "next/link";
@@ -53,22 +55,32 @@ export async function generateMetadata({
       })
     : null;
   const seo = (collection?.seo as SeoConfig) || undefined;
-  const ingredientName = tag
+  const ingredientNameRaw = tag
     ? (isEn
         ? tag.translations.find((t) => t.locale === locale)?.name || tag.name
         : tag.name)
     : ingredient;
+  const ingredientName = isEn
+    ? ensureEnglish(
+        ingredientNameRaw,
+        ensureEnglish(titleFromSlug(slug), "Ingredient")
+      )
+    : ingredientNameRaw;
+  const metaTitleFallback = t("recipe.ingredient.metaTitle", locale).replace(
+    "{name}",
+    ingredientName
+  );
+  const metaDescriptionFallback = t("recipe.ingredient.metaDescription", locale).replace(
+    "{name}",
+    ingredientName
+  );
   return {
     title:
-      (isEn ? seo?.titleEn : seo?.titleZh) ||
-      (isEn
-        ? `${ingredientName} Recipes - Recipe Zen`
-        : `${ingredientName}做法 - Recipe Zen`),
+      (isEn ? ensureEnglish(seo?.titleEn, "") : seo?.titleZh) ||
+      metaTitleFallback,
     description:
-      (isEn ? seo?.descriptionEn : seo?.descriptionZh) ||
-      (isEn
-        ? `Explore recipes featuring ${ingredientName}.`
-        : `精选${ingredientName}相关做法，家常易做。`),
+      (isEn ? ensureEnglish(seo?.descriptionEn, "") : seo?.descriptionZh) ||
+      metaDescriptionFallback,
     keywords: seo?.keywords,
     robots: seo?.noIndex ? { index: false, follow: true } : undefined,
   };
@@ -97,9 +109,16 @@ export default async function IngredientPage({
   });
 
   // 如果找到标签，使用标签查询；否则回退到标题搜索
-  const ingredientName = tag
+  const ingredientNameRaw = tag
     ? (isEn ? (tag.translations.find(t => t.locale === locale)?.name || tag.name) : tag.name)
     : decodeURIComponent(ingredient);
+  const ingredientName = isEn
+    ? ensureEnglish(
+        ingredientNameRaw,
+        ensureEnglish(titleFromSlug(slug), "Ingredient")
+      )
+    : ingredientNameRaw;
+  const ingredientSearchTerm = ingredientNameRaw;
 
   const where = tag
     ? {
@@ -108,7 +127,7 @@ export default async function IngredientPage({
       }
     : {
         status: "published" as const,
-        title: { contains: ingredientName },
+        title: { contains: ingredientSearchTerm },
       };
 
   // 获取对应的 Collection 以获取置顶食谱
@@ -129,14 +148,15 @@ export default async function IngredientPage({
   const pinnedIds = collection?.pinnedRecipeIds || [];
   const seo = (collection?.seo as SeoConfig) || undefined;
   const headerTitle = isEn
-    ? seo?.h1En || ingredientName
+    ? ensureEnglish(seo?.h1En, "") || ingredientName
     : seo?.h1Zh || ingredientName;
   const headerSubtitle =
-    (isEn ? seo?.subtitleEn : seo?.subtitleZh) ||
-    (isEn
-      ? `Recipes featuring ${ingredientName}, curated for home cooking.`
-      : `围绕${ingredientName}的家常做法合集。`);
-  const footerText = isEn ? seo?.footerTextEn : seo?.footerTextZh;
+    (isEn ? ensureEnglish(seo?.subtitleEn, "") : seo?.subtitleZh) ||
+    t("recipe.ingredient.headerSubtitle", locale).replace(
+      "{name}",
+      ingredientName
+    );
+  const footerText = isEn ? ensureEnglish(seo?.footerTextEn, "") : seo?.footerTextZh;
   const hasPinnedRecipes = page === 1 && pinnedIds.length > 0;
 
   // 获取置顶食谱（仅第一页）
@@ -198,7 +218,7 @@ export default async function IngredientPage({
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <LocalizedLink href="/recipe" className="hover:text-brownWarm transition-colors">
-              {isEn ? "Recipes" : "食谱"}
+              {t("nav.recipes", locale)}
             </LocalizedLink>
             <ChevronRight className="w-4 h-4" />
             <span className="text-textDark">{ingredientName}</span>
@@ -220,20 +240,20 @@ export default async function IngredientPage({
           <div className="text-center py-20 bg-white rounded-2xl">
             <Leaf className="w-16 h-16 mx-auto text-textGray/30 mb-4" />
             <p className="text-textGray text-lg mb-6">
-              {isEn ? "No recipes found yet." : "暂无相关食谱。"}
+              {t("common.noRecipesFound", locale)}
             </p>
             <LocalizedLink
               href="/recipe"
               className="px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors"
             >
-              {isEn ? "Browse All Recipes" : "浏览全部食谱"}
+              {t("common.browseAll", locale)}
             </LocalizedLink>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-serif font-medium text-textDark">
-                {isEn ? "Latest Recipes" : "最新食谱"} ({total})
+                {t("common.latestRecipes", locale)} ({total})
               </h2>
             </div>
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-8 [column-fill:_balance]">
@@ -251,7 +271,7 @@ export default async function IngredientPage({
                     id={recipe.id}
                     slug={recipe.slug}
                     titleZh={recipe.title}
-                    title={translation?.title || recipe.title}
+                    titleEn={translation?.title || null}
                     summary={(translation?.summary as any) || summary}
                     location={recipe.location?.name || null}
                     cuisine={recipe.cuisine?.name || null}
@@ -272,12 +292,12 @@ export default async function IngredientPage({
                 href={buildPageUrl(page - 1)}
                 className="px-4 py-2 bg-white border border-sage-200 rounded-lg hover:border-sage-400 transition-colors"
               >
-                {isEn ? "Prev" : "上一页"}
+                {t("common.previous", locale)}
               </Link>
             )}
 
             <span className="px-4 py-2 text-sage-600">
-              {isEn ? `Page ${page} / ${totalPages}` : `第 ${page} / ${totalPages} 页`}
+              {t("common.pageOf", locale).replace("{current}", String(page)).replace("{total}", String(totalPages))}
             </span>
 
             {page < totalPages && (
@@ -285,7 +305,7 @@ export default async function IngredientPage({
                 href={buildPageUrl(page + 1)}
                 className="px-4 py-2 bg-white border border-sage-200 rounded-lg hover:border-sage-400 transition-colors"
               >
-                {isEn ? "Next" : "下一页"}
+                {t("common.nextPage", locale)}
               </Link>
             )}
           </div>

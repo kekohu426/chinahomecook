@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "2.0.0",
+  "recipe": {
+    "titleZh": "西安凉皮",
+    "titleEn": "Xi"an Cold Noodles\",
+    \"aliases\": [\"凉拌皮条\"],
+    \"summary\": {
+      \"oneLine\": \"清爽解暑，家常美味的西安特色小吃。\",
+      \"healingTone\": \"炎炎夏日，来一碗清爽的西安凉皮，感受一丝丝凉意。\",
+      \"difficulty\": \"easy\",
+      \"timeTotalMin\": 30,
+      \"timeActiveMin\": 15,
+      \"servings\": 2
+    },
+    \"story\": \"西安凉皮是陕西省的传统特色小吃，以其爽滑的口感和丰富的调料而闻名。它起源于唐代，经过历代演变，逐渐成为西安人日常生活中不可或缺的一部分。\",
+    \"ingredients\": [
+      {
+        \"section\": \"主料\",
+        \"items\": [
+          {
+            \"name\": \"小麦淀粉\",
+            \"amount\": 200,
+            \"unit\": \"克\",
+            \"iconKey\": \"grain\",
+            \"notes\": \"需提前用水泡发\"
+          },
+          {
+            \"name\": \"辣椒油\",
+            \"amount\": 50,
+            \"unit\": \"克\",
+            \"iconKey\": \"sauce\",
+            \"notes\": \"根据口味调整\"
+          },
+          {
+            \"name\": \"蒜泥\",
+            \"amount\": 30,
+            \"unit\": \"克\",
+            \"iconKey\": \"veg\",
+            \"notes\": \"新鲜蒜头捣成泥\"
+          },
+          {
+            \"name\": \"醋\",
+            \"amount\": 30,
+            \"unit\": \"克\",
+            \"iconKey\": \"sauce\",
+            \"notes\": \"香醋或陈醋\"
+          },
+          {
+            \"name\": \"芝麻酱\",
+            \"amount\": 30,
+            \"unit\": \"克\",
+            \"iconKey\": \"bean\",
+            \"notes\": \"根据口味调整\"
+          },
+          {
+            \"name\": \"香菜\",
+            \"amount\": 20,
+            \"unit\": \"克\",
+            \"iconKey\": \"veg\",
+            \"notes\": \"洗净切碎\"
+          },
+          {
+            \"name\": \"黄瓜\",
+            \"amount\": 100,
+            \"unit\": \"克\",
+            \"iconKey\": \"veg\",
+            \"notes\": \"洗净切丝\"
+          },
+          {
+            \"name\": \"蒜苗\",
+            \"amount\": 50,
+            \"unit\": \"克\",
+            \"iconKey\": \"veg\",
+            \"notes\": \"洗净切碎\"
+          }
+        ]
+      }
+    ],
+    \"steps\": [
+      {
+        \"id\": \"step01\",
+        \"title\": \"制作面皮\",
+        \"action\": \"将小麦淀粉和适量水混合，揉成面团，搓成长条，切成小段，放入蒸锅中蒸熟。\",
+        \"heat\": \"medium\",
+        \"timeMin\": 10,
+        \"timeMax\": 15,
+        \"visualCue\": \"面皮完全熟透，颜色变深。\",
+        \"failurePoints\": [\"面皮未熟，口感硬；面皮过度蒸煮，口感烂\"],
+        \"imagePrompt\": \"Real cooking process photography, 45-degree side angle, shallow depth of field. Steaming pot with steam rising, dough strips in the pot, hands mixing flour and water, natural kitchen environment, wood grain countertop, tile wall, side window light, natural shadows. No text, no watermark.\",
+        \"negativePrompt\": \"AI generated, overly perfect, plastic texture, fake gloss, unnatural lighting, over-sharpened, skin smoothing effect, deformed fingers, floating objects, perspective errors, exaggerated color saturation, strong reflections, mirror effect, cartoon style, illustration style, 3D render feel, text watermark, logo, fingers blocking subject, blur, food deformation, unrealistic shadows, excessive post-processing\"
+      },
+      {
+        \"id\": \"step02\",
+        \"title\": \"准备调料\",
+        \"action\": \"将辣椒油、蒜泥、醋、芝麻酱依次放入碗中，搅拌均匀。\",
+        \"heat\": \"low\",
+        \"timeMin\": 5,
+        \"timeMax\": 10,
+        \"visualCue\": \"调料充分混合，色泽均匀。\",
+        \"failurePoints\": [\"调料未充分混合，口感不均匀；调料过度混合，口感过于浓烈\"],
+        \"imagePrompt\": \"Real cooking process photography, 45-degree side angle, shallow depth of field. Bowl on wooden dining table, ingredients scattered around, hands mixing sauce ingredients, natural kitchen environment, wood grain countertop, tile wall, side window light, natural shadows. No text, no watermark.\",
+        \"negativePrompt\": \"AI generated, overly perfect, plastic texture, fake gloss, unnatural lighting, over-sharpened, skin smoothing effect, deformed fingers, floating objects, perspective errors, exaggerated color saturation, strong reflections, mirror effect, cartoon style, illustration style, 3D render feel, text watermark, logo, fingers blocking subject, blur, food deformation, unrealistic shadows, excessive post-processing\"
+      },
+      {
+        \"id\": \"step03\",
+        \"title\": \"拌制凉皮\",
+        \"action\": \"将蒸好的面皮放入冷水中浸泡，捞出沥干水分，放入碗中，加入调好的调料和黄瓜丝、蒜苗、香菜等配料，拌匀即可。\",
+        \"heat\": \"low\",
+        \"timeMin\": 5,
+        \"timeMax\": 10,
+        \"visualCue\": \"凉皮色泽鲜亮，配料分布均匀。\",
+        \"failurePoints\": [\"凉皮口感过硬，未浸泡；调料未充分拌匀\"],
+        \"imagePrompt\": \"Real cooking process photography, 45-degree side angle, shallow depth of field. Bowl with cold noodles, garnished with cucumber, scallion, cilantro, sauce mixed evenly, hands mixing noodles and ingredients, natural kitchen environment, wood grain countertop, tile wall, side window light, natural shadows. No text, no watermark.\",
+        \"negativePrompt\": \"AI generated, overly perfect, plastic texture, fake gloss, unnatural lighting, over-sharpened, skin smoothing effect, deformed fingers, floating objects, perspective errors, exaggerated color saturation, strong reflections, mirror effect, cartoon style, illustration style, 3D render feel, text watermark, logo, fingers blocking subject, blur, food deformation, unrealistic shadows, excessive post-processing\"
+      }
+    ],
+    \"imageShots\": [
+      {
+        \"key\": \"cover_main\",
+        \"imagePrompt\": \"Real food photography, natural light, low saturation warm tones, wooden dining table, white linen tablecloth, shallow depth of field, high detail. Main subject: Xi"an cold noodles fully presented on white ceramic oval plate, surface glossy with natural sheen, garnish naturally scattered, slight steam rising (realistic vapor effect, not exaggerated). Top-down view, ample negative space, background blurred. Real kitchen environment, tableware with natural usage marks, soft light from 45-degree left side. No text, no watermark.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, fake gloss, unnatural lighting, over-sharpened, skin smoothing effect, deformed fingers, floating objects, perspective errors, exaggerated color saturation, strong reflections, mirror effect, cartoon style, illustration style, 3D render feel, text watermark, logo, fingers blocking subject, blur, food deformation, unrealistic shadows, excessive post-processing"
+      },
+      {
+        "key": "cover_detail",
+        "imagePrompt": "Real food photography, natural light, low saturation warm tones, white ceramic bowl, shallow depth of field, high detail. Main subject: Xi"an cold noodles with side angle or 45-degree angle, showing texture and sheen, garnish scattered naturally, slight steam rising (realistic vapor effect, not exaggerated). Real kitchen environment, tableware with natural usage marks, soft light from side window, natural shadows. No text, no watermark.\",
+        \"negativePrompt\": \"AI generated, overly perfect, plastic texture, fake gloss, unnatural lighting, over-sharpened, skin smoothing effect, deformed fingers, floating objects, perspective errors, exaggerated color saturation, strong reflections, mirror effect, cartoon style, illustration style, 3D render feel, text watermark, logo, fingers blocking subject, blur, food deformation, unrealistic shadows, excessive post-processing\"
+      },
+      {
+        \"key\": \"cover_inside\",
+        \"imagePrompt\": \"Real food photography, natural light, low saturation warm tones, white ceramic bowl, shallow depth of field, high detail. Main subject: Xi"an cold noodles cut open or opened, showing internal structure and layers, garnish scattered naturally, slight steam rising (realistic vapor effect, not exaggerated). Real kitchen environment, tableware with natural usage marks, soft light from side window, natural shadows. No text, no watermark.",
+        "negativePrompt": "AI generated, overly perfect, plastic texture, fake gloss, unnatural lighting, over-sharpened, skin smoothing effect, deformed fingers, floating objects, perspective errors, exaggerated color saturation, strong reflections, mirror effect, cartoon style, illustration style, 3D render feel, text watermark, logo, fingers blocking subject, blur, food deformation, unrealistic shadows, excessive post-processing"
+      }
+    ],
+    "styleGuide": {
+      "theme": "Visual theme for Xi'an cuisine",
+      "palette": ["Warm colors", "Natural textures", "Minimalist background"],
+      "lighting": "Soft, natural light with warm tones",
+      "materials": ["Ceramics", "Wooden utensils", "Traditional Chinese tableware"],
+      "props": ["Scissors", "Measuring cups", "Spices"],
+      "compositionRules": ["Symmetry", "Harmony"]
+    },
+    "nutrition": {
+      "perServing": {
+        "calories": 450,
+        "protein": 25,
+        "fat": 15,
+        "carbs": 50,
+        "fiber": 5,
+        "sodium": 800
+      }
+    },
+    "faq": [
+      {
+        "question": "为什么凉皮要蒸而不是煮？",
+        "answer": "蒸制可以使凉皮更加爽滑，煮制则会使凉皮过于软烂。"
+      }
+    ],
+    "tips": [
+      "蒸凉皮时，水不宜过多，以免影响口感。",
+      "根据个人口味，可以适当调整调料的用量。"
+    ],
+    "troubleshooting": [
+      {
+        "problem": "凉皮口感过硬",
+        "cause": "蒸制时间不足，或浸泡时间过长。",
+        "fix": "延长蒸制时间，或缩短浸泡时间。"
+      }
+    ],
+    "relatedRecipes": {
+      "similar": ["手擀面", "山西刀削面"],
+      "pairing": ["酸辣粉", "肉夹馍"]
+    },
+    "tags": {
+      "scenes": ["家常菜", "小吃"],
+      "cookingMethods": ["蒸"],
+      "tastes": ["酸辣"],
+      "crowds": ["大众"],
+      "occasions": ["夏季"]
+    },
+    "seo": {
+      "metaTitle": "西安凉皮 - 家常美味，清爽解暑",
+      "metaDescription": "西安凉皮是陕西省的传统特色小吃，以其爽滑的口感和丰富的调料而闻名。炎炎夏日，来一碗清爽的西安凉皮，感受一丝丝凉意。",
+      "keywords": ["西安凉皮", "凉皮做法", "清爽小吃", "家常菜"]
+    }
+  }
+}

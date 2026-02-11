@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 
 /**
  * GET /api/admin/jobs/generate
@@ -18,6 +19,9 @@ import { prisma } from "@/lib/db/prisma";
  */
 export async function GET(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const collectionId = searchParams.get("collectionId");
@@ -88,6 +92,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const {
       sourceType,

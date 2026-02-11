@@ -1,17 +1,14 @@
-/**
- * StepCardNew 组件
+﻿/**
+ * StepCardNew 缁勪欢
  *
- * 完全复刻设计稿的步骤卡片样式：
- * - 左侧：步骤图片
- * - 右侧：步骤编号、标题、操作描述、状态检查、失败点、计时标签
- */
+ * 瀹屽叏澶嶅埢璁捐绋跨殑姝ラ鍗＄墖鏍峰紡锛? * - 宸︿晶锛氭楠ゅ浘鐗? * - 鍙充晶锛氭楠ょ紪鍙枫€佹爣棰樸€佹搷浣滄弿杩般€佺姸鎬佹鏌ャ€佸け璐ョ偣銆佽鏃舵爣绛? */
 
 "use client";
 
 import type { RecipeStep } from "@/types/recipe";
 import { StepImage } from "@/components/ui/SafeImage";
 import { Clock, CheckCircle2, AlertTriangle } from "lucide-react";
-import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTranslations } from "@/lib/i18n/translations";
 
 interface StepCardNewProps {
   step: RecipeStep;
@@ -20,51 +17,51 @@ interface StepCardNewProps {
 }
 
 export function StepCardNew({ step, stepNumber, imageUrl }: StepCardNewProps) {
-  const locale = useLocale();
-  // 格式化计时显示
+  const { t, locale } = useTranslations();
+  // Format timer label.
   const formatTimer = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
-    return locale === "en" ? `${mins} min` : `${mins}分钟`;
+    return t("recipe.timeMinutes", locale).replace("{count}", mins.toString());
   };
   const splitRegex = /\n+/;
-  const linePunct = locale === "en" ? "." : "。";
+  const linePunct = t("common.sentencePunct", locale);
   const formatLine = (line: string) => {
     const trimmed = line.trim();
     if (!trimmed) return "";
-    const hasPunct = /[。.!?]$/.test(trimmed);
+    const hasPunct = /[銆?!?]$/.test(trimmed);
     return hasPunct ? trimmed : `${trimmed}${linePunct}`;
   };
-  const statusLabel = locale === "en" ? "Check:" : "状态检查：";
-  const failLabel = locale === "en" ? "Pitfall:" : "失败点：";
+  const statusLabel = t("recipe.checkLabel", locale);
+  const failLabel = t("recipe.pitfallLabel", locale);
 
   return (
-    <div className="flex gap-4 bg-white rounded-2xl shadow-sm border border-stone-100 p-4 hover:shadow-md transition-shadow">
-      {/* 左侧：步骤图片 */}
-      <div className="w-[140px] h-[105px] flex-shrink-0 rounded-xl overflow-hidden bg-stone-100">
+    <div className="flex gap-4 bg-white rounded-2xl shadow-sm border border-lightGray p-4 hover:shadow-md transition-shadow">
+      {/* 宸︿晶锛氭楠ゅ浘鐗?*/}
+      <div className="w-[140px] h-[105px] flex-shrink-0 rounded-xl overflow-hidden bg-lightGray">
         <StepImage src={imageUrl} alt={step.title} />
       </div>
 
-      {/* 右侧：步骤内容 */}
+      {/* 鍙充晶锛氭楠ゅ唴瀹?*/}
       <div className="flex-1 min-w-0">
-        {/* 步骤编号 + 标题 + 计时标签 */}
+        {/* 姝ラ缂栧彿 + 鏍囬 + 璁℃椂鏍囩 */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
-            <span className="text-[#E86F2C] font-bold text-sm tracking-wider">
+            <span className="text-orangeAccent font-bold text-sm tracking-wider">
               STEP {stepNumber.toString().padStart(2, "0")}
             </span>
-            <h4 className="text-base font-medium text-stone-800">{step.title}</h4>
+            <h4 className="text-base font-medium text-textDark">{step.title}</h4>
           </div>
-          {/* 计时标签 */}
+          {/* 璁℃椂鏍囩 */}
           {(step.timerSec ?? 0) > 0 && (
-            <div className="flex items-center gap-1 text-xs text-stone-500 bg-stone-100 px-2 py-1 rounded-full">
+            <div className="flex items-center gap-1 text-xs text-textGray bg-lightGray px-2 py-1 rounded-full">
               <Clock className="w-3 h-3" />
               {formatTimer(step.timerSec ?? 0)}
             </div>
           )}
         </div>
 
-        {/* 操作描述 */}
-        <div className="text-sm text-stone-600 leading-relaxed mb-3">
+        {/* 鎿嶄綔鎻忚堪 */}
+        <div className="text-sm text-textGray leading-relaxed mb-3">
           {(step.action.includes("\n")
             ? step.action.split(splitRegex)
             : [step.action]
@@ -77,7 +74,7 @@ export function StepCardNew({ step, stepNumber, imageUrl }: StepCardNewProps) {
             ))}
         </div>
 
-        {/* 状态检查 */}
+        {/* 鐘舵€佹鏌?*/}
         {step.visualCue && (
           <div className="flex items-start gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-2">
             <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
@@ -88,7 +85,7 @@ export function StepCardNew({ step, stepNumber, imageUrl }: StepCardNewProps) {
           </div>
         )}
 
-        {/* 失败点 */}
+        {/* 澶辫触鐐?*/}
         {step.failPoint && (
           <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />

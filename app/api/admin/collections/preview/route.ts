@@ -7,10 +7,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { buildRuleWhereClause } from "@/lib/collection/rule-engine";
+import { requireAdmin } from "@/lib/auth/guard";
 import type { RuleConfig } from "@/lib/types/collection";
 
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { rules, cuisineId, locationId, tagId } = body;
 

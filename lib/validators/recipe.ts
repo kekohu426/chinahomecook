@@ -42,6 +42,7 @@ const RatioEnum = z.enum(["16:9", "4:3", "3:2"]);
 const OriginSchema = z.object({
   country: z.string().nullable().optional(),
   region: z.string().nullable().optional(),
+  cuisine: z.string().nullable().optional(), // 所属菜系
   notes: z.string().nullable().optional(),
 }).optional();
 
@@ -192,47 +193,14 @@ const RelatedRecipesSchema = z.object({
   pairing: z.array(z.string()).optional(),
 }).optional();
 
+
+
 // ==================== Pairing（搭配建议）====================
 
 const PairingSchema = z.object({
   suggestions: z.array(z.string()).optional(),
   sauceOrSide: z.array(z.string()).optional(),
 }).optional();
-
-// ==================== StyleGuide（风格指南）====================
-
-const StyleGuideSchema = z.object({
-  // v1.1.0 字段
-  theme: z.string().optional(),
-  lighting: z.string().optional(),
-  composition: z.string().optional(),
-  aesthetic: z.string().optional(),
-
-  // v2.0.0 新增字段
-  visualTheme: z.string().optional(),
-  palette: z.array(z.string()).optional(),
-  materials: z.array(z.string()).optional(),
-  props: z.array(z.string()).optional(),
-  compositionRules: z.array(z.string()).optional(),
-  imageRatios: z.object({
-    cover: z.string().optional(),
-    step: z.string().optional(),
-    ingredientsFlatlay: z.string().optional(),
-  }).optional(),
-});
-
-// ==================== ImageShots（配图方案）====================
-
-const ImageShotSchema = z.object({
-  key: z.string().min(1, "图片key不能为空"),
-  title: z.string().optional(),
-  imagePrompt: z.string().min(1, "AI提示词不能为空"),
-  negativePrompt: z.string().optional(),
-  ratio: RatioEnum,
-  imageUrl: z.string().optional(),
-});
-
-const ImageShotsSchema = z.array(ImageShotSchema);
 
 // ==================== SEO ====================
 
@@ -246,12 +214,12 @@ const SEOSchema = z.object({
 // ==================== Tags（标签信息）====================
 
 const TagsSchema = z.object({
-  scenes: z.array(z.string()).optional(),
-  cookingMethods: z.array(z.string()).optional(),
-  tastes: z.array(z.string()).optional(),
-  crowds: z.array(z.string()).optional(),
-  occasions: z.array(z.string()).optional(),
-}).optional();
+  scenes: z.array(z.string()).min(1, "场景标签至少需要1个"),
+  cookingMethods: z.array(z.string()).min(1, "烹饪方式标签至少需要1个"),
+  tastes: z.array(z.string()).min(1, "口味标签至少需要1个"),
+  crowds: z.array(z.string()).min(1, "人群标签至少需要1个"),
+  occasions: z.array(z.string()).min(1, "场合标签至少需要1个"),
+});
 
 // ==================== 完整 Recipe Schema ====================
 
@@ -264,6 +232,7 @@ export const RecipeSchema = z.object({
   titleZh: z.string().min(1, "中文标题不能为空"),
   titleEn: z.string().nullable().optional(),
   aliases: z.array(z.string()).optional(),
+  primaryIngredients: z.array(z.string()).optional(), // 主要食材
 
   // 产地
   origin: OriginSchema,
@@ -292,10 +261,6 @@ export const RecipeSchema = z.object({
   relatedRecipes: RelatedRecipesSchema,
   pairing: PairingSchema,
 
-  // 视觉
-  styleGuide: StyleGuideSchema,
-  imageShots: ImageShotsSchema,
-
   // SEO
   seo: SEOSchema,
 
@@ -313,8 +278,6 @@ export type Summary = z.infer<typeof SummarySchema>;
 export type IngredientItem = z.infer<typeof IngredientItemSchema>;
 export type IngredientSection = z.infer<typeof IngredientSectionSchema>;
 export type Step = z.infer<typeof StepSchema>;
-export type StyleGuide = z.infer<typeof StyleGuideSchema>;
-export type ImageShot = z.infer<typeof ImageShotSchema>;
 export type Nutrition = z.infer<typeof NutritionSchema>;
 export type FAQ = z.infer<typeof FAQItemSchema>;
 

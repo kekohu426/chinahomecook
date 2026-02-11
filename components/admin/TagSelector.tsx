@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getErrorMessage } from "@/lib/utils";
 
 interface Tag {
   id: string;
@@ -51,7 +52,7 @@ export function TagSelector({
           // 只显示激活的标签
           setTags(data.data.filter((tag: Tag & { isActive?: boolean }) => tag.isActive !== false));
         } else {
-          setError(data.error || "加载标签失败");
+          setError(getErrorMessage(data.error, "加载标签失败"));
         }
       } catch (err) {
         setError("加载标签失败");

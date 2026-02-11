@@ -22,13 +22,6 @@ const baseRecipe: Recipe = {
   },
   ingredients: [],
   steps: [],
-  styleGuide: {
-    theme: "治愈系暖调",
-    lighting: "自然光",
-    composition: "留白",
-    aesthetic: "吉卜力",
-  },
-  imageShots: [],
 };
 
 describe("RecipeHeader", () => {

@@ -4,15 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Search, Menu, X, Globe, ChevronDown, Heart } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { HeaderAuth } from "@/components/auth/HeaderAuth";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { useSiteConfig } from "@/components/config/SiteConfigProvider";
 import { localizePath, stripLocaleFromPathname } from "@/lib/i18n/utils";
 import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n/config";
+import { useTranslations } from "@/lib/i18n/translations";
 
-// 导航标签支持所有语言（未翻译的回退到英文）
-const NAV_ITEMS: Array<{ href: string; label: Record<string, string> }> = [
+// 导航标签支持所有语言（未翻译的回退到英文）- 移除收藏，改为图标显示
+const NAV_ITEMS: Array<{ href: string; label: Record<string, string>; requireAuth?: boolean }> = [
   { href: "/", label: { zh: "首页", en: "Home", ja: "ホーム", ko: "홈", es: "Inicio", fr: "Accueil", de: "Start", pt: "Início", it: "Home", ru: "Главная" } },
   { href: "/recipe", label: { zh: "食谱", en: "Recipes", ja: "レシピ", ko: "레시피", es: "Recetas", fr: "Recettes", de: "Rezepte", pt: "Receitas", it: "Ricette", ru: "Рецепты" } },
   { href: "/gallery", label: { zh: "美食图库", en: "Gallery", ja: "ギャラリー", ko: "갤러리", es: "Galería", fr: "Galerie", de: "Galerie", pt: "Galeria", it: "Galleria", ru: "Галерея" } },
@@ -35,10 +37,15 @@ export function Header({ variant = "default" }: HeaderProps) {
   const router = useRouter();
   const locale = useLocale();
   const siteConfig = useSiteConfig();
+  const { data: session } = useSession();
+  const { t } = useTranslations();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
+
+  // 所有导航项都显示，收藏页面会自动处理未登录跳转
+  const visibleNavItems = NAV_ITEMS;
 
   // 点击外部关闭语言菜单
   useEffect(() => {
@@ -51,13 +58,13 @@ export function Header({ variant = "default" }: HeaderProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const searchPlaceholder =
-    locale === "en" ? "Search dishes or ingredients..." : "搜索菜名、食材...";
+  const searchPlaceholder = t("filter.searchPlaceholder");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      const target = `${localizePath("/recipe", locale)}?q=${encodeURIComponent(
+      // 搜索跳转到美食图库页面
+      const target = `${localizePath("/gallery", locale)}?q=${encodeURIComponent(
         searchQuery.trim()
       )}`;
       router.push(target);
@@ -104,7 +111,7 @@ export function Header({ variant = "default" }: HeaderProps) {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-6">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems.map((item) => {
               const localizedHref = localizePath(item.href, locale);
               const currentPath = stripLocaleFromPathname(pathname);
               const isActive =
@@ -143,7 +150,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   className={`w-48 lg:w-56 pl-10 pr-4 py-2 text-sm rounded-full border transition-all focus:outline-none focus:w-64 ${
                     isTransparent
                       ? "bg-white/20 border-white/30 text-white placeholder-white/60 focus:bg-white/30"
-                      : "bg-gray-50 border-lightGray text-textDark placeholder-textGray focus:border-brownWarm focus:ring-2 focus:ring-brownWarm/20"
+                      : "bg-cream/70 border-lightGray text-textDark placeholder-textGray focus:border-brownWarm focus:ring-2 focus:ring-brownWarm/20"
                   }`}
                 />
                 <Search
@@ -153,6 +160,19 @@ export function Header({ variant = "default" }: HeaderProps) {
                 />
               </div>
             </form>
+
+            {/* Favorites Icon */}
+            <Link
+              href={localizePath("/favorites", locale)}
+              className={`p-2 rounded-full transition-colors ${
+                isTransparent
+                  ? "text-white/80 hover:text-white hover:bg-white/10"
+                  : "text-textGray hover:text-brownWarm hover:bg-cream/70"
+              }`}
+              title={t("favorites.myFavorites")}
+            >
+              <Heart className="w-5 h-5" />
+            </Link>
 
             {/* Auth */}
             <HeaderAuth />
@@ -164,7 +184,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors ${
                   isTransparent
                     ? "text-white/80 hover:text-white hover:bg-white/10"
-                    : "text-textGray hover:text-textDark hover:bg-gray-100"
+                    : "text-textGray hover:text-textDark hover:bg-cream/70"
                 }`}
               >
                 <Globe className="w-4 h-4" />
@@ -172,7 +192,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <ChevronDown className={`w-3 h-3 transition-transform ${langMenuOpen ? "rotate-180" : ""}`} />
               </button>
               {langMenuOpen && (
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-lightGray py-1 z-50">
                   {SUPPORTED_LOCALES.map((key) => (
                     <button
                       key={key}
@@ -183,7 +203,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                       className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                         locale === key
                           ? "bg-brownWarm/10 text-brownWarm font-medium"
-                          : "text-textGray hover:bg-gray-50 hover:text-textDark"
+                          : "text-textGray hover:bg-cream/70 hover:text-textDark"
                       }`}
                     >
                       {LOCALE_LABELS[key]}
@@ -218,7 +238,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full pl-10 pr-4 py-2 text-sm rounded-full border border-lightGray bg-gray-50 focus:outline-none focus:border-brownWarm"
+                  className="w-full pl-10 pr-4 py-2 text-sm rounded-full border border-lightGray bg-cream/70 focus:outline-none focus:border-brownWarm"
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-textGray" />
               </div>
@@ -240,20 +260,33 @@ export function Header({ variant = "default" }: HeaderProps) {
                     className={`block px-4 py-2 rounded-lg ${
                       isActive
                         ? "bg-brownWarm/10 text-brownWarm font-medium"
-                        : "text-textGray hover:bg-gray-50"
+                        : "text-textGray hover:bg-cream/70"
                     }`}
                   >
                     {getNavLabel(item, locale)}
                   </Link>
                 );
               })}
+              {/* 收藏入口 */}
+              <Link
+                href={localizePath("/favorites", locale)}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                  stripLocaleFromPathname(pathname) === "/favorites"
+                    ? "bg-brownWarm/10 text-brownWarm font-medium"
+                    : "text-textGray hover:bg-cream/70"
+                }`}
+              >
+                <Heart className="w-4 h-4" />
+                {t("favorites.myFavorites")}
+              </Link>
             </nav>
 
             {/* Mobile Language Selector */}
             <div className="mt-4 px-4">
               <p className="text-xs text-textGray mb-2 flex items-center gap-1">
                 <Globe className="w-3 h-3" />
-                {locale === "zh" ? "选择语言" : "Language"}
+                                {t("language.selectLanguage")}
               </p>
               <div className="grid grid-cols-5 gap-2">
                 {SUPPORTED_LOCALES.map((key) => (
@@ -266,7 +299,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     className={`px-2 py-1.5 rounded text-xs transition-colors ${
                       locale === key
                         ? "bg-brownWarm text-white"
-                        : "bg-gray-100 text-textGray hover:bg-gray-200"
+                        : "bg-lightGray text-textGray hover:bg-cream/70"
                     }`}
                   >
                     {LOCALE_LABELS[key]}

@@ -9,6 +9,9 @@
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { ChefHat } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { ensureEnglish, toEnglishLabel } from "@/lib/i18n/english";
+import { CUISINE_LABELS_EN, LOCATION_LABELS_EN } from "@/lib/i18n/labels";
+import { t } from "@/lib/i18n/translations";
 
 interface SearchResultCardProps {
   id: string;
@@ -32,7 +35,20 @@ export function SearchResultCard({
   coverImage,
 }: SearchResultCardProps) {
   const locale = useLocale();
-  const displayTitle = locale === "en" ? titleEn || titleZh : titleZh;
+  const isEn = locale === "en";
+  const displayTitle = isEn
+    ? ensureEnglish(titleEn || titleZh, "Untitled Recipe")
+    : titleZh;
+  const displayLocation = location
+    ? isEn
+      ? toEnglishLabel(location, LOCATION_LABELS_EN, "")
+      : location
+    : null;
+  const displayCuisine = cuisine
+    ? isEn
+      ? toEnglishLabel(cuisine, CUISINE_LABELS_EN, "")
+      : cuisine
+    : null;
   return (
     <LocalizedLink href={`/recipe/${id}`} className="group block">
       <div className="bg-white rounded-2xl border-2 border-lightGray hover:border-brownWarm/40 transition-all overflow-hidden hover:shadow-lg">
@@ -60,25 +76,25 @@ export function SearchResultCard({
           {/* 一句话描述 */}
           {summary?.oneLine && (
             <p className="text-sm text-textGray mb-3">
-              {summary.oneLine}
+              {isEn ? ensureEnglish(summary.oneLine, "") : summary.oneLine}
             </p>
           )}
 
           {/* 标签 */}
           <div className="flex flex-wrap gap-2">
-            {location && (
+            {displayLocation && (
               <span className="px-2 py-1 bg-cream text-textDark text-xs rounded-full">
-                📍 {location}
+                📍 {displayLocation}
               </span>
             )}
-            {cuisine && (
+            {displayCuisine && (
               <span className="px-2 py-1 bg-lightGray text-textDark text-xs rounded-full">
-                🍜 {cuisine}
+                🍜 {displayCuisine}
               </span>
             )}
             {aiGenerated && (
               <span className="px-2 py-1 bg-orangeAccent/20 text-brownDark text-xs rounded-full">
-                {locale === "en" ? "✨ AI" : "✨ AI生成"}
+                ✨ {t("recipe.aiGenerated", locale)}
               </span>
             )}
           </div>

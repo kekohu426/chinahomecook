@@ -15,19 +15,32 @@ interface SiteConfig {
   contactPhone: string | null;
 }
 
-const DEFAULT_CONFIG: SiteConfig = {
-  siteName: "Recipe Zen",
-  siteTagline: "治愈系美食研习所",
-  logoUrl: null,
-  faviconUrl: null,
-  footerDescription: "用心烹饪每一餐",
-  copyright: "Recipe Zen",
-  socialLinks: null,
-  contactEmail: null,
-  contactPhone: null,
+const DEFAULT_CONFIGS: Record<string, SiteConfig> = {
+  zh: {
+    siteName: "Recipe Zen",
+    siteTagline: "治愈系美食研习所",
+    logoUrl: null,
+    faviconUrl: null,
+    footerDescription: "用心烹饪每一餐",
+    copyright: "Recipe Zen",
+    socialLinks: null,
+    contactEmail: null,
+    contactPhone: null,
+  },
+  en: {
+    siteName: "Recipe Zen",
+    siteTagline: "Healing Food Studio",
+    logoUrl: null,
+    faviconUrl: null,
+    footerDescription: "Cook with heart, every meal",
+    copyright: "Recipe Zen",
+    socialLinks: null,
+    contactEmail: null,
+    contactPhone: null,
+  },
 };
 
-const SiteConfigContext = createContext<SiteConfig>(DEFAULT_CONFIG);
+const SiteConfigContext = createContext<SiteConfig>(DEFAULT_CONFIGS.en);
 
 export function useSiteConfig() {
   return useContext(SiteConfigContext);
@@ -44,10 +57,11 @@ export function SiteConfigProvider({
 }: SiteConfigProviderProps) {
   const locale = useLocale();
   const [config, setConfig] = useState<SiteConfig>(
-    initialConfig || DEFAULT_CONFIG
+    initialConfig || DEFAULT_CONFIGS[locale] || DEFAULT_CONFIGS.en
   );
 
   useEffect(() => {
+    setConfig(initialConfig || DEFAULT_CONFIGS[locale] || DEFAULT_CONFIGS.en);
     // 客户端获取配置（带语言参数）
     async function fetchConfig() {
       try {

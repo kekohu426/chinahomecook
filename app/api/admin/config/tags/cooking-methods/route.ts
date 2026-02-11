@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const locale = searchParams.get("locale") || "zh";
+
     // 使用 Tag 模型查询 type="method"
     const methods = await prisma.tag.findMany({
       where: { type: "method" },
@@ -47,16 +50,21 @@ export async function GET(request: NextRequest) {
       : [];
     const countMap = new Map(counts.map((item) => [item.tagId, item._count._all]));
 
-    const data = methods.map((method) => ({
-      id: method.id,
-      name: method.name,
-      slug: method.slug,
-      icon: method.icon,
-      sortOrder: method.sortOrder,
-      isActive: method.isActive,
-      translations: method.translations,
-      recipeCount: countMap.get(method.id) || 0,
-    }));
+    const data = methods.map((method) => {
+      // 根据 locale 查找翻译
+      const translation = method.translations.find((t) => t.locale === locale);
+      return {
+        id: method.id,
+        name: translation?.name || method.name,
+        originalName: method.name,
+        slug: method.slug,
+        icon: method.icon,
+        sortOrder: method.sortOrder,
+        isActive: method.isActive,
+        translations: method.translations,
+        recipeCount: countMap.get(method.id) || 0,
+      };
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (error) {

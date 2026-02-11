@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
+      busboy: path.resolve(__dirname, './tests/mocks/busboy.ts'),
     },
   },
 })

@@ -1,4 +1,4 @@
-export async function register() {
+﻿export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy;
 
@@ -10,3 +10,4 @@ export async function register() {
     }
   }
 }
+

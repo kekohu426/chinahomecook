@@ -16,10 +16,13 @@ async function requireAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const authError = await requireAdmin();
     if (authError) return authError;
+
+    const { searchParams } = new URL(request.url);
+    const locale = searchParams.get("locale") || "zh";
 
     const tastes = await prisma.tag.findMany({
       where: { type: "taste" },
@@ -42,16 +45,21 @@ export async function GET() {
       : [];
     const countMap = new Map(counts.map((item) => [item.tagId, item._count._all]));
 
-    const data = tastes.map((taste) => ({
-      id: taste.id,
-      name: taste.name,
-      slug: taste.slug,
-      icon: taste.icon,
-      sortOrder: taste.sortOrder,
-      isActive: taste.isActive,
-      translations: taste.translations,
-      recipeCount: countMap.get(taste.id) || 0,
-    }));
+    const data = tastes.map((taste) => {
+      // 根据 locale 查找翻译
+      const translation = taste.translations.find((t) => t.locale === locale);
+      return {
+        id: taste.id,
+        name: translation?.name || taste.name,
+        originalName: taste.name,
+        slug: taste.slug,
+        icon: taste.icon,
+        sortOrder: taste.sortOrder,
+        isActive: taste.isActive,
+        translations: taste.translations,
+        recipeCount: countMap.get(taste.id) || 0,
+      };
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (error) {

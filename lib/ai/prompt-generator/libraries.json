@@ -1,0 +1,72 @@
+{
+    "cameras": [
+        "cinematic 85mm lens, shallow depth of field",
+        "macro photography, extreme detail",
+        "50mm prime lens, sharp focus",
+        "professional food photography styling",
+        "high resolution, 8k texture quality"
+    ],
+    "surfaces": [
+        "on a rustic dark wooden table",
+        "on a polished white marble counter",
+        "on a textured concrete surface",
+        "on a slate cutting board",
+        "on a light wooden cutting board",
+        "on a bamboo mat",
+        "on a stainless steel countertop",
+        "on a cream linen tablecloth"
+    ],
+    "backgrounds": [
+        "a blurry kitchen background with warm lights",
+        "a clean white tiled backsplash, slightly out of focus",
+        "a window with plants, slightly out of focus",
+        "a background with hanging copper pans",
+        "a rustic brick wall, blurred in the background",
+        "a modern minimalist kitchen, softly blurred",
+        "a traditional Chinese kitchen setting, out of focus",
+        "shelves with ceramic jars and utensils, soft bokeh"
+    ],
+    "lighting": {
+        "light_and_fresh": [
+            "bright and airy natural light from a side window",
+            "soft morning light, creating gentle shadows",
+            "clean overhead natural lighting",
+            "diffused daylight from large windows",
+            "soft backlit by morning sun"
+        ],
+        "dark_and_moody": [
+            "dramatic side lighting with deep shadows",
+            "warm, low-key lighting, focused on the subject",
+            "moody chiaroscuro lighting",
+            "spotlight effect with dark surroundings",
+            "golden hour warm light from the side"
+        ],
+        "baking": [
+            "soft natural window light with warm tones",
+            "bright kitchen lighting, evenly lit",
+            "cozy warm lighting with soft shadows",
+            "natural daylight from above"
+        ]
+    },
+    "perspectives": {
+        "preparation": [
+            "Top-down view",
+            "Flat lay shot",
+            "45-degree angle overhead shot",
+            "Bird's eye view"
+        ],
+        "cooking": [
+            "Close-up 45-degree angle shot",
+            "Eye-level view",
+            "POV shot looking into the pot",
+            "Close-up macro shot",
+            "Side view at 45-degree angle"
+        ],
+        "presentation": [
+            "45-degree angle shot",
+            "Eye-level view",
+            "Slightly elevated frontal view",
+            "Three-quarter view"
+        ]
+    }
+}

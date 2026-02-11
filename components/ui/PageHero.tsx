@@ -10,6 +10,7 @@
  */
 
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
+import { t } from "@/lib/i18n/translations";
 import { ChevronRight, Home } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -44,17 +45,22 @@ export function PageHero({
   locale = "zh",
   children,
 }: PageHeroProps) {
+  const homeLabel = t("nav.home", locale as "zh" | "en");
   return (
     <div className="bg-gradient-to-br from-brownWarm via-orangeAccent/60 to-cream text-white">
       <div className="max-w-7xl mx-auto px-8 py-12">
         {/* 面包屑导航 */}
-        <nav className="flex items-center gap-2 text-sm text-white/80 mb-4">
-          <LocalizedLink href="/" className="hover:text-white transition-colors">
+        <nav className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs md:text-sm text-white/80 mb-4">
+          <LocalizedLink
+            href="/"
+            className="flex items-center gap-2 hover:text-white transition-colors"
+          >
             <Home className="w-4 h-4" />
+            <span>{homeLabel}</span>
           </LocalizedLink>
           {breadcrumbs.map((item, index) => (
-            <span key={index} className="flex items-center gap-2">
-              <ChevronRight className="w-4 h-4" />
+            <span key={index} className="flex items-center gap-2 whitespace-nowrap">
+              <ChevronRight className="w-4 h-4 text-white/60" />
               {item.href ? (
                 <LocalizedLink
                   href={item.href}
@@ -72,23 +78,17 @@ export function PageHero({
         {/* 标题区 */}
         <div className="flex items-center gap-4 mb-4">
           {Icon && <Icon className="w-12 h-12" />}
-          <h1 className="text-4xl md:text-5xl font-serif font-medium">
-            {title}
-          </h1>
+          <h1 className="editorial-hero-title">{title}</h1>
         </div>
 
         {/* 英文副标题 */}
         {titleEn && (
-          <p className="text-white/90 text-lg">
-            {titleEn}
-          </p>
+          <p className="editorial-hero-subtitle">{titleEn}</p>
         )}
 
         {/* 一句话说明 */}
         {description && (
-          <p className="text-white/70 text-sm mt-2">
-            {description}
-          </p>
+          <p className="editorial-hero-body mt-2">{description}</p>
         )}
 
         {/* 额外内容（如步骤指示器） */}

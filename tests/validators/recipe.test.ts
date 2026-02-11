@@ -249,9 +249,7 @@ describe('Recipe Schema Validator', () => {
         summary: {},
         story: {},
         ingredients: [],
-        steps: [],
-        styleGuide: {},
-        imageShots: []
+        steps: []
       }
 
       expect(() => validateRecipe(invalid)).toThrow()
@@ -264,9 +262,7 @@ describe('Recipe Schema Validator', () => {
         summary: {},
         story: {},
         ingredients: [],
-        steps: [],
-        styleGuide: {},
-        imageShots: []
+        steps: []
       }
 
       expect(() => validateRecipe(invalid)).toThrow()
@@ -322,19 +318,16 @@ describe('Recipe Schema Validator', () => {
             photoBrief: '炸鸭块特写'
           }
         ],
-        styleGuide: {
-          theme: '治愈系暖调',
-          lighting: '自然光',
-          composition: '留白构图',
-          aesthetic: '吉卜力风格'
-        },
-        imageShots: [
-          {
-            key: 'cover',
-            imagePrompt: '啤酒鸭成品图，俯视角度，温暖光线',
-            ratio: '16:9' as const
-          }
-        ]
+        nutrition: {},
+        relatedRecipes: {},
+        seo: {},
+        tags: {
+          scenes: ['家常菜'],
+          cookingMethods: ['炖'],
+          tastes: ['咸鲜'],
+          crowds: ['大众'],
+          occasions: ['日常']
+        }
       }
 
       expect(() => validateRecipe(valid)).not.toThrow()

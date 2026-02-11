@@ -57,17 +57,13 @@ describe("CollectionRuleEngine", () => {
           ],
         },
         {
-          AND: [{ cookTime: { lte: 30 } }],
+          cookTime: { lte: 30 },
         },
       ],
       NOT: {
-        OR: [
-          {
-            tags: {
-              some: { tag: { type: "taste" }, tagId: "重口味" },
-            },
-          },
-        ],
+        tags: {
+          some: { tag: { type: "taste" }, tagId: "重口味" },
+        },
       },
     });
   });

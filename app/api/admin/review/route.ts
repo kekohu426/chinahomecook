@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 
 /**
  * GET /api/admin/review
@@ -20,6 +21,9 @@ import { prisma } from "@/lib/db/prisma";
  */
 export async function GET(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const quality = searchParams.get("quality");
     const sort = searchParams.get("sort") || "createdAt";
@@ -156,6 +160,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { action, recipeId, recipeIds, note, autoTranslate = true } = body;
 

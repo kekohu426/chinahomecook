@@ -29,8 +29,6 @@ export type IconKey =
   | "tool"      // 工具
   | "other";    // 其他
 
-// 图片比例枚举
-export type ImageRatio = "16:9" | "4:3" | "3:2";
 
 // ==================== 食谱主结构 ====================
 
@@ -43,6 +41,8 @@ export interface Recipe {
   titleZh: string;
   titleEn?: string | null;
   aliases?: string[];
+  author?: string | null;
+  aiGenerated?: boolean;
 
   // 产地信息
   origin?: RecipeOrigin;
@@ -80,12 +80,6 @@ export interface Recipe {
 
   // 搭配建议
   pairing?: PairingInfo;
-
-  // 风格指南
-  styleGuide: StyleGuide;
-
-  // 配图方案
-  imageShots: ImageShot[];
 
   // SEO
   seo?: RecipeSEO;
@@ -240,38 +234,6 @@ export interface PairingInfo {
   sauceOrSide?: string[];
 }
 
-// ==================== 风格指南 ====================
-
-export interface StyleGuide {
-  // v1.1.0 字段
-  theme?: string;
-  lighting?: string;
-  composition?: string;
-  aesthetic?: string;
-
-  // v2.0.0 新增字段
-  visualTheme?: string;
-  palette?: string[];
-  materials?: string[];
-  props?: string[];
-  compositionRules?: string[];
-  imageRatios?: {
-    cover?: string;
-    step?: string;
-    ingredientsFlatlay?: string;
-  };
-}
-
-// ==================== 配图方案 ====================
-
-export interface ImageShot {
-  key: string;
-  title?: string;
-  imagePrompt: string;
-  negativePrompt?: string;
-  ratio: ImageRatio;
-  imageUrl?: string;
-}
 
 // ==================== SEO ====================
 
@@ -383,12 +345,4 @@ export const HEAT_TO_LABEL: Record<Heat, string> = {
   medium: "中火",
   "medium-high": "中大火",
   high: "大火"
-};
-
-// ==================== 比例映射配置 ====================
-
-export const RATIO_TO_ASPECT: Record<ImageRatio, string> = {
-  "16:9": "aspect-video",
-  "4:3": "aspect-[4/3]",
-  "3:2": "aspect-[3/2]"
 };

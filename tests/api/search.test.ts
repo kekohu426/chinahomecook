@@ -19,6 +19,10 @@ vi.mock("@/lib/ai/generate-recipe", () => ({
   generateRecipe: (...args: any[]) => mockGenerateRecipe(...args),
 }));
 
+vi.mock("@/lib/ingredients/ensure-ingredient-icons", () => ({
+  ensureIngredientIconRecords: vi.fn().mockResolvedValue(undefined),
+}));
+
 const sampleRecipeData = {
   schemaVersion: "1.1.0",
   titleZh: "测试菜谱",
@@ -60,19 +64,6 @@ const sampleRecipeData = {
       visualCue: "食材齐全。",
       failPoint: "火太大。",
       photoBrief: "食材摆盘。",
-    },
-  ],
-  styleGuide: {
-    theme: "治愈系",
-    lighting: "自然光",
-    composition: "留白",
-    aesthetic: "日杂风",
-  },
-  imageShots: [
-    {
-      key: "hero",
-      imagePrompt: "test prompt",
-      ratio: "16:9",
     },
   ],
 };

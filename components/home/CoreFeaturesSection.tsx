@@ -1,23 +1,23 @@
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
 import { CheckCircle, Target, Clock, Users } from "lucide-react";
+import { SectionHeading } from "@/components/home/SectionHeading";
 
-// 图标映射
 const ICON_MAP: Record<string, React.ReactNode> = {
-  check: <CheckCircle className="w-12 h-12 text-brownWarm" />,
-  target: <Target className="w-12 h-12 text-brownWarm" />,
-  clock: <Clock className="w-12 h-12 text-brownWarm" />,
-  users: <Users className="w-12 h-12 text-brownWarm" />,
+  check: <CheckCircle className="w-8 h-8 text-brownWarm" />,
+  target: <Target className="w-8 h-8 text-brownWarm" />,
+  clock: <Clock className="w-8 h-8 text-brownWarm" />,
+  users: <Users className="w-8 h-8 text-brownWarm" />,
 };
 
-// 默认配置（作为 fallback）
-const DEFAULT_FEATURES = [
-  { icon: "check", title: "专业审核", description: "每道菜谱都经过人工审核，保证质量。" },
-  { icon: "target", title: "步骤清晰", description: "语音+计时辅助，不怕出错，操作更顺畅。" },
-  { icon: "clock", title: "节省时间", description: "3分钟找到今天要做的菜，简化决策流程。" },
-  { icon: "users", title: "家庭友好", description: "家常口味，适合孩子和长辈的需求。" },
-];
-
-const DEFAULT_TITLE = "为什么选择 Recipe Zen";
+function getDefaultFeatures(locale: Locale) {
+  return [
+    { icon: "check", title: t("home.featureExpertReview", locale), description: t("home.featureExpertReviewDesc", locale) },
+    { icon: "target", title: t("home.featureClearSteps", locale), description: t("home.featureClearStepsDesc", locale) },
+    { icon: "clock", title: t("home.featureSaveTime", locale), description: t("home.featureSaveTimeDesc", locale) },
+    { icon: "users", title: t("home.featureFamilyFriendly", locale), description: t("home.featureFamilyFriendlyDesc", locale) },
+  ];
+}
 
 interface CoreFeatureItem {
   icon: string;
@@ -36,29 +36,31 @@ export function CoreFeaturesSection({
   title,
   features,
 }: CoreFeaturesSectionProps) {
-  const displayTitle = title ?? DEFAULT_TITLE;
-  const displayFeatures = features ?? DEFAULT_FEATURES;
+  const displayTitle = title ?? t("home.whyChooseUs", locale);
+  const displayFeatures = features ?? getDefaultFeatures(locale);
 
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-serif font-medium text-textDark">
-            {displayTitle}
-          </h2>
+    <section className="editorial-section editorial-section--white">
+      <div className="editorial-container">
+        <div className="mb-10">
+          <SectionHeading title={displayTitle} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="editorial-grid-2">
           {displayFeatures.map((feature) => (
             <div
               key={feature.title}
-              className="text-center flex flex-col items-center gap-4"
+              className="editorial-card p-6 flex items-start gap-4"
             >
-              <div className="w-16 h-16 flex items-center justify-center">
-                {ICON_MAP[feature.icon] ?? ICON_MAP.check}
+              <div className="mt-1">{ICON_MAP[feature.icon] ?? ICON_MAP.check}</div>
+              <div>
+                <h3 className="text-lg font-medium text-textDark">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-textGray leading-relaxed mt-2">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="text-xl font-medium text-textDark">{feature.title}</h3>
-              <p className="text-sm text-textGray leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>

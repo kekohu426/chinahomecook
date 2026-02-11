@@ -93,32 +93,50 @@ export default auth((req) => {
     const isWriteOperation = ["POST", "PUT", "PATCH", "DELETE"].includes(
       method
     );
-
-    // Allow GET requests to pass through (public read access)
-    if (!isWriteOperation) {
-      return NextResponse.next();
+    // /api/admin/* must always be admin, including GET.
+    if (pathname.startsWith("/api/admin")) {
+      if (!isLoggedIn) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+      if (!isAdmin) {
+        return NextResponse.json(
+          { success: false, error: "Forbidden" },
+          { status: 403 }
+        );
+      }
     }
 
-    // List of protected API paths
-    const protectedPaths = [
-      "/api/admin",
-      "/api/recipes",
-      "/api/config",
-      "/api/upload",
-      "/api/ai/generate-recipe",
-      "/api/ai/generate-recipes-batch",
-      "/api/ai/chef",
-      "/api/images/generate",
-      "/api/custom-recipes",
-      "/api/gallery",
-    ];
+    // custom-recipes is for normal logged-in users, not admin-only.
+    if (pathname.startsWith("/api/custom-recipes") && isWriteOperation) {
+      if (!isLoggedIn) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+    }
 
-    const isProtectedPath = protectedPaths.some((path) =>
-      nextUrl.pathname.startsWith(path)
-    );
+    // Admin-only write APIs outside /api/admin.
+    if (isWriteOperation) {
+      const adminWriteProtectedPaths = [
+        "/api/recipes",
+        "/api/config",
+        "/api/upload",
+        "/api/ai/generate-recipe",
+        "/api/ai/generate-recipes-batch",
+        "/api/ai/chef",
+        "/api/images/generate",
+        "/api/gallery",
+      ];
 
-    if (isProtectedPath) {
-      if (!isLoggedIn || !isAdmin) {
+      const isProtectedPath = adminWriteProtectedPaths.some((path) =>
+        pathname.startsWith(path)
+      );
+
+      if (isProtectedPath && (!isLoggedIn || !isAdmin)) {
         return NextResponse.json(
           { success: false, error: "Unauthorized" },
           { status: 401 }
@@ -130,12 +148,15 @@ export default auth((req) => {
   const response = NextResponse.next();
   if (localeInPath) {
     response.cookies.set(LOCALE_COOKIE_NAME, localeInPath);
+    // 通过 header 传递 locale 给根 layout，确保 <html lang> 正确
+    response.headers.set("x-locale", localeInPath);
   }
   return response;
 });
 
 export const config = {
   matcher: [
-    "/((?!_next|.*\\..*).*)",
+    // Keep auth endpoints out of middleware to avoid intercepting NextAuth session/proxy calls.
+    "/((?!api/auth|_next|.*\\..*).*)",
   ],
 };

@@ -72,6 +72,12 @@ export default async function AdminLayout({
               >
                 📋 食谱列表
               </Link>
+              <Link
+                href="/admin/recipes/import"
+                className="block px-4 py-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                📥 批量导入
+              </Link>
             </div>
 
             <div>
@@ -150,6 +156,12 @@ export default async function AdminLayout({
               >
                 📝 关于我们
               </Link>
+              <Link
+                href="/admin/config/team"
+                className="block px-4 py-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                👥 团队成员管理
+              </Link>
             </div>
 
             <div>
@@ -167,6 +179,12 @@ export default async function AdminLayout({
                 className="block px-4 py-2 rounded-lg hover:bg-white/10 transition-colors"
               >
                 📰 博客生成
+              </Link>
+              <Link
+                href="/admin/tools/prompt-generator"
+                className="block px-4 py-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                🖼️ 菜谱图片生成
               </Link>
               <Link
                 href="/admin/jobs"

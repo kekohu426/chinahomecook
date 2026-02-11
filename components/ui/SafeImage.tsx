@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/image-utils";
 import { ImageIcon } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { useTranslations } from "@/lib/i18n/translations";
 
 export interface SafeImageProps {
   src: string | null | undefined;
@@ -122,7 +123,7 @@ function PlaceholderImage({
   containerClassName,
 }: PlaceholderImageProps) {
   const locale = useLocale();
-  const isEn = locale === "en";
+  const { t } = useTranslations();
   const bgColors: Record<string, string> = {
     cover: "from-amber-100 via-orange-50 to-amber-100",
     step: "from-stone-100 via-stone-50 to-stone-100",
@@ -136,7 +137,7 @@ function PlaceholderImage({
           <ImageIcon className="w-8 h-8 text-amber-600/60" />
         </div>
         <p className="text-amber-700/60 text-sm">
-          {isEn ? "Loading image..." : "图片加载中..."}
+          {t("gallery.loadingImage")}
         </p>
       </div>
     ),
@@ -146,7 +147,7 @@ function PlaceholderImage({
           <ImageIcon className="w-6 h-6 text-stone-500/60" />
         </div>
         <p className="text-stone-500/60 text-xs">
-          {isEn ? "Step image" : "步骤配图"}
+          {t("gallery.stepImage")}
         </p>
       </div>
     ),

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db/prisma";
 import { requireAdmin } from "@/lib/auth/guard";
 import { getTextProvider } from "@/lib/ai/provider";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { AIGenerationLogger, calculateCost } from "@/lib/ai/generation-logger";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -73,7 +74,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ success: false, error: "未找到可用的提示词配置" }, { status: 500 });
     }
 
-    const provider = await getTextProvider();
+    const provider = getTextProvider();
+    const logger = new AIGenerationLogger();
+    const startTime = Date.now();
+
     const response = await provider.chat({
       messages: [
         ...(applied.systemPrompt ? [{ role: "system" as const, content: applied.systemPrompt }] : []),
@@ -81,6 +85,27 @@ export async function POST(request: NextRequest, context: RouteContext) {
       ],
       temperature: 0.2,
       maxTokens: 2000,
+    });
+
+    // 记录AI调用日志
+    const durationMs = Date.now() - startTime;
+    const modelName = provider.getModel();
+    const tokenUsage = response.usage
+      ? {
+          input: response.usage.promptTokens,
+          output: response.usage.completionTokens,
+          total: response.usage.totalTokens,
+        }
+      : undefined;
+
+    logger.logSuccess("translation", modelName, {
+      prompt: applied.prompt.substring(0, 1000),
+      parameters: { temperature: 0.2, maxTokens: 2000, targetLocale },
+      tokenUsage,
+      cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+      durationMs,
+      provider: provider.getName(),
+      metadata: { entityType: "testimonial", entityId: id, targetLocale },
     });
 
     const translated = parseJson(response.content || "");

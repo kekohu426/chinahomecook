@@ -389,7 +389,7 @@ export default function ManualSelectMode({ collection, onRefresh }: ManualSelect
       {/* 提示信息 */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          💡 手动添加的食谱会显示在下方的"已加入的食谱"列表中，并标注为"手动添加"
+          💡 手动添加的食谱会显示在下方的“已加入的食谱”列表中，并标注为“手动添加”
         </p>
       </div>
     </div>

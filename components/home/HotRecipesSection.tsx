@@ -3,6 +3,10 @@ import Image from "next/image";
 import { ArrowRight, Clock, ChefHat } from "lucide-react";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
 import { DIFFICULTY_TO_LABEL } from "@/types/recipe";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, toEnglishLabel } from "@/lib/i18n/english";
+import { CUISINE_LABELS_EN } from "@/lib/i18n/labels";
+import { SectionHeading } from "@/components/home/SectionHeading";
 
 interface Recipe {
   id: string;
@@ -36,59 +40,58 @@ export function HotRecipesSection({
   const getDifficultyLabel = (value?: string) => {
     if (!value) return null;
     if (isEn) {
-      if (value === "easy") return "Easy";
-      if (value === "medium") return "Medium";
-      if (value === "hard") return "Hard";
+      if (value == "easy") return "Easy";
+      if (value == "medium") return "Medium";
+      if (value == "hard") return "Hard";
       return value;
     }
     return DIFFICULTY_TO_LABEL[value as keyof typeof DIFFICULTY_TO_LABEL] || value;
   };
+
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-8">
-        {/* 标题 */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-serif font-medium text-textDark">
-              {title || (locale === "en" ? "Weekly Favorites" : "本周精选家常菜")}
-            </h2>
-            <p className="text-textGray mt-1">
-              {subtitle ||
-                (locale === "en"
-                  ? "AI-curated and expert-reviewed."
-                  : "AI 辅助整理，团队审核，新手也能轻松上手。")}
-            </p>
-          </div>
-          <LocalizedLink
-            href={ctaHref || "/recipe"}
-            className="text-brownWarm hover:text-brownDark flex items-center gap-1 font-medium"
-          >
-            {ctaLabel || (locale === "en" ? "View more" : "查看更多")}
-            <ArrowRight className="w-4 h-4" />
-          </LocalizedLink>
+    <section className="editorial-section editorial-section--white">
+      <div className="editorial-container">
+        <div className="mb-10">
+          <SectionHeading
+            title={title || t("home.weeklyFavorites", locale)}
+            subtitle={subtitle || t("home.teamVerified", locale)}
+            action={
+              <LocalizedLink
+                href={ctaHref || "/recipe"}
+                className="editorial-action"
+              >
+                {ctaLabel || t("home.viewMore", locale)}
+                <ArrowRight className="w-4 h-4" />
+              </LocalizedLink>
+            }
+          />
         </div>
 
-        {/* 食谱网格 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="editorial-grid-3">
           {recipes.map((recipe) => {
             const summary = recipe.summary as any;
             const difficultyLabel = getDifficultyLabel(summary?.difficulty);
-            const displayTitle = isEn ? recipe.titleEn || recipe.titleZh : recipe.titleZh;
+            const displayTitle = isEn
+              ? ensureEnglish(recipe.titleEn || recipe.titleZh, "Untitled Recipe")
+              : recipe.titleZh;
+            const cuisineLabel = isEn
+              ? toEnglishLabel(recipe.cuisine, CUISINE_LABELS_EN, "")
+              : recipe.cuisine;
+
             return (
               <LocalizedLink
                 key={recipe.id}
                 href={`/recipe/${recipe.slug || recipe.id}`}
-                className="group bg-cream rounded-xl overflow-hidden shadow-card hover:shadow-lg transition-shadow"
+                className="group editorial-card"
               >
-                {/* 封面图 */}
-                <div className="relative aspect-[4/3] bg-lightGray">
+                <div className="editorial-image">
                   {recipe.coverImage ? (
                     <Image
                       src={recipe.coverImage}
                       alt={displayTitle}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="editorial-image-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full text-textGray">
@@ -97,36 +100,30 @@ export function HotRecipesSection({
                   )}
                 </div>
 
-                {/* 内容 */}
-                <div className="p-4">
-                  <h3 className="font-medium text-textDark group-hover:text-brownWarm transition-colors line-clamp-1">
+                <div className="editorial-card-body editorial-card-body--lg">
+                  <h3 className="font-medium text-textDark group-hover:text-brownWarm transition-colors line-clamp-2">
                     {displayTitle}
                   </h3>
 
                   {!isEn && recipe.titleEn && (
-                    <p className="text-sm text-textGray mt-1 line-clamp-1">
+                    <p className="text-sm text-textGray mt-2 line-clamp-1">
                       {recipe.titleEn}
                     </p>
                   )}
 
-                  {/* 标签 */}
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap items-center gap-3 mt-4 editorial-meta">
                     {recipe.cuisine && (
-                      <span className="px-2 py-0.5 bg-brownWarm/10 text-brownWarm text-xs rounded-full">
-                        {recipe.cuisine}
+                      <span className="px-2 py-1 border border-brownWarm/40 text-brownWarm rounded-full">
+                        {cuisineLabel}
                       </span>
                     )}
                     {summary?.timeTotalMin && (
-                      <span className="flex items-center gap-1 text-xs text-textGray">
+                      <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {summary.timeTotalMin} {isEn ? "min" : "分钟"}
+                        {summary.timeTotalMin} {t("recipe.minutes", locale)}
                       </span>
                     )}
-                    {difficultyLabel && (
-                      <span className="text-xs text-textGray">
-                        {difficultyLabel}
-                      </span>
-                    )}
+                    {difficultyLabel && <span>{difficultyLabel}</span>}
                   </div>
                 </div>
               </LocalizedLink>

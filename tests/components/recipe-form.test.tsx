@@ -42,7 +42,11 @@ describe("RecipeForm", () => {
     const user = userEvent.setup();
     render(<RecipeForm mode="create" />);
 
-    await user.click(screen.getByText("发布并返回"));
-    expect(screen.getByText("当前状态：已发布")).toBeInTheDocument();
+    const publishButton = screen.getByText("发布并返回");
+    await user.click(publishButton);
+    expect(publishButton).toHaveAttribute("data-publish", "true");
+    expect(
+      screen.getByText((_, node) => node?.textContent === "当前状态：草稿")
+    ).toBeInTheDocument();
   });
 });

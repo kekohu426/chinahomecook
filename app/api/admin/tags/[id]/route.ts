@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { requireAdmin } from "@/lib/auth/guard";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -18,6 +19,9 @@ interface RouteContext {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
 
     const tag = await prisma.tag.findUnique({
@@ -50,6 +54,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
     const body = await request.json();
 
@@ -98,6 +105,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { id } = await context.params;
 
     // 检查是否有关联的菜谱

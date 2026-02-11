@@ -14,6 +14,7 @@ import { uploadImage, generateSafeFilename } from "@/lib/utils/storage";
 import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
+import { AIGenerationLogger, calculateCost } from "./generation-logger";
 
 async function saveGeneratedImage(buffer: Buffer, prefix: string): Promise<string> {
   if (process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID) {
@@ -345,6 +346,69 @@ function fixSingleQuotedStrings(input: string): string {
   });
 }
 
+/**
+ * 修复字符串内未转义的双引号
+ * AI经常生成类似 "加入"豆腐"翻炒" 这样的内容
+ */
+function fixUnescapedQuotesInStrings(input: string): string {
+  let output = '';
+  let inString = false;
+  let escaped = false;
+  let stringStart = -1;
+
+  for (let i = 0; i < input.length; i++) {
+    const char = input[i];
+
+    if (inString) {
+      if (escaped) {
+        output += char;
+        escaped = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        output += char;
+        escaped = true;
+        continue;
+      }
+
+      if (char === '"') {
+        // 检查这是否是字符串结束
+        // 向后看：如果后面是 , } ] : 或空白+这些字符，则是字符串结束
+        let j = i + 1;
+        while (j < input.length && /\s/.test(input[j])) j++;
+        const nextChar = input[j];
+
+        if (nextChar === ',' || nextChar === '}' || nextChar === ']' ||
+            nextChar === ':' || nextChar === undefined) {
+          // 这是字符串结束
+          inString = false;
+          output += char;
+          continue;
+        }
+
+        // 否则这是字符串内的引号，需要转义
+        output += '\\"';
+        continue;
+      }
+
+      output += char;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      stringStart = i;
+      output += char;
+      continue;
+    }
+
+    output += char;
+  }
+
+  return output;
+}
+
 export function cleanAIResponse(response: string): string {
   // 移除markdown代码块标记
   let cleaned = response.trim();
@@ -373,6 +437,9 @@ export function cleanAIResponse(response: string): string {
 
   // 修复单引号字符串
   cleaned = fixSingleQuotedStrings(cleaned);
+
+  // 修复字符串内未转义的双引号（AI常见错误）
+  cleaned = fixUnescapedQuotesInStrings(cleaned);
 
   // 修复未加引号的 key
   cleaned = fixUnquotedKeys(cleaned);
@@ -687,7 +754,6 @@ export function normalizeRecipeData(data: any): any {
   data.aliases = normalizeArrayField(data.aliases);
   data.ingredients = normalizeArrayField(data.ingredients, "json");
   data.steps = normalizeArrayField(data.steps, "json");
-  data.imageShots = normalizeArrayField(data.imageShots, "json");
   data.faq = normalizeArrayField(data.faq, "json");
   data.tips = normalizeArrayField(data.tips);
   data.troubleshooting = normalizeArrayField(data.troubleshooting, "json");
@@ -712,71 +778,6 @@ export function normalizeRecipeData(data: any): any {
     data.summary.flavorTags = normalizeArrayField(data.summary.flavorTags);
   }
 
-  const normalizeImageRatio = (value: any, key?: string) => {
-    const fallbackByKey = (rawKey?: string) => {
-      const k = (rawKey || "").toLowerCase();
-      if (k.includes("step")) return "4:3";
-      if (k.includes("ingredient") || k.includes("flat")) return "3:2";
-      return "16:9";
-    };
-
-    if (!value) return fallbackByKey(key);
-
-    const raw = String(value).trim().toLowerCase();
-    if (!raw) return fallbackByKey(key);
-
-    const cleaned = raw
-      .replace(/：/g, ":")
-      .replace(/[×x]/g, ":")
-      .replace(/[\/\\-]/g, ":")
-      .replace(/\s+/g, "");
-
-    const directMap: Record<string, "16:9" | "4:3" | "3:2"> = {
-      "16:9": "16:9",
-      "4:3": "4:3",
-      "3:2": "3:2",
-      "9:16": "16:9",
-      "1:1": "4:3",
-      wide: "16:9",
-      widescreen: "16:9",
-      landscape: "16:9",
-      horizontal: "16:9",
-      portrait: "4:3",
-      vertical: "4:3",
-      square: "4:3",
-    };
-
-    if (directMap[cleaned]) return directMap[cleaned];
-
-    if (cleaned.includes(":")) {
-      const [w, h] = cleaned.split(":").map((part) => parseFloat(part));
-      if (Number.isFinite(w) && Number.isFinite(h) && h !== 0) {
-        const ratio = w / h;
-        if (Math.abs(ratio - 16 / 9) < 0.15) return "16:9";
-        if (Math.abs(ratio - 4 / 3) < 0.15) return "4:3";
-        if (Math.abs(ratio - 3 / 2) < 0.15) return "3:2";
-      }
-    }
-
-    const numeric = parseFloat(raw.replace(/[^\d.]/g, ""));
-    if (Number.isFinite(numeric)) {
-      if (Math.abs(numeric - 16 / 9) < 0.15) return "16:9";
-      if (Math.abs(numeric - 4 / 3) < 0.15) return "4:3";
-      if (Math.abs(numeric - 3 / 2) < 0.15) return "3:2";
-    }
-
-    return fallbackByKey(key);
-  };
-
-  if (Array.isArray(data.imageShots)) {
-    data.imageShots = data.imageShots.map((shot: any) => {
-      if (!shot || typeof shot !== "object") return shot;
-      return {
-        ...shot,
-        ratio: normalizeImageRatio(shot.ratio, shot.key),
-      };
-    });
-  }
 
   if (Array.isArray(data.relatedRecipes)) {
     data.relatedRecipes = { similar: data.relatedRecipes };
@@ -802,14 +803,6 @@ export function normalizeRecipeData(data: any): any {
     data.tags.occasions = normalizeArrayField(data.tags.occasions);
   }
 
-  if (data.styleGuide) {
-    data.styleGuide.palette = normalizeArrayField(data.styleGuide.palette);
-    data.styleGuide.materials = normalizeArrayField(data.styleGuide.materials);
-    data.styleGuide.props = normalizeArrayField(data.styleGuide.props);
-    data.styleGuide.compositionRules = normalizeArrayField(
-      data.styleGuide.compositionRules
-    );
-  }
 
   if (Array.isArray(data.equipment)) {
     data.equipment = data.equipment.map((item: any) =>
@@ -952,12 +945,49 @@ function ensureRecipeMinimums(data: any, fallbackTitle: string): any {
       },
       ingredients: [{ section: "主料", items: [] }],
       steps: [],
-      imageShots: [],
-      styleGuide: {},
     };
   }
 
-  data.titleZh = data.titleZh || fallbackTitle;
+  const normalizedFallbackTitle = String(fallbackTitle || "").trim();
+  const normalizedTitle = String(data.titleZh || "").trim();
+
+  console.log(`🔍 菜名校验: 用户输入="${normalizedFallbackTitle}", AI返回="${normalizedTitle}"`);
+
+  data.titleZh = normalizedTitle || normalizedFallbackTitle;
+
+  if (
+    normalizedFallbackTitle &&
+    normalizedTitle &&
+    normalizedTitle !== normalizedFallbackTitle
+  ) {
+    console.log(`⚠️ 菜名不一致！AI擅自改名，正在校正: "${normalizedTitle}" → "${normalizedFallbackTitle}"`);
+
+    const existingAliases = Array.isArray(data.aliases)
+      ? data.aliases.filter(Boolean).map((alias: any) => String(alias).trim())
+      : typeof data.aliases === "string"
+        ? [data.aliases.trim()]
+        : [];
+
+    const aliases = existingAliases.includes(normalizedTitle)
+      ? existingAliases
+      : [normalizedTitle, ...existingAliases];
+
+    data.aliases = aliases.filter((alias) => alias && alias !== normalizedFallbackTitle);
+    data.titleZh = normalizedFallbackTitle;
+
+    const correctionNote = `菜名已按用户输入校正为“${normalizedFallbackTitle}”，原始标题为“${normalizedTitle}”。`;
+    if (data.notes == null) {
+      data.notes = [correctionNote];
+    } else if (Array.isArray(data.notes)) {
+      if (!data.notes.includes(correctionNote)) {
+        data.notes.unshift(correctionNote);
+      }
+    } else if (typeof data.notes === "string") {
+      data.notes = [data.notes, correctionNote];
+    } else {
+      data.notes = [correctionNote];
+    }
+  }
 
   if (!data.summary || typeof data.summary !== "object") {
     data.summary = {
@@ -1055,40 +1085,205 @@ function ensureRecipeMinimums(data: any, fallbackTitle: string): any {
     return normalized;
   });
 
-  if (!Array.isArray(data.imageShots)) {
-    console.log("⚠️ AI 未返回 imageShots 数组，当前值:", typeof data.imageShots, data.imageShots);
-    // 自动创建默认的成品图配置
-    data.imageShots = [
-      {
-        key: "cover_main",
-        imagePrompt: "",
-        ratio: "16:9",
-        imageUrl: ""
-      },
-      {
-        key: "cover_detail",
-        imagePrompt: "",
-        ratio: "16:9",
-        imageUrl: ""
-      },
-      {
-        key: "cover_inside",
-        imagePrompt: "",
-        ratio: "16:9",
-        imageUrl: ""
-      }
-    ];
-    console.log("✅ 已自动创建 3 个默认成品图配置");
-  } else {
-    console.log("✅ AI 返回了 imageShots 数组，长度:", data.imageShots.length);
-  }
-
-  if (!data.styleGuide || typeof data.styleGuide !== "object") {
-    data.styleGuide = {};
-  }
-
   if (!data.story) {
     data.story = data.summary.oneLine || `${fallbackTitle}的家常做法，简单可靠。`;
+  }
+
+  // ==================== 确保所有非图片字段都有默认值 ====================
+
+  // 英文标题：优先使用 AI 返回的 titleEn，仅在缺失时使用 fallback
+  // 注意：fallbackTitle 是中文菜名，不应作为英文标题的默认值
+  if (!data.titleEn || data.titleEn === fallbackTitle) {
+    // 如果 AI 没有返回 titleEn，保留为空让后续流程处理
+    // 不要用中文名填充英文标题
+    data.titleEn = data.titleEn || null;
+  }
+
+  // 产地信息
+  if (!data.origin || typeof data.origin !== "object") {
+    data.origin = {
+      country: "中国",
+      region: null,
+      notes: null,
+    };
+  } else {
+    data.origin.country = data.origin.country || "中国";
+  }
+
+  // 营养信息
+  if (!data.nutrition || typeof data.nutrition !== "object") {
+    data.nutrition = {
+      perServing: {
+        calories: 200,
+        protein: 10,
+        fat: 8,
+        carbs: 20,
+        fiber: 2,
+        sodium: 500,
+      },
+      dietaryLabels: [],
+      disclaimer: "营养数据仅供参考，实际值可能因食材和烹饪方式有所不同。",
+    };
+  } else {
+    if (!data.nutrition.perServing) {
+      data.nutrition.perServing = {
+        calories: data.nutrition.calories || 200,
+        protein: data.nutrition.protein || 10,
+        fat: data.nutrition.fat || 8,
+        carbs: data.nutrition.carbs || 20,
+        fiber: data.nutrition.fiber || 2,
+        sodium: data.nutrition.sodium || 500,
+      };
+    }
+    if (!data.nutrition.dietaryLabels) {
+      data.nutrition.dietaryLabels = [];
+    }
+    if (!data.nutrition.disclaimer) {
+      data.nutrition.disclaimer = "营养数据仅供参考，实际值可能因食材和烹饪方式有所不同。";
+    }
+  }
+
+  // 设备清单
+  if (!Array.isArray(data.equipment) || data.equipment.length === 0) {
+    data.equipment = [
+      { name: "炒锅", required: true, notes: null },
+      { name: "锅铲", required: true, notes: null },
+      { name: "砧板", required: true, notes: null },
+      { name: "菜刀", required: true, notes: null },
+    ];
+  }
+
+  // FAQ
+  if (!Array.isArray(data.faq) || data.faq.length === 0) {
+    data.faq = [
+      {
+        question: `${fallbackTitle}可以提前准备吗？`,
+        answer: "可以提前将食材处理好，烹饪时会更加便捷。",
+      },
+      {
+        question: `${fallbackTitle}可以保存多久？`,
+        answer: "建议现做现吃，冷藏保存不超过2天，食用前需充分加热。",
+      },
+    ];
+  }
+
+  // 烹饪小贴士
+  if (!Array.isArray(data.tips) || data.tips.length === 0) {
+    data.tips = [
+      "食材新鲜是美味的基础，尽量选用当季食材。",
+      "火候掌握是关键，注意观察食材变化。",
+      "调味可根据个人口味适当调整。",
+    ];
+  }
+
+  // 失败排查
+  if (!Array.isArray(data.troubleshooting) || data.troubleshooting.length === 0) {
+    data.troubleshooting = [
+      {
+        problem: "味道偏淡",
+        cause: "调味料用量不足或食材出水过多",
+        fix: "适当增加调味料，或在烹饪前将食材沥干水分。",
+      },
+      {
+        problem: "口感不佳",
+        cause: "火候或时间控制不当",
+        fix: "注意控制火候和烹饪时间，避免过生或过熟。",
+      },
+    ];
+  }
+
+  // 相关推荐
+  if (!data.relatedRecipes || typeof data.relatedRecipes !== "object") {
+    data.relatedRecipes = {
+      similar: [],
+      pairing: [],
+    };
+  } else {
+    if (!Array.isArray(data.relatedRecipes.similar)) {
+      data.relatedRecipes.similar = [];
+    }
+    if (!Array.isArray(data.relatedRecipes.pairing)) {
+      data.relatedRecipes.pairing = [];
+    }
+  }
+
+  // 搭配建议
+  if (!data.pairing || typeof data.pairing !== "object") {
+    data.pairing = {
+      suggestions: ["米饭", "馒头"],
+      sauceOrSide: [],
+    };
+  } else {
+    if (!Array.isArray(data.pairing.suggestions) || data.pairing.suggestions.length === 0) {
+      data.pairing.suggestions = ["米饭", "馒头"];
+    }
+    if (!Array.isArray(data.pairing.sauceOrSide)) {
+      data.pairing.sauceOrSide = [];
+    }
+  }
+
+  // SEO信息
+  if (!data.seo || typeof data.seo !== "object") {
+    data.seo = {
+      slug: fallbackTitle.toLowerCase().replace(/\s+/g, "-"),
+      metaTitle: `${fallbackTitle} - 家常做法`,
+      metaDescription: data.summary.oneLine || `${fallbackTitle}的详细做法，简单易学，适合家庭烹饪。`,
+      keywords: [fallbackTitle, "家常菜", "食谱", "做法"],
+    };
+  } else {
+    if (!data.seo.slug) {
+      data.seo.slug = fallbackTitle.toLowerCase().replace(/\s+/g, "-");
+    }
+    if (!data.seo.metaTitle) {
+      data.seo.metaTitle = `${fallbackTitle} - 家常做法`;
+    }
+    if (!data.seo.metaDescription) {
+      data.seo.metaDescription = data.summary.oneLine || `${fallbackTitle}的详细做法，简单易学，适合家庭烹饪。`;
+    }
+    if (!Array.isArray(data.seo.keywords) || data.seo.keywords.length === 0) {
+      data.seo.keywords = [fallbackTitle, "家常菜", "食谱", "做法"];
+    }
+  }
+
+  // 标签信息
+  if (!data.tags || typeof data.tags !== "object") {
+    data.tags = {
+      scenes: ["家常"],
+      cookingMethods: ["炒"],
+      tastes: ["咸鲜"],
+      crowds: ["全家"],
+      occasions: ["日常"],
+    };
+  } else {
+    if (!Array.isArray(data.tags.scenes) || data.tags.scenes.length === 0) {
+      data.tags.scenes = ["家常"];
+    }
+    if (!Array.isArray(data.tags.cookingMethods) || data.tags.cookingMethods.length === 0) {
+      data.tags.cookingMethods = ["炒"];
+    }
+    if (!Array.isArray(data.tags.tastes) || data.tags.tastes.length === 0) {
+      data.tags.tastes = ["咸鲜"];
+    }
+    if (!Array.isArray(data.tags.crowds) || data.tags.crowds.length === 0) {
+      data.tags.crowds = ["全家"];
+    }
+    if (!Array.isArray(data.tags.occasions) || data.tags.occasions.length === 0) {
+      data.tags.occasions = ["日常"];
+    }
+  }
+
+  // summary 补充字段
+  if (!Array.isArray(data.summary.flavorTags) || data.summary.flavorTags.length === 0) {
+    data.summary.flavorTags = ["家常", "咸鲜"];
+  }
+  if (!data.summary.scaleHint) {
+    data.summary.scaleHint = "食材用量可按人数等比例调整";
+  }
+
+
+  // aiGenerated 标记
+  if (data.aiGenerated === undefined) {
+    data.aiGenerated = true;
   }
 
   return data;
@@ -1108,9 +1303,11 @@ export async function generateRecipe(params: {
   equipment?: string;
   dietary?: string;
   cuisine?: string;
+  logger?: AIGenerationLogger;
 }): Promise<GenerateRecipeResult> {
+  const startTime = Date.now();
   try {
-    const provider = await getTextProvider();
+    const provider = getTextProvider();
 
     // 构建提示词
     const config = await getAIConfig();
@@ -1128,6 +1325,30 @@ export async function generateRecipe(params: {
       maxTokens: 8000, // 增加token限制以支持v2.0.0完整输出
     });
 
+    // 记录AI调用日志
+    if (params.logger) {
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      params.logger.logSuccess("text_generation", modelName, {
+        prompt: prompt.substring(0, 1000),
+        resultText: response.content.substring(0, 5000),
+        parameters: { temperature: 0.7, maxTokens: 8000, dishName: params.dishName },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        metadata: { type: "recipe_generation", dishName: params.dishName },
+      });
+    }
+
     // 清理响应
     const cleanedContent = cleanAIResponse(response.content);
 
@@ -1138,7 +1359,6 @@ export async function generateRecipe(params: {
       recipeData = unwrapRecipePayload(JSON.parse(cleanedContent));
 
       console.log("📋 AI 返回的顶层字段:", Object.keys(recipeData).join(", "));
-      console.log("📋 imageShots 字段:", recipeData.imageShots ? `存在(${Array.isArray(recipeData.imageShots) ? recipeData.imageShots.length + "个" : typeof recipeData.imageShots})` : "不存在");
 
       // 兼容处理：如果AI返回的数据包裹在recipe字段中，提取出来
       if (recipeData.recipe && typeof recipeData.recipe === 'object') {
@@ -1257,6 +1477,7 @@ export async function generateStepImages(
   options?: {
     onProgress?: (current: number, total: number) => void;
     maxConcurrent?: number;
+    logger?: AIGenerationLogger;
   }
 ): Promise<any[]> {
   const maxConcurrent = options?.maxConcurrent ?? 2; // 默认并发2个
@@ -1294,6 +1515,8 @@ export async function generateStepImages(
           height: 768, // 4:3 比例
           timeoutMs: 30000,
           retries: 1,
+          logger: options?.logger,
+          stepName: "step_image_gen",
         });
 
         if (result.success && (result.imageUrl || result.imageBase64)) {
@@ -1320,78 +1543,6 @@ export async function generateStepImages(
     // 报告进度
     const completed = Math.min(i + maxConcurrent, stepsToGenerate.length);
     options?.onProgress?.(completed, stepsToGenerate.length);
-  }
-
-  return results;
-}
-
-/**
- * 为菜谱成品图生成图片
- * @param imageShots 成品图配置数组
- * @param recipeName 菜谱名称
- * @returns 更新后的成品图数组
- */
-export async function generateCoverImages(
-  imageShots: any[],
-  recipeName: string
-): Promise<any[]> {
-  if (!imageShots || imageShots.length === 0) {
-    return imageShots;
-  }
-
-  const results = [...imageShots];
-
-  // 过滤出没有 imageUrl 的成品图（imagePrompt 可以自动生成）
-  const shotsToGenerate = imageShots
-    .map((shot, index) => ({ shot, index }))
-    .filter(({ shot }) => !shot.imageUrl);
-
-  if (shotsToGenerate.length === 0) {
-    console.log("所有成品图已有图片，跳过生成");
-    return results;
-  }
-
-  console.log(`开始为 ${shotsToGenerate.length} 张成品图生成图片...`);
-
-  for (const { shot, index } of shotsToGenerate) {
-    try {
-      // 根据 ratio 确定尺寸
-      let width = 1024;
-      let height = 576; // 默认 16:9
-      if (shot.ratio === "4:3") {
-        height = 768;
-      } else if (shot.ratio === "3:2") {
-        height = 683;
-      } else if (shot.ratio === "1:1") {
-        height = 1024;
-      }
-
-      const result = await evolinkClient.generateImage({
-        prompt: shot.imagePrompt,
-        negativePrompt: shot.negativePrompt || "AI generated, plastic, unnatural, cartoon, 3D render, text, watermark",
-        width,
-        height,
-        timeoutMs: 30000,
-        retries: 1,
-      });
-
-      if (result.success && (result.imageUrl || result.imageBase64)) {
-        let imageUrl = result.imageUrl;
-        if (!imageUrl && result.imageBase64) {
-          const buffer = Buffer.from(result.imageBase64, "base64");
-          imageUrl = await saveGeneratedImage(buffer, "recipes/covers");
-        }
-        results[index] = {
-          ...results[index],
-          imageUrl,
-        };
-        console.log(`成品图 ${shot.key || index + 1} 生成成功`);
-      } else {
-        console.warn(`成品图 ${shot.key || index + 1} 生成失败: ${result.error}`);
-      }
-    } catch (error) {
-      console.error(`成品图 ${shot.key || index + 1} 生成出错:`, error);
-    }
   }
 
   return results;
@@ -1441,16 +1592,6 @@ export async function generateRecipeWithImages(params: {
         },
       }
     );
-  }
-
-  // 3. 生成成品图
-  if (recipe.imageShots && recipe.imageShots.length > 0) {
-    onProgress?.("generating_cover_images", 0, recipe.imageShots.length);
-    recipe.imageShots = await generateCoverImages(
-      recipe.imageShots,
-      recipe.titleZh || params.dishName
-    );
-    onProgress?.("generating_cover_images", recipe.imageShots.length, recipe.imageShots.length);
   }
 
   return {

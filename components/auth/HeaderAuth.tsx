@@ -5,11 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "@/components/i18n/LocaleProvider";
 import { localizePath } from "@/lib/i18n/utils";
+import { useTranslations } from "@/lib/i18n/translations";
 
 export function HeaderAuth() {
   const { data: session, status } = useSession();
   const locale = useLocale();
-  const isEn = locale === "en";
+  const { t } = useTranslations();
 
   if (status === "loading") {
     return (
@@ -25,7 +26,7 @@ export function HeaderAuth() {
             href="/admin/recipes"
             className="text-sm hover:text-cream/80 transition-colors"
           >
-            {isEn ? "Admin" : "后台管理"}
+            {t("auth.admin")}
           </Link>
         )}
         <div className="relative group">
@@ -33,7 +34,7 @@ export function HeaderAuth() {
             {session.user.image ? (
               <Image
                 src={session.user.image}
-                alt={session.user.name || (isEn ? "User" : "用户")}
+                alt={session.user.name || t("auth.user")}
                 width={32}
                 height={32}
                 className="rounded-full border-2 border-white/30"
@@ -47,27 +48,27 @@ export function HeaderAuth() {
           </button>
           {/* 下拉菜单 */}
           <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-            <div className="px-4 py-2 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900 truncate">
+            <div className="px-4 py-2 border-b border-lightGray">
+              <p className="text-sm font-medium text-textDark truncate">
                 {session.user.name}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-textGray truncate">
                 {session.user.email}
               </p>
             </div>
             {session.user.role === "ADMIN" && (
               <Link
                 href="/admin/recipes"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="block px-4 py-2 text-sm text-textDark hover:bg-cream/70"
               >
-                {isEn ? "Admin" : "后台管理"}
+                {t("auth.admin")}
               </Link>
             )}
             <button
               onClick={() => signOut({ callbackUrl: localizePath("/", locale) })}
               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
             >
-              {isEn ? "Sign out" : "退出登录"}
+              {t("auth.signOut")}
             </button>
           </div>
         </div>
@@ -98,7 +99,7 @@ export function HeaderAuth() {
           d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         />
       </svg>
-      {isEn ? "Sign in" : "登录"}
+      {t("auth.signIn")}
     </button>
   );
 }

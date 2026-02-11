@@ -31,15 +31,7 @@ async function requireAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-const ImageShotSchema = z.object({
-  key: z.string().optional().default(""),
-  imagePrompt: z.string().optional().default(""),
-  ratio: z.enum(["16:9", "4:3", "3:2"]).default("4:3"),
-  imageUrl: z.string().optional().nullable(),
-});
-
 const BodySchema = z.object({
-  imageShots: z.array(ImageShotSchema).optional(),
   coverImage: z.string().optional().nullable(),
 });
 
@@ -62,7 +54,7 @@ export async function PATCH(
       );
     }
 
-    if (parsed.data.imageShots === undefined && parsed.data.coverImage === undefined) {
+    if (parsed.data.coverImage === undefined) {
       return NextResponse.json(
         { success: false, error: "至少需要更新一个字段" },
         { status: 400 }
@@ -83,13 +75,6 @@ export async function PATCH(
 
     const data: Record<string, unknown> = {};
 
-    if (parsed.data.imageShots !== undefined) {
-      data.imageShots = parsed.data.imageShots.map((shot) => ({
-        ...shot,
-        imageUrl: shot.imageUrl || undefined,
-      }));
-    }
-
     if (parsed.data.coverImage !== undefined) {
       data.coverImage = parsed.data.coverImage || null;
     }
@@ -100,7 +85,6 @@ export async function PATCH(
       select: {
         id: true,
         coverImage: true,
-        imageShots: true,
         updatedAt: true,
       },
     });

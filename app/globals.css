@@ -1,5 +1,5 @@
 @tailwind base;
-@tailwind components;
+@import "./styles/editorial.css";
 @tailwind utilities;
 
 @layer base {
@@ -65,9 +65,13 @@
   }
   body {
     @apply bg-cream text-textDark font-sans antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+    letter-spacing: -0.01em;
+    font-optical-sizing: auto;
   }
 }
 

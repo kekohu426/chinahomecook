@@ -46,13 +46,6 @@ const recipe: Recipe = {
       photoBrief: "食材摆盘。",
     },
   ],
-  styleGuide: {
-    theme: "治愈系",
-    lighting: "自然光",
-    composition: "留白",
-    aesthetic: "日杂风",
-  },
-  imageShots: [],
 };
 
 describe("RecipeHeader", () => {

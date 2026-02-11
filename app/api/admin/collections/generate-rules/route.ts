@@ -6,9 +6,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { generateRulesFromNaturalLanguage, validateRules } from "@/lib/ai/rule-generator";
+import { requireAdmin } from "@/lib/auth/guard";
 
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const body = await request.json();
     const { userInput } = body;
 

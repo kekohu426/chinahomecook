@@ -1,0 +1,186 @@
+﻿{
+  "schemaVersion": "2.0.0",
+  "recipe": {
+    "titleZh": "西安凉皮",
+    "titleEn": "Xi'an Liangpi (Cold Skin Noodles)",
+    "aliases": ["秦镇米皮", "擀面皮（风味相近）"],
+    "origin": {
+      "country": "中国",
+      "region": "陕西",
+      "cuisine": "陕味/小吃",
+      "notes": "西安经典小吃，以洗面出筋取淀粉蒸皮，配辣油蒜醋与黄瓜、面筋拌食。"
+    },
+    "primaryIngredients": ["中筋面粉", "黄瓜", "辣椒油", "蒜汁", "米醋"],
+    "summary": {
+      "oneLine": "筋香爽滑、酸辣开胃的西安经典凉皮。",
+      "healingTone": "蒸一张洁白晶莹的凉皮，拌上红亮的辣油与清新的黄瓜丝，一口下去，街头的烟火与老城的味道都回来了。",
+      "flavorTags": ["酸辣", "咸鲜", "芝麻香"],
+      "difficulty": "medium",
+      "timeTotalMin": 180,
+      "timeActiveMin": 60,
+      "servings": 2,
+      "scaleHint": "此方约可得2-3张凉皮。加倍面粉与水时，蒸制时间不变，仅批次数量增加。"
+    },
+    "story": "凉皮源于关中地区的面食技法：先洗面出筋得到面筋，再沉淀出淀粉浆蒸成薄皮，成品筋香爽滑、酸辣开胃。西安街头的红油凉皮与面筋、黄瓜、蒜醋相伴，是许多人记忆里的老城味道。",
+    "equipment": [
+      { "name": "大盆/和面盆", "required": true, "notes": "用于和面与洗面取浆" },
+      { "name": "细筛/纱布", "required": true, "notes": "过滤淀粉浆更细腻" },
+      { "name": "平底蒸盘/不锈钢托盘", "required": true, "notes": "盛薄层面浆蒸皮" },
+      { "name": "蒸锅", "required": true, "notes": "全程中火蒸制" },
+      { "name": "刮板/薄铲", "required": false, "notes": "脱皮更顺手" }
+    ],
+    "ingredients": [
+      {
+        "section": "主料",
+        "items": [
+          { "name": "中筋面粉", "amount": 300, "unit": "克", "iconKey": "flour", "prep": "和面", "notes": "可用高筋面粉替代，出筋更快" },
+          { "name": "清水（和面）", "amount": 150, "unit": "毫升", "iconKey": "water", "prep": "", "notes": "与面粉调成硬面团" },
+          { "name": "清水（洗面、调浆）", "amount": 1200, "unit": "毫升", "iconKey": "water", "prep": "分次加入", "notes": "实际用量随洗面情况调整" },
+          { "name": "黄瓜", "amount": 1, "unit": "根", "iconKey": "cucumber", "prep": "切细丝", "notes": "提升清爽口感" },
+          { "name": "鲜面筋（洗面所得）", "amount": 120, "unit": "克", "iconKey": "gluten", "prep": "切条", "notes": "可用成品面筋替代" }
+        ]
+      },
+      {
+        "section": "调味料",
+        "items": [
+          { "name": "辣椒油（陕式）", "amount": 2, "unit": "大勺", "iconKey": "chili", "prep": "现成或自制", "notes": "红亮香浓不过分死辣" },
+          { "name": "米醋", "amount": 2, "unit": "大勺", "iconKey": "vinegar", "prep": "", "notes": "酸味清冽；亦可用陈醋" },
+          { "name": "蒜汁", "amount": 1.5, "unit": "大勺", "iconKey": "garlic", "prep": "蒜泥加水与少许盐", "notes": "蒜香提味" },
+          { "name": "生抽/淡酱油", "amount": 1, "unit": "大勺", "iconKey": "soy", "prep": "", "notes": "提供基础咸鲜" },
+          { "name": "芝麻酱（可选）", "amount": 1, "unit": "大勺", "iconKey": "sesame", "prep": "加温水调匀", "notes": "西安常见加芝麻酱增香" },
+          { "name": "白砂糖", "amount": 0.5, "unit": "小勺", "iconKey": "sugar", "prep": "", "notes": "平衡酸辣" },
+          { "name": "盐", "amount": 0.5, "unit": "小勺", "iconKey": "salt", "prep": "", "notes": "适量调整" },
+          { "name": "熟芝麻", "amount": 1, "unit": "小勺", "iconKey": "sesame", "prep": "炒香", "notes": "最后撒面增香" }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "id": "step01",
+        "title": "和面成团",
+        "action": "面粉与和面清水拌匀，揉成偏硬面团，静置15分钟醒面。",
+        "speechText": "将面粉加水揉成偏硬面团，盖住醒十五分钟。",
+        "heat": "none",
+        "timeMin": 15,
+        "timeMax": 20,
+        "timerSec": 900,
+        "visualCue": "面团表面光滑、按压有弹性",
+        "failPoint": "面团过软会难以洗面出筋。",
+        "failurePoints": ["面团太湿粘手", "未醒面筋度不足"]
+      },
+      {
+        "id": "step02",
+        "title": "洗面出筋，收集面浆",
+        "action": "在盆中加清水反复揉洗面团，直至洗出白浊面水且剩余面筋变紧实。过滤面水，静置沉淀1-2小时，倒去清上层，保留底部淀粉浆。",
+        "speechText": "加水反复揉洗，收集白浊面水，过滤后静置到淀粉沉淀，倒掉上层清水。",
+        "heat": "none",
+        "timeMin": 60,
+        "timeMax": 90,
+        "timerSec": 3600,
+        "visualCue": "面水乳白、无大颗粒；面筋团结实有弹性",
+        "failPoint": "未充分沉淀会导致蒸皮易破或粗糙。",
+        "failurePoints": ["过滤不彻底有颗粒", "倒水过猛冲走淀粉"]
+      },
+      {
+        "id": "step03",
+        "title": "调面浆",
+        "action": "将沉淀好的淀粉浆加入适量清水调至可流动的稀糊（类似薄煎饼糊），用筛过滤一次以更细腻。",
+        "speechText": "把淀粉浆调成可流动的稀糊，用筛再过滤一次。",
+        "heat": "none",
+        "timeMin": 3,
+        "timeMax": 5,
+        "timerSec": 180,
+        "visualCue": "提勺可连续流淌、表面细腻无颗粒",
+        "failPoint": "面浆过稠易厚重不透明，过稀则蒸不成片。",
+        "failurePoints": ["浓度不当导致易破", "未过滤影响口感"]
+      },
+      {
+        "id": "step04",
+        "title": "蒸第一张凉皮",
+        "action": "蒸锅加水烧至沸腾。蒸盘薄抹油，倒入一层薄薄面浆，晃匀成均匀薄层；置蒸锅中火蒸2-3分钟至表面均匀起泡、透明。取出过冷水，沿边缘撕起整张凉皮。",
+        "speechText": "蒸盘抹油，薄薄倒入面浆，中火蒸至透明起泡，取出过凉撕下整张。",
+        "heat": "medium",
+        "timeMin": 2,
+        "timeMax": 4,
+        "timerSec": 180,
+        "visualCue": "表面均匀气泡、整体半透明，边缘自动翘起",
+        "failPoint": "火太小不易成片，火太大易起大泡破裂。",
+        "failurePoints": ["面浆倒得过厚", "蒸盘未抹油粘底"]
+      },
+      {
+        "id": "step05",
+        "title": "重复蒸制与冷却",
+        "action": "重复倒浆蒸制，直至面浆用完。每张凉皮取出后入凉水冷却，叠放时抹少许油防粘。",
+        "speechText": "重复蒸皮至浆用完，每张过凉水，叠放时薄抹油防粘。",
+        "heat": "medium",
+        "timeMin": 10,
+        "timeMax": 20,
+        "timerSec": 600,
+        "visualCue": "凉皮柔软完整、表面光滑",
+        "failPoint": "未冷却就叠放易粘连撕裂。",
+        "failurePoints": ["叠放不抹油粘连", "过冷水时间不足"]
+      },
+      {
+        "id": "step06",
+        "title": "备料与调味",
+        "action": "黄瓜切细丝，面筋切条。芝麻酱用温水调匀。将辣椒油、米醋、蒜汁、生抽、糖、盐按口味混合成料汁备用。",
+        "speechText": "切黄瓜与面筋，调芝麻酱与辣油蒜醋成料汁备用。",
+        "heat": "none",
+        "timeMin": 5,
+        "timeMax": 8,
+        "timerSec": 300,
+        "visualCue": "料汁红亮、芝麻酱顺滑不结块",
+        "failPoint": "蒜汁过重或醋量过大，会掩盖面香。",
+        "failurePoints": ["芝麻酱加水过多", "辣油过量影响平衡"]
+      },
+      {
+        "id": "step07",
+        "title": "切条拌匀食用",
+        "action": "凉皮切宽条，加入黄瓜丝与面筋，淋入料汁拌匀，撒熟芝麻即可。可按口味再加少许香菜或花生碎。",
+        "speechText": "把凉皮切条，配黄瓜与面筋，浇料汁拌匀，撒芝麻开吃。",
+        "heat": "none",
+        "timeMin": 2,
+        "timeMax": 4,
+        "timerSec": 120,
+        "visualCue": "成品红白相映、条条分明不粘连",
+        "failPoint": "拌制过久会出水影响口感。",
+        "failurePoints": ["切得太细易粘", "料汁一次性加太多"]
+      }
+    ],
+    "nutrition": {
+      "perServing": { "calories": 360, "protein": 10, "fat": 12, "carbs": 55, "fiber": 3, "sodium": 900 },
+      "dietaryLabels": ["低脂", "含麸质"],
+      "disclaimer": "营养数据为估算，具体取决于面粉类型、辣油与芝麻酱用量。"
+    },
+    "faq": [
+      { "question": "没有时间洗面，能替代吗？", "answer": "可用现成小麦淀粉或市售凉皮粉调浆蒸制；风味略有差异。" },
+      { "question": "蒸皮总是破怎么办？", "answer": "检查面浆浓度并重新过滤；蒸盘必须薄抹油，水开后入锅，中火稳定蒸。" },
+      { "question": "能做米皮吗？", "answer": "用米粉或米浆可做秦镇米皮，工艺与蒸皮类似，但配方比例需调整。" }
+    ],
+    "tips": [
+      "蒸盘抹油要薄且均匀，过多会影响成品附着与厚薄。",
+      "面浆以能薄薄覆满盘底为宜，晃动让厚薄均匀。",
+      "料汁先少量分次加入，避免一次过重掩盖面香。"
+    ],
+    "troubleshooting": [
+      { "problem": "成品发硬", "cause": "面浆过稠或蒸制时间过长", "fix": "适当稀释面浆，蒸至透明即出锅" },
+      { "problem": "口感粗糙", "cause": "未充分过滤或沉淀不够", "fix": "二次过滤并延长沉淀时间" },
+      { "problem": "易粘连", "cause": "冷却不足或叠放未抹油", "fix": "每张过凉水后薄抹油再叠放" }
+    ],
+    "relatedRecipes": { "similar": ["擀面皮"], "pairing": ["肉夹馍"] },
+    "pairing": { "suggestions": ["米饭（少量）", "冰镇酸梅汤", "冰啤"], "sauceOrSide": ["额外蒜汁", "花生碎"] },
+    "tags": {
+      "scenes": ["家常菜", "街头小吃"],
+      "cookingMethods": ["蒸", "拌"],
+      "tastes": ["酸辣", "咸鲜"],
+      "crowds": ["所有人"],
+      "occasions": ["正餐", "简餐", "夜宵"]
+    },
+    "seo": {
+      "slug": "xian-liangpi",
+      "metaTitle": "西安凉皮正宗做法｜洗面出筋蒸皮详解",
+      "metaDescription": "筋香爽滑的西安凉皮家庭版：洗面取浆、蒸皮关键、红油蒜醋比例与失败点排查，一篇全掌握。",
+      "keywords": ["西安凉皮", "秦镇米皮", "擀面皮", "凉皮家庭做法"]
+    }
+  }
+}

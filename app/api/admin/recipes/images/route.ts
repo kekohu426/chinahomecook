@@ -58,7 +58,6 @@ export async function GET(request: NextRequest) {
           title: true,
           slug: true,
           coverImage: true,
-          imageShots: true,
           steps: true,
           updatedAt: true,
         },

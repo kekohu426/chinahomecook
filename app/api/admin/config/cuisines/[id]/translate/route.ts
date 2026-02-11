@@ -10,6 +10,7 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "@/lib/ai/provider";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { AIGenerationLogger, calculateCost } from "@/lib/ai/generation-logger";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -58,7 +59,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: "菜系不存在" }, { status: 404 });
     }
 
-    const provider = await getTextProvider();
+    const provider = getTextProvider();
+    const logger = new AIGenerationLogger();
     const results: Record<string, { success: boolean; error?: string }> = {};
 
     for (const locale of targetLocales) {
@@ -67,6 +69,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         continue;
       }
 
+      const startTime = Date.now();
       try {
         const langName = LOCALE_NAMES_EN[locale];
         const applied = await getAppliedPrompt("translate_cuisine", {
@@ -87,6 +90,27 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           ],
           temperature: 0.3,
           maxTokens: 400,
+        });
+
+        // 记录AI调用日志
+        const durationMs = Date.now() - startTime;
+        const modelName = provider.getModel();
+        const tokenUsage = response.usage
+          ? {
+              input: response.usage.promptTokens,
+              output: response.usage.completionTokens,
+              total: response.usage.totalTokens,
+            }
+          : undefined;
+
+        logger.logSuccess("translation", modelName, {
+          prompt: applied.prompt.substring(0, 1000),
+          parameters: { temperature: 0.3, maxTokens: 400, targetLocale: locale },
+          tokenUsage,
+          cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+          durationMs,
+          provider: provider.getName(),
+          metadata: { entityType: "cuisine", entityId: id, targetLocale: locale },
         });
 
         const translated = parseJson(response.content || "");

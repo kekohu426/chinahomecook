@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth";
+import { assignTeamMembers } from "@/lib/team/assign-members";
 
 /**
  * 解析地点参数（支持 slug 和中文名）
@@ -265,6 +266,7 @@ export async function GET(request: NextRequest) {
         title: recipe.title,
         slug: recipe.slug,
         description: recipe.description,
+        summary: recipe.summary,
         difficulty: recipe.difficulty,
         coverImage: recipe.coverImage,
         cuisine: recipe.cuisine,
@@ -321,8 +323,6 @@ export async function GET(request: NextRequest) {
  *   steps: object,           // 烹饪步骤 JSON
  *   nutrition?: object,      // 营养信息 JSON
  *   coverImage?: string,     // 封面图
- *   styleGuide?: object,     // 风格指南 JSON
- *   imageShots?: object,     // 配图方案 JSON
  *   cuisineId?: string,      // 菜系 ID（或传 cuisine 名称/slug）
  *   cuisine?: string,        // 菜系名称或 slug
  *   locationId?: string,     // 地点 ID（或传 location 名称/slug）
@@ -384,11 +384,15 @@ export async function POST(request: NextRequest) {
       tagIds = await resolveOrCreateTags(body.tags);
     }
 
+    // 自动分配团队成员（探寻者 + 审核者）
+    const teamAssignment = await assignTeamMembers();
+
     // 创建食谱
     const recipe = await prisma.recipe.create({
       data: {
         title: body.title,
         slug,
+        author: body.author || null,
         description: body.description || null,
         difficulty: body.difficulty || null,
         prepTime: body.prepTime || null,
@@ -400,8 +404,6 @@ export async function POST(request: NextRequest) {
         steps: body.steps,
         nutrition: body.nutrition || null,
         coverImage: body.coverImage || null,
-        styleGuide: body.styleGuide || null,
-        imageShots: body.imageShots || null,
         cuisineId,
         locationId,
         collectionId: body.collectionId || null,
@@ -409,6 +411,8 @@ export async function POST(request: NextRequest) {
         reviewStatus: "pending",
         aiGenerated: body.aiGenerated || false,
         generateJobId: body.generateJobId || null,
+        explorerId: teamAssignment.explorerId,
+        reviewerId: teamAssignment.reviewerId,
         // 创建标签关联
         tags: tagIds.length > 0
           ? {

@@ -18,16 +18,14 @@ const SINGLE_STAGES = [
   { label: "准备任务", detail: "校验输入并组装提示词" },
   { label: "生成菜谱文本", detail: "调用 AI 生成结构化内容" },
   { label: "清洗与校验", detail: "解析 JSON、补全字段、校验 Schema" },
-  { label: "生成图片", detail: "生成封面/步骤图并转存" },
   { label: "保存入库", detail: "写入数据库并建立索引" },
-  { label: "完成", detail: "生成结束，等待审核" },
+  { label: "完成", detail: "菜谱已保存，图片后台生成中" },
 ];
 
 const BATCH_STAGES = [
   { label: "准备任务", detail: "设置参数并创建请求" },
   { label: "生成菜谱文本", detail: "调用 AI 生成结构化内容" },
   { label: "清洗与校验", detail: "解析 JSON、补全字段、校验 Schema" },
-  { label: "生成图片", detail: "生成封面/步骤图并转存" },
   { label: "保存入库", detail: "写入数据库并建立索引" },
 ];
 
@@ -748,6 +746,9 @@ export default function GeneratePage() {
                     <p className="text-xs text-yellow-800">
                       ⚠️ 菜谱已保存为<strong>待审核状态</strong>，需要审核后发布
                     </p>
+                    <p className="text-xs text-yellow-700 mt-1">
+                      🖼️ 图片正在后台自动生成，完成后会自动更新到菜谱
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Link
@@ -755,6 +756,12 @@ export default function GeneratePage() {
                       className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
                     >
                       📝 编辑并发布
+                    </Link>
+                    <Link
+                      href={`/admin/recipes/${result.recipe.id}/ai-tasks`}
+                      className="inline-block px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                    >
+                      🖼️ 查看图片任务
                     </Link>
                     <Link
                       href={`/recipe/${result.recipe.id}`}

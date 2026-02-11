@@ -1,27 +1,30 @@
 /**
- * 一级聚合页 - 食谱列表
+ * 食谱广场页面
  *
  * 路由：/recipe
  * 功能：
- * - 模块1：页面标题区（H1 + 副标题）
- * - 模块2：按菜系浏览
- * - 模块3：按场景浏览
- * - 模块4：按食材浏览（可选）
- * - 模块5：最新/热门食谱列表（支持置顶）
- * - 模块6：底部收口文案（SEO）
+ * - 模块1：Hero区（标题 + 优化的搜索栏）
+ * - 模块2：完整标签筛选系统
+ * - 模块3：按菜系浏览
+ * - 模块4：按场景浏览
+ * - 模块5：按食材浏览
+ * - 模块6：最新/热门食谱列表（支持置顶）
+ * - 模块7：底部收口文案（SEO）
  */
 
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { prisma } from "@/lib/db/prisma";
-import { FilterBar } from "@/components/filter/FilterBar";
+import { RecipeSquareFilters } from "@/components/filter/RecipeSquareFilters";
 import { RecipeCard } from "@/components/recipe/RecipeCard";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SafeImage } from "@/components/ui/SafeImage";
 import type { Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
 import { getContentLocales } from "@/lib/i18n/content";
 import { localizePath } from "@/lib/i18n/utils";
-import { Clock, Flame } from "lucide-react";
+import { ensureEnglish, titleFromSlug } from "@/lib/i18n/english";
+import { Clock, Flame, Search, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import {
@@ -100,6 +103,7 @@ async function getRecipePageConfig(): Promise<RecipePageConfig> {
   }
 }
 
+// 缓存 key 不需要 locale，因为这是语言无关的配置
 const getCachedConfig = unstable_cache(getRecipePageConfig, ["recipe-page-config"], {
   revalidate: 300,
   tags: ["recipe-page-config"],
@@ -120,21 +124,35 @@ export async function generateMetadata({
   const hasFilters = Boolean(location || cuisine || ingredient || tag || query);
 
   const config = await getCachedConfig();
-  const baseTitle = isEn
-    ? `${config.h1} - Recipe Zen`
-    : `${config.h1} - Recipe Zen`;
+  const baseTitle = `${isEn ? DEFAULT_CONFIG_EN.h1 : config.h1} - Recipe Zen`;
 
   const titleParts: string[] = [];
-  if (query) {
-    titleParts.push(isEn ? `Search "${query}"` : `搜索"${query}"`);
+  const safeQuery = isEn ? ensureEnglish(query, "") : query;
+  if (safeQuery) {
+    titleParts.push(
+      t("recipe.metaSearchTitle", locale).replace("{query}", safeQuery)
+    );
   }
 
   // 这里的 location/cuisine 现在可能是 slug，实际上如果要完美的 SEO Title，应该查库获取名称
   // 暂时直接使用 slug，后续优化可以查库
-  if (cuisine) titleParts.push(isEn ? `${cuisine} Recipes` : `${cuisine}菜谱`);
-  if (location) titleParts.push(isEn ? `${location} Flavors` : `${location}风味`);
-  if (ingredient) titleParts.push(isEn ? `${ingredient} Ideas` : `${ingredient}做法`);
-  if (tag) titleParts.push(`#${tag}`);
+  const safeCuisine = isEn ? ensureEnglish(cuisine, "") : cuisine;
+  const safeLocation = isEn ? ensureEnglish(location, "") : location;
+  const safeIngredient = isEn ? ensureEnglish(ingredient, "") : ingredient;
+  const safeTag = isEn ? ensureEnglish(tag, "") : tag;
+  if (safeCuisine)
+    titleParts.push(
+      t("recipe.metaCuisineTitle", locale).replace("{name}", safeCuisine)
+    );
+  if (safeLocation)
+    titleParts.push(
+      t("recipe.metaLocationTitle", locale).replace("{name}", safeLocation)
+    );
+  if (safeIngredient)
+    titleParts.push(
+      t("recipe.metaIngredientTitle", locale).replace("{name}", safeIngredient)
+    );
+  if (safeTag) titleParts.push(`#${safeTag}`);
 
   if (hasFilters) {
     return {
@@ -365,22 +383,33 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     return `${localizePath("/recipe", locale)}?${params.toString()}`;
   };
 
+  const getCollectionName = (collection: QualifiedCollectionCard) =>
+    isEn
+      ? ensureEnglish(
+          collection.nameEn || collection.name,
+          ensureEnglish(titleFromSlug(collection.slug), "Collection")
+        )
+      : collection.name;
+
   // 标题生成
   const pageH1 = isEn ? DEFAULT_CONFIG_EN.h1 : config.h1;
   const pageSubtitle = isEn ? DEFAULT_CONFIG_EN.subtitle : config.subtitle;
 
   const headerTitle = hasFilters
     ? query
-      ? `${isEn ? "Search:" : "搜索:"} ${query}`
+      ? t("recipe.searchPrefix", locale).replace("{query}", query)
       : ingredientParam
-        ? `${isEn ? "Ingredient:" : "食材："}${ingredientParam}`
+        ? t("recipe.ingredientPrefix", locale).replace(
+            "{ingredient}",
+            ingredientParam
+          )
         : tag
           ? `#${tag}`
-          : isEn ? "Recipe Results" : "筛选结果"
+          : t("recipe.resultsTitle", locale)
     : pageH1;
 
   const headerSubtitle = hasFilters
-    ? `${isEn ? "Found" : "找到"} ${total} ${isEn ? "recipes" : "个相关食谱"}`
+    ? t("recipe.foundCount", locale).replace("{count}", total.toString())
     : pageSubtitle;
 
   // JSON-LD
@@ -410,30 +439,41 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
       />
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero Section - 优化设计 */}
       <section
-        className="w-full text-white"
+        className="w-full relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, #C6996B 0%, #E8DCC8 100%)",
-          minHeight: hasFilters ? "200px" : "300px",
+          background: "linear-gradient(135deg, #C6996B 0%, #D4A574 50%, #E8DCC8 100%)",
         }}
       >
-        <div className="max-w-[1280px] mx-auto px-[60px] py-[60px] flex flex-col justify-center h-full">
-          {/* Breadcrumb could go here */}
+        {/* 装饰背景 */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-white blur-3xl" />
+          <div className="absolute bottom-10 right-20 w-48 h-48 rounded-full bg-white blur-3xl" />
+        </div>
 
-          <h1 className="text-4xl md:text-[48px] font-bold text-white mb-3 flex items-center gap-3">
-            <span className="text-3xl md:text-4xl">🍜</span>
-            {headerTitle}
-          </h1>
-
-          <p className="text-base text-white/80 max-w-[600px] leading-relaxed">
-            {headerSubtitle}
-          </p>
+        <div className="max-w-[1280px] mx-auto px-6 md:px-[60px] py-12 md:py-16 relative z-10">
+          {/* 标题区 */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-[48px] font-bold text-white mb-4 flex items-center justify-center gap-3">
+              <span className="text-2xl md:text-4xl">🍜</span>
+              {headerTitle}
+            </h1>
+            <p className="text-base md:text-lg text-white/90 max-w-[600px] mx-auto leading-relaxed">
+              {headerSubtitle}
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* 筛选栏 */}
-      {hasFilters && <FilterBar basePath={localizePath("/recipe", locale)} />}
+      {/* 筛选组件 - 悬浮卡片效果 */}
+      <div className="max-w-[1280px] mx-auto px-6 md:px-[60px] -mt-6 relative z-20 mb-8">
+        <RecipeSquareFilters
+          basePath={localizePath("/recipe", locale)}
+          showSearch={false}
+          defaultExpanded={hasFilters}
+        />
+      </div>
 
       <main className="max-w-[1280px] mx-auto px-[60px]">
         {/* 聚合模块 (仅无筛选且第一页展示) - 使用达标集合作为数据源 */}
@@ -446,11 +486,15 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
               >
                 <div className="mb-10">
                   <h2 className="text-[32px] font-bold text-textDark mb-3">
-                    {isEn ? (block.titleEn || block.title) : block.title}
+                    {isEn
+                      ? ensureEnglish(block.titleEn || block.title, "Collections")
+                      : block.title}
                   </h2>
                   {(block.subtitle || block.subtitleEn) && (
                     <p className="text-base text-textGray">
-                      {isEn ? (block.subtitleEn || block.subtitle) : block.subtitle}
+                      {isEn
+                        ? ensureEnglish(block.subtitleEn || block.subtitle, "")
+                        : block.subtitle}
                     </p>
                   )}
                 </div>
@@ -465,11 +509,11 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
                       href={c.path}
                       className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all"
                     >
-                      <div className="relative aspect-[4/3] bg-gray-100">
+                      <div className="relative aspect-[4/3] bg-lightGray">
                         {c.coverImage ? (
                           <SafeImage
                             src={c.coverImage}
-                            alt={c.name}
+                            alt={getCollectionName(c)}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform"
                           />
@@ -480,9 +524,9 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
                         )}
                       </div>
                       <div className="p-4">
-                        <h3 className="font-bold text-lg mb-1">{c.name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {c.publishedCount} {isEn ? "recipes" : "道菜"}
+                        <h3 className="font-bold text-lg mb-1">{getCollectionName(c)}</h3>
+                        <p className="text-sm text-textGray">
+                          {c.publishedCount} {t("common.dishes", locale)}
                         </p>
                       </div>
                     </LocalizedLink>
@@ -497,26 +541,26 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
         <section className={`py-20 ${!hasFilters && page === 1 && aggregationData.blocks.length > 0 ? "border-t border-cream" : ""}`}>
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-[32px] font-bold text-textDark">
-              {hasFilters ? (isEn ? "Result" : "结果") : (isEn ? "All Recipes" : "所有食谱")}
-              <span className="text-lg font-normal text-gray-500 ml-2">({total})</span>
+              {hasFilters ? t("common.result", locale) : t("common.allRecipes", locale)}
+              <span className="text-lg font-normal text-textGray ml-2">({total})</span>
             </h2>
 
             {/* Sort Controls */}
             {!hasFilters && (
               <div className="flex gap-2">
-                <LocalizedLink href={buildSortUrl("latest")} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentSort === "latest" ? "bg-brownWarm text-white" : "bg-white text-gray-600 hover:bg-gray-100"}`}>
-                  <Clock className="w-4 h-4 inline mr-1" /> {isEn ? "Latest" : "最新"}
+                <LocalizedLink href={buildSortUrl("latest")} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentSort === "latest" ? "bg-brownWarm text-white" : "bg-white text-textGray hover:bg-cream/70"}`}>
+                  <Clock className="w-4 h-4 inline mr-1" /> {t("common.latest", locale)}
                 </LocalizedLink>
-                <LocalizedLink href={buildSortUrl("popular")} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentSort === "popular" ? "bg-brownWarm text-white" : "bg-white text-gray-600 hover:bg-gray-100"}`}>
-                  <Flame className="w-4 h-4 inline mr-1" /> {isEn ? "Popular" : "最热"}
+                <LocalizedLink href={buildSortUrl("popular")} className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${currentSort === "popular" ? "bg-brownWarm text-white" : "bg-white text-textGray hover:bg-cream/70"}`}>
+                  <Flame className="w-4 h-4 inline mr-1" /> {t("common.popular", locale)}
                 </LocalizedLink>
               </div>
             )}
           </div>
 
           {recipesData.length === 0 ? (
-            <div className="text-center py-20 text-gray-500">
-              {isEn ? "No recipes found." : "暂时没有相关食谱。"}
+            <div className="text-center py-20 text-textGray">
+              {t("common.noRecipesFound", locale)}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -553,13 +597,13 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
             <div className="flex justify-center gap-4 mt-12">
               {page > 1 && (
                 <LocalizedLink href={buildPageUrl(page - 1)} className="px-6 py-2 bg-white rounded-full border hover:border-brownWarm transition-colors">
-                  {isEn ? "Previous" : "上一页"}
+                  {t("common.previous", locale)}
                 </LocalizedLink>
               )}
-              <span className="px-4 py-2 text-gray-500">{page} / {totalPages}</span>
+              <span className="px-4 py-2 text-textGray">{page} / {totalPages}</span>
               {page < totalPages && (
                 <LocalizedLink href={buildPageUrl(page + 1)} className="px-6 py-2 bg-white rounded-full border hover:border-brownWarm transition-colors">
-                  {isEn ? "Next" : "下一页"}
+                  {t("common.nextPage", locale)}
                 </LocalizedLink>
               )}
             </div>

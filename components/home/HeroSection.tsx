@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
+import { ChefHat } from "lucide-react";
 
 interface HeroConfig {
   title: string;
@@ -39,24 +41,20 @@ export function HeroSection({
   stats,
   locale = DEFAULT_LOCALE,
 }: HeroSectionProps) {
-  const isEn = locale === "en";
   const badges = config.chips?.slice(0, 3) || [];
   const supportingText = config.placeholder;
-  const seoTitle = config.seoTitle ?? config.title;
-  const displayTitle = config.displayTitle ?? config.title;
+  const rawDisplayTitle = config.displayTitle ?? config.title;
+  const displayTitle =
+    locale === "en"
+      ? rawDisplayTitle.replace(/\s+([^\s]+)\s*$/, "\u00A0$1")
+      : rawDisplayTitle;
   // 根据设计规范：主CTA是"浏览全部食谱"，次CTA是"AI定制"
   const primary =
-    primaryCta ??
-    (isEn
-      ? { label: "Browse All Recipes →", href: "/recipe" }
-      : { label: "浏览全部食谱 →", href: "/recipe" });
+    primaryCta ?? { label: t("home.browseAllRecipes", locale), href: "/recipe" };
   const secondary =
-    secondaryCta ??
-    (isEn
-      ? { label: "Or try AI Custom →", href: "/ai-custom" }
-      : { label: "或试试 AI定制你的专属菜谱 →", href: "/ai-custom" });
+    secondaryCta ?? { label: t("home.aiCustomSubtitle", locale), href: "/ai-custom" };
   const formatNumber = (num: number) => {
-    if (isEn) {
+    if (locale === "en") {
       return num.toLocaleString("en-US");
     }
     if (num >= 10000) {
@@ -72,65 +70,67 @@ export function HeroSection({
         <div className="absolute -bottom-32 -right-24 w-96 h-96 bg-brownWarm/15 blur-3xl rounded-full" />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-8 py-20 lg:py-24">
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center">
+      <div className="relative editorial-container py-20 lg:py-28">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
           <div>
+            
+            <div className="editorial-eyebrow">
+              <span className="editorial-eyebrow-line" />
+              <span>Recipe Zen</span>
+            </div>
+
             {badges.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="editorial-badges mt-5">
                 {badges.map((badge) => (
-                  <span
-                    key={badge}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 text-sm text-brownDark border border-cream shadow-sm"
-                  >
-                    <span className="text-brownWarm">✓</span>
+                  <span key={badge} className="flex items-center gap-2">
+                    <span className="editorial-badge-dot" />
                     {badge}
                   </span>
                 ))}
               </div>
             )}
 
-            <h1 className="sr-only">{seoTitle}</h1>
-            <div className="text-4xl md:text-5xl font-serif font-medium text-textDark mb-4 leading-tight">
+            <h1 className="editorial-hero-title mt-6 max-w-2xl text-balance">
               {displayTitle}
-            </div>
-            <p className="text-lg md:text-xl text-textGray mb-4">
+            </h1>
+            <p className="editorial-hero-subtitle editorial-hero-subtitle--dark mt-5 max-w-xl">
               {config.subtitle}
             </p>
-            <p className="text-base text-textGray/80 max-w-xl mb-8">
+            <p className="editorial-hero-body editorial-hero-body--dark max-w-xl mt-4">
               {supportingText}
             </p>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-4 mt-8">
               <LocalizedLink
                 href={primary.href}
-                className="inline-flex items-center justify-center px-8 py-4 bg-brownWarm text-white rounded-lg font-medium shadow-lg hover:bg-brownDark transition-colors w-fit"
+                className="editorial-button-primary inline-flex items-center justify-center"
               >
                 {primary.label}
               </LocalizedLink>
               <LocalizedLink
                 href={secondary.href}
-                className="text-sm text-textGray hover:text-brownWarm underline underline-offset-4 transition-colors w-fit"
+                className="editorial-link-muted"
               >
                 {secondary.label}
               </LocalizedLink>
             </div>
 
             {stats && (
-              <div className="mt-8 flex flex-wrap items-center gap-2 text-base text-textGray">
+              <div className="mt-8 flex flex-wrap items-center gap-4 editorial-meta">
                 <span>
-                  📊 {config.statsLabels?.generated || (isEn ? "Generated" : "已生成")}{" "}
+                  {config.statsLabels?.generated || t("home.statsGenerated", locale)}{" "}
                   <span className="font-semibold text-brownWarm">
                     {formatNumber(stats.recipesGenerated)}+
                   </span>{" "}
-                  {config.statsLabels?.recipes || (isEn ? "recipes" : "菜谱")}
+                  {config.statsLabels?.recipes || t("home.statsRecipes", locale)}
                 </span>
-                <span className="text-cream">|</span>
+                <span className="editorial-meta-dot" />
                 <span>
-                  ❤️ {config.statsLabels?.collected || (isEn ? "Collected" : "已收藏")}{" "}
+                  {config.statsLabels?.collected || t("home.statsCollected", locale)}{" "}
                   <span className="font-semibold text-brownWarm">
                     {formatNumber(stats.recipesCollected)}+
                   </span>{" "}
-                  {config.statsLabels?.times || (isEn ? "times" : "次")}
+                  {config.statsLabels?.times || t("home.statsTimes", locale)}
                 </span>
               </div>
             )}
@@ -141,7 +141,7 @@ export function HeroSection({
               {imageUrl ? (
                 <Image
                   src={imageUrl}
-                  alt={isEn ? "Recipe Zen hero" : "Recipe Zen 主视觉"}
+                  alt={t("home.heroTitle", locale)}
                   fill
                   priority
                   className="object-cover"
@@ -150,9 +150,9 @@ export function HeroSection({
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-cream via-white to-orangeAccent/20 flex items-center justify-center text-textGray">
                   <div className="text-center">
-                    <div className="text-4xl mb-3">🍲</div>
+                    <ChefHat className="w-10 h-10 text-brownWarm/60 mx-auto mb-3" />
                     <p className="text-sm">
-                      {isEn ? "Warm food scene placeholder" : "温暖美食场景图占位"}
+                      {t("home.teamPlaceholder", locale)}
                     </p>
                   </div>
                 </div>
@@ -160,10 +160,7 @@ export function HeroSection({
             </div>
             <div className="absolute -bottom-6 -left-6 bg-white/90 border border-cream rounded-2xl px-4 py-3 shadow-card">
               <p className="text-xs text-textGray">
-                {config.imageFloatingText ||
-                  (isEn
-                    ? "Expert-reviewed · Repeatable steps"
-                    : "专业团队审核 · 步骤可复现")}
+                {config.imageFloatingText || t("home.teamVerified", locale)}
               </p>
             </div>
           </div>

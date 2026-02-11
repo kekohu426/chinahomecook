@@ -124,6 +124,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Failed to fetch cuisines for sitemap:", error);
   }
 
+  // 获取所有已发布的博客文章
+  try {
+    const blogPosts = await prisma.blogPost.findMany({
+      where: { status: "published" },
+      select: {
+        slug: true,
+        updatedAt: true,
+        translations: {
+          select: { locale: true, slug: true },
+        },
+      },
+      orderBy: { publishedAt: "desc" },
+    });
+
+    for (const post of blogPosts) {
+      const path = `/blog/${post.slug}`;
+      const publishedLocales = new Set<Locale>([DEFAULT_LOCALE]);
+      for (const translation of post.translations) {
+        if (SUPPORTED_LOCALES.includes(translation.locale as Locale)) {
+          publishedLocales.add(translation.locale as Locale);
+        }
+      }
+      const alternateLanguages: Record<string, string> = {};
+      for (const locale of publishedLocales) {
+        alternateLanguages[LOCALE_ISO_CODES[locale]] = buildUrl(path, locale);
+      }
+      for (const locale of publishedLocales) {
+        sitemapEntries.push({
+          url: buildUrl(path, locale),
+          lastModified: post.updatedAt,
+          changeFrequency: "weekly",
+          priority: locale === DEFAULT_LOCALE ? 0.7 : 0.6,
+          alternates: {
+            languages: alternateLanguages,
+          },
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch blog posts for sitemap:", error);
+  }
+
   // 获取所有地点聚合页
   try {
     const locations = await prisma.location.findMany({

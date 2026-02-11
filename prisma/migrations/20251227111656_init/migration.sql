@@ -13,8 +13,6 @@ CREATE TABLE "Recipe" (
     "story" JSONB NOT NULL,
     "ingredients" JSONB NOT NULL,
     "steps" JSONB NOT NULL,
-    "styleGuide" JSONB NOT NULL,
-    "imageShots" JSONB NOT NULL,
     "author" TEXT,
     "tags" TEXT[],
     "isPublished" BOOLEAN NOT NULL DEFAULT false,

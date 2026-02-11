@@ -279,7 +279,7 @@ export default function AggregationCollectionsManager({
       {hasChanges && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-amber-700">
-            您有未保存的更改，请点击"保存排序"按钮保存。
+            您有未保存的更改，请点击“保存排序”按钮保存。
           </p>
         </div>
       )}

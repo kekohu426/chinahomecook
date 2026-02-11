@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
 
 interface AIChefCardProps {
   recipeTitle: string;
@@ -20,7 +21,6 @@ interface AIChefCardProps {
 
 export function AIChefCard({ recipeTitle }: AIChefCardProps) {
   const locale = useLocale();
-  const isEn = locale === "en";
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,19 +42,13 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
       });
 
       if (!response.ok) {
-        throw new Error(
-          isEn ? "AI service is temporarily unavailable" : "AI 服务暂时不可用"
-        );
+        throw new Error(t("ai.chefUnavailable", locale));
       }
 
       const data = await response.json();
       setAnswer(data.answer);
     } catch (error) {
-      setAnswer(
-        isEn
-          ? "Sorry, the AI chef can't respond right now. Please try again later."
-          : "抱歉，AI 主厨暂时无法回答，请稍后再试。"
-      );
+      setAnswer(t("ai.chefError", locale));
     } finally {
       setLoading(false);
     }
@@ -73,15 +67,13 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
       <div className="flex items-center gap-3 mb-4">
         <span className="text-3xl">🔧</span>
         <h3 className="text-xl font-serif font-medium">
-          {isEn ? "AI Chef" : "AI 智能主厨"}
+          {t("ai.chefTitle", locale)}
         </h3>
       </div>
 
       {/* 描述 */}
       <p className="text-cream/90 text-sm leading-relaxed mb-6">
-        {isEn
-          ? `I'm your digital chef. Ask anything about "${recipeTitle}"—for example, what to substitute if you don't have beer—and I'll guide you step by step.`
-          : `我是你的数字主厨。关于这道《${recipeTitle}》，有任何问题，比如没放啤酒可以用什么代替，我都会守在灶台边为你解答。`}
+        {t("ai.chefDescription", locale).replace("{title}", recipeTitle)}
       </p>
 
       {/* 输入框 */}
@@ -90,11 +82,7 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder={
-            isEn
-              ? "Example: Can I use white wine instead of beer?"
-              : "例如：没放啤酒可以用白酒代替吗？"
-          }
+          placeholder={t("ai.chefPlaceholder", locale)}
           className="flex-1 bg-white/12 border-white/25 text-white placeholder:text-white/55 focus:border-white/40 rounded-button"
           disabled={loading}
         />
@@ -103,7 +91,7 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
           disabled={loading || !question.trim()}
           className="bg-orangeAccent hover:bg-orangeAccent/90 text-brownDark font-medium px-6 rounded-button shadow-card"
         >
-          {loading ? (isEn ? "Thinking..." : "思考中...") : isEn ? "Ask Chef" : "咨询主厨"}
+          {loading ? t("ai.chefThinking", locale) : t("ai.chefAsk", locale)}
         </Button>
       </div>
 
@@ -114,7 +102,7 @@ export function AIChefCard({ recipeTitle }: AIChefCardProps) {
             <span className="text-2xl flex-shrink-0">👨‍🍳</span>
             <div>
               <p className="text-sm font-medium text-orangeAccent mb-2">
-                {isEn ? "Chef's advice:" : "主厨的建议："}
+                {t("ai.chefAdvice", locale)}
               </p>
               <p className="text-sm text-cream/95 leading-relaxed">{answer}</p>
             </div>

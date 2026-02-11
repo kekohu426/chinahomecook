@@ -16,10 +16,13 @@ async function requireAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const authError = await requireAdmin();
     if (authError) return authError;
+
+    const { searchParams } = new URL(request.url);
+    const locale = searchParams.get("locale") || "zh";
 
     const occasions = await prisma.tag.findMany({
       where: { type: "occasion" },
@@ -42,16 +45,21 @@ export async function GET() {
       : [];
     const countMap = new Map(counts.map((item) => [item.tagId, item._count._all]));
 
-    const data = occasions.map((occasion) => ({
-      id: occasion.id,
-      name: occasion.name,
-      slug: occasion.slug,
-      icon: occasion.icon,
-      sortOrder: occasion.sortOrder,
-      isActive: occasion.isActive,
-      translations: occasion.translations,
-      recipeCount: countMap.get(occasion.id) || 0,
-    }));
+    const data = occasions.map((occasion) => {
+      // 根据 locale 查找翻译
+      const translation = occasion.translations.find((t) => t.locale === locale);
+      return {
+        id: occasion.id,
+        name: translation?.name || occasion.name,
+        originalName: occasion.name,
+        slug: occasion.slug,
+        icon: occasion.icon,
+        sortOrder: occasion.sortOrder,
+        isActive: occasion.isActive,
+        translations: occasion.translations,
+        recipeCount: countMap.get(occasion.id) || 0,
+      };
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (error) {

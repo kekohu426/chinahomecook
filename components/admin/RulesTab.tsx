@@ -439,9 +439,9 @@ export default function RulesTab({ collection, onRefresh }: RulesTabProps) {
           ) : (
             <div className="text-sm text-textGray">
               {collection.rules.mode === "custom" && (collection.rules as any).groups?.length === 0 ? (
-                <p>暂无规则配置，点击"编辑规则"开始配置。</p>
+                <p>暂无规则配置，点击“编辑规则”开始配置。</p>
               ) : (
-                <p>已配置规则，点击"编辑规则"查看或修改。</p>
+                <p>已配置规则，点击“编辑规则”查看或修改。</p>
               )}
             </div>
           )}

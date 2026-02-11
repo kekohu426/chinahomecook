@@ -96,6 +96,7 @@ export async function GET(
       // 基本信息
       title: translation ? translation.title : recipe.title,
       slug: translation ? translation.slug : recipe.slug,
+      author: recipe.author,
       description: translation ? translation.description : recipe.description,
       difficulty: translation ? translation.difficulty : recipe.difficulty,
       prepTime: recipe.prepTime,
@@ -103,8 +104,6 @@ export async function GET(
       servings: recipe.servings,
       // 图片
       coverImage: recipe.coverImage,
-      styleGuide: recipe.styleGuide,
-      imageShots: recipe.imageShots,
       // 内容
       summary: translation ? translation.summary : recipe.summary,
       story: translation ? translation.story : recipe.story,

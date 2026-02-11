@@ -16,6 +16,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getTextProvider } from "@/lib/ai/provider";
 import { requireAdmin } from "@/lib/auth/guard";
 import { getAppliedPrompt } from "@/lib/ai/prompt-manager";
+import { AIGenerationLogger, calculateCost } from "@/lib/ai/generation-logger";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -162,7 +163,8 @@ function mergeFallback<T extends Record<string, unknown>>(source: T, translated?
 async function translateSingleRecipe(
   recipeId: string,
   targetLocales: string[],
-  autoApprove: boolean
+  autoApprove: boolean,
+  logger: AIGenerationLogger
 ): Promise<{ success: boolean; title: string; error?: string }> {
   const recipe = await prisma.recipe.findUnique({
     where: { id: recipeId },
@@ -180,11 +182,9 @@ async function translateSingleRecipe(
     story: recipe.story as Record<string, unknown>,
     ingredients: recipe.ingredients as unknown[],
     steps: recipe.steps as unknown[],
-    styleGuide: recipe.styleGuide as Record<string, unknown>,
-    imageShots: recipe.imageShots as unknown[],
   };
 
-  const provider = await getTextProvider();
+  const provider = getTextProvider();
   let hasError = false;
   let lastError = "";
 
@@ -192,6 +192,7 @@ async function translateSingleRecipe(
     const targetLocale = resolveLocale(targetLocaleRaw);
     if (targetLocale === sourceLocale) continue;
 
+    const startTime = Date.now();
     try {
       const targetLangName = LOCALE_NAMES_EN[targetLocale];
       const sourceLangName = LOCALE_NAMES_EN[sourceLocale];
@@ -215,6 +216,28 @@ async function translateSingleRecipe(
         maxTokens: 6000,
       });
 
+      // 记录AI调用日志
+      const durationMs = Date.now() - startTime;
+      const modelName = provider.getModel();
+      const tokenUsage = response.usage
+        ? {
+            input: response.usage.promptTokens,
+            output: response.usage.completionTokens,
+            total: response.usage.totalTokens,
+          }
+        : undefined;
+
+      logger.logSuccess("translation", modelName, {
+        prompt: applied.prompt.substring(0, 1000),
+        parameters: { temperature: 0.3, maxTokens: 6000, targetLocale },
+        tokenUsage,
+        cost: tokenUsage ? calculateCost(modelName, tokenUsage) : undefined,
+        durationMs,
+        provider: provider.getName(),
+        recipeId,
+        metadata: { entityType: "recipe", targetLocale, batch: true },
+      });
+
       const translated = parseJson(response.content || "");
       if (!translated) {
         throw new Error("AI 返回内容解析失败");
@@ -229,10 +252,6 @@ async function translateSingleRecipe(
       const steps = Array.isArray(translated.steps) && translated.steps.length > 0
         ? translated.steps
         : sourceData.steps;
-      const styleGuide = mergeFallback(sourceData.styleGuide, translated.styleGuide);
-      const imageShots = Array.isArray(translated.imageShots) && translated.imageShots.length > 0
-        ? translated.imageShots
-        : sourceData.imageShots;
 
       await prisma.recipeTranslation.upsert({
         where: { recipeId_locale: { recipeId, locale: targetLocale } },
@@ -282,9 +301,10 @@ async function handleBatchTranslate(
   autoApprove: boolean
 ) {
   const results: { recipeId: string; title: string; status: string; error?: string }[] = [];
+  const logger = new AIGenerationLogger();
 
   for (const recipeId of recipeIds) {
-    const result = await translateSingleRecipe(recipeId, targetLocales, autoApprove);
+    const result = await translateSingleRecipe(recipeId, targetLocales, autoApprove, logger);
     results.push({
       recipeId,
       title: result.title,

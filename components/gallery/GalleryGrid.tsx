@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import { Download, Eye, Loader2, X } from "lucide-react";
 import { useLocale } from "@/components/i18n/LocaleProvider";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish, toEnglishLabel } from "@/lib/i18n/english";
+import { CUISINE_LABELS_EN, LOCATION_LABELS_EN } from "@/lib/i18n/labels";
 
 interface GalleryImage {
   id: string;
@@ -23,7 +26,9 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
   const locale = useLocale();
   const isEn = locale === "en";
   const getDisplayTitle = (recipe: GalleryImage): string =>
-    (isEn ? recipe.titleZh || recipe.titleEn : recipe.titleZh) || "";
+    isEn
+      ? ensureEnglish(recipe.titleEn || recipe.titleZh, "Untitled Recipe")
+      : recipe.titleZh || recipe.titleEn || "";
   const [recipes, setRecipes] = useState<GalleryImage[]>(initialRecipes);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(recipes.length < total);
@@ -91,7 +96,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
     setDownloading(recipe.id);
     try {
       const response = await fetch(`/api/gallery/download/${recipe.id}`);
-      if (!response.ok) throw new Error(isEn ? "Download failed" : "下载失败");
+      if (!response.ok) throw new Error(t("gallery.downloadFailed", locale));
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -102,7 +107,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("下载失败:", error);
-      alert(isEn ? "Download failed. Please try again." : "下载失败，请稍后重试");
+      alert(t("gallery.downloadFailedRetry", locale));
     } finally {
       setDownloading(null);
     }
@@ -114,6 +119,12 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
       <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 [column-fill:_balance]">
         {recipes.map((recipe) => {
           const displayTitle = getDisplayTitle(recipe);
+          const locationLabel = isEn
+            ? toEnglishLabel(recipe.location, LOCATION_LABELS_EN, "")
+            : recipe.location;
+          const cuisineLabel = isEn
+            ? toEnglishLabel(recipe.cuisine, CUISINE_LABELS_EN, "")
+            : recipe.cuisine;
           return (
           <div
             key={recipe.id}
@@ -137,7 +148,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
                   </h3>
                   {(recipe.cuisine || recipe.location) && (
                     <p className="text-white/70 text-sm">
-                      {[recipe.location, recipe.cuisine]
+                      {[locationLabel, cuisineLabel]
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
@@ -150,7 +161,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
                   <button
                     onClick={() => setLightboxImage(recipe)}
                     className="w-10 h-10 rounded-full bg-white/90 text-textDark flex items-center justify-center hover:bg-white transition-colors"
-                    title={isEn ? "View" : "查看大图"}
+                    title={t("gallery.view", locale)}
                   >
                     <Eye className="w-5 h-5" />
                   </button>
@@ -160,7 +171,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
                     onClick={() => handleDownload(recipe)}
                     disabled={downloading === recipe.id}
                     className="w-10 h-10 rounded-full bg-brownWarm text-white flex items-center justify-center hover:bg-brownDark transition-colors disabled:opacity-60"
-                    title={isEn ? "Download" : "下载图片"}
+                    title={t("gallery.download", locale)}
                   >
                     {downloading === recipe.id ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -190,14 +201,12 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
         {loading && (
           <div className="flex items-center justify-center gap-2 text-textGray">
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span>{locale === "en" ? "Loading..." : "加载中..."}</span>
+            <span>{t("gallery.loading", locale)}</span>
           </div>
         )}
         {!hasMore && recipes.length > 0 && (
           <p className="text-textGray">
-            {locale === "en"
-              ? `Loaded ${recipes.length} images`
-              : `已加载全部 ${recipes.length} 张图片`}
+            {`${t("gallery.loadedAll", locale)} ${recipes.length} ${t("gallery.images", locale)}`}
           </p>
         )}
       </div>
@@ -247,7 +256,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
                   href={`/recipe/${lightboxImage.id}`}
                   className="px-4 py-2 bg-white/20 text-white rounded-full hover:bg-white/30 transition-colors"
                 >
-                  {isEn ? "View Recipe" : "查看食谱"}
+                  {t("gallery.viewRecipe", locale)}
                 </LocalizedLink>
                 <button
                   onClick={() => handleDownload(lightboxImage)}
@@ -259,7 +268,7 @@ export function GalleryGrid({ initialRecipes, total }: GalleryGridProps) {
                   ) : (
                     <Download className="w-4 h-4" />
                   )}
-                  {isEn ? "Download" : "下载图片"}
+                  {t("gallery.download", locale)}
                 </button>
               </div>
             </div>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth/guard";
 
 interface RecipeTags {
   scenes?: string[];
@@ -87,6 +86,9 @@ function generateSimpleTags(title: string): RecipeTags {
 
 export async function POST(request: NextRequest) {
   try {
+    const authError = await requireAdmin();
+    if (authError) return authError;
+
     const { limit = 100 } = await request.json();
 
     console.log('开始查找没有标签的菜谱...');

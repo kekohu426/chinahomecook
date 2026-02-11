@@ -2,6 +2,7 @@ import { LocalizedLink } from "@/components/i18n/LocalizedLink";
 import Image from "next/image";
 import { ArrowRight, Calendar } from "lucide-react";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
 
 // Mock 博客数据
 const MOCK_BLOGS: Partial<Record<Locale, {
@@ -99,19 +100,17 @@ export function BlogPreviewSection({ locale = DEFAULT_LOCALE }: { locale?: Local
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-serif font-medium text-textDark">
-              {locale === "en" ? "Cooking Tips & Food Stories" : "美食知识与烹饪技巧"}
+              {t("home.cookingTips", locale)}
             </h2>
             <p className="text-textGray mt-1">
-              {locale === "en"
-                ? "Not just recipes, but practical knowledge too."
-                : "不只是菜谱，还有实用的烹饪知识与美食文化。"}
+              {t("home.notJustRecipes", locale)}
             </p>
           </div>
           <LocalizedLink
             href="/blog"
             className="text-brownWarm hover:text-brownDark flex items-center gap-1 font-medium"
           >
-            {locale === "en" ? "Read more" : "查看更多"}
+            {t("home.readMore", locale)}
             <ArrowRight className="w-4 h-4" />
           </LocalizedLink>
         </div>

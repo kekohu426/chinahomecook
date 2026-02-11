@@ -7,14 +7,18 @@
  * 3. 循环生成食谱
  * 4. 检查取消状态
  * 5. 更新进度和结果
+ * 6. 创建 ImageGenTask（图片生成由独立系统处理）
  *
- * 注意：标签关联现在使用统一的 RecipeTag 表
+ * 注意：
+ * - 标签关联使用统一的 RecipeTag 表
+ * - 图片生成已迁移到 ImageGenTask 系统，不再在此处自动生成
  */
 
 import { prisma } from "@/lib/db/prisma";
 import { ensureIngredientIconRecords } from "@/lib/ingredients/ensure-ingredient-icons";
-import { generateRecipe, generateStepImages, generateCoverImages } from "./generate-recipe";
+import { generateRecipe } from "./generate-recipe";
 import { validateAITags, extractTagsFromAIOutput, type ValidatedTags } from "./tag-validator";
+import { assignTeamMembers } from "@/lib/team/assign-members";
 
 /**
  * 生成结果类型
@@ -129,6 +133,61 @@ async function updateJobProgress(
 }
 
 /**
+ * 创建图片生成任务
+ * 包含步骤图和成品图配置
+ */
+async function createImageGenTask(
+  recipeId: string,
+  recipeData: any,
+  dishName: string,
+  jobId: string
+): Promise<void> {
+  try {
+    // 准备步骤数据
+    const stepsForTask = (recipeData.steps || []).map((s: any, idx: number) => ({
+      number: s.number || idx + 1,
+      description: s.description || s.instruction || '',
+      title: s.title,
+      action: s.action,
+    }));
+
+    // 准备成品图数据（提示词由执行器自动生成）
+    const imageShotsForTask = [
+      { key: "cover_main", ratio: "16:9" },
+      { key: "cover_detail", ratio: "16:9" },
+      { key: "cover_inside", ratio: "16:9" },
+    ];
+
+    // 根据菜品风格判断 dishStyle
+    const tags = recipeData.tags || {};
+    const tagString = JSON.stringify(tags).toLowerCase();
+    let dishStyle = 'dark_and_moody';
+    if (/烘焙|蛋糕|面包|饼干|甜点|西点|baking/.test(tagString)) {
+      dishStyle = 'baking';
+    } else if (/清淡|沙拉|蔬菜|清蒸|light/.test(tagString)) {
+      dishStyle = 'light_and_fresh';
+    }
+
+    await prisma.imageGenTask.create({
+      data: {
+        recipeId,
+        recipeName: recipeData.titleZh || dishName,
+        dishStyle,
+        steps: stepsForTask,
+        totalSteps: stepsForTask.length,
+        imageShots: imageShotsForTask,
+        totalShots: imageShotsForTask.length,
+        status: 'pending',
+      },
+    });
+
+    console.log(`[Job ${jobId}] 已创建 ImageGenTask: ${recipeData.titleZh || dishName} (${stepsForTask.length} 步骤, ${imageShotsForTask.length} 成品图)`);
+  } catch (taskError) {
+    console.error(`[Job ${jobId}] 创建 ImageGenTask 失败:`, taskError);
+  }
+}
+
+/**
  * 执行生成任务
  */
 export async function executeGenerateJob(jobId: string): Promise<JobExecutionResult> {
@@ -221,6 +280,7 @@ export async function executeGenerateJob(jobId: string): Promise<JobExecutionRes
           const recipeData = result.success ? result.data : result.data!;
           const generateWarning = result.success ? undefined : result.error;
           const validationIssues = result.success ? undefined : result.issues;
+
           // 保存到数据库（先落库草稿，避免后续失败丢失）
           const slug = `recipe-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
           const tags = recipeData.tags || {};
@@ -241,7 +301,10 @@ export async function executeGenerateJob(jobId: string): Promise<JobExecutionRes
           // 排除 tags 字段（AI 返回的是结构化标签建议，不能直接存入多对多关系）
           const { tags: _aiTags, ...recipeDataWithoutTags } = recipeData;
 
-          let recipe = await prisma.recipe.create({
+          // 自动分配团队成员
+          const teamAssignment = await assignTeamMembers();
+
+          const recipe = await prisma.recipe.create({
             data: {
               title: recipeDataWithoutTags.titleZh,
               summary: recipeDataWithoutTags.summary as object,
@@ -256,14 +319,14 @@ export async function executeGenerateJob(jobId: string): Promise<JobExecutionRes
               pairing: (recipeDataWithoutTags.pairing ?? null) as object,
               seo: (recipeDataWithoutTags.seo ?? null) as object,
               notes: (recipeDataWithoutTags.notes ?? null) as object,
-              styleGuide: recipeDataWithoutTags.styleGuide as object,
-              imageShots: recipeDataWithoutTags.imageShots as object[],
               slug,
               coverImage: undefined,
               aiGenerated: true,
               status: "draft",
               reviewStatus: "pending",
               transStatus,
+              explorerId: teamAssignment.explorerId,
+              reviewerId: teamAssignment.reviewerId,
               // 关联菜系和地点（如果锁定了）
               ...(cuisineSlug ? {
                 cuisine: {
@@ -278,63 +341,18 @@ export async function executeGenerateJob(jobId: string): Promise<JobExecutionRes
             },
           });
 
-          // 生成成功，生成图片
-          const shouldGenerateImages = result.success;
-          if (shouldGenerateImages) {
-            console.log(`[Job ${jobId}] 开始为 ${dishName} 生成图片...`);
+          // 创建 ImageGenTask（图片生成由独立系统处理）
+          // 不再自动生成图片，用户可在提示词生成器页面手动执行
+          if (result.success) {
+            await createImageGenTask(recipe.id, recipeData, dishName, jobId);
           }
 
-          let imageError: string | undefined;
-          let coverImage: string | undefined;
-          try {
-            // 生成步骤图
-            if (shouldGenerateImages && recipeData.steps && recipeData.steps.length > 0) {
-              recipeData.steps = await generateStepImages(
-                recipeData.steps as any[],
-                recipeData.titleZh || dishName
-              ) as any;
-            }
-
-            // 生成成品图
-            if (shouldGenerateImages && recipeData.imageShots && recipeData.imageShots.length > 0) {
-              recipeData.imageShots = await generateCoverImages(
-                recipeData.imageShots as any[],
-                recipeData.titleZh || dishName
-              ) as any;
-            }
-
-            // 设置封面图
-            if (recipeData.imageShots && recipeData.imageShots.length > 0) {
-              const coverShot = (recipeData.imageShots as any[]).find(
-                (s: any) => (s.key === "hero" || s.key === "cover" || s.key === "cover_main") && s.imageUrl
-              );
-              if (coverShot) {
-                coverImage = coverShot.imageUrl;
-              } else {
-                const firstSuccess = (recipeData.imageShots as any[]).find((s: any) => s.imageUrl);
-                if (firstSuccess) {
-                  coverImage = firstSuccess.imageUrl;
-                }
-              }
-            }
-          } catch (imageErr) {
-            imageError = imageErr instanceof Error ? imageErr.message : String(imageErr);
-            console.error(`[Job ${jobId}] 生成图片失败，继续保存草稿:`, imageErr);
-          }
-
-          if (imageError || coverImage || recipeData.imageShots || recipeData.steps || transStatus) {
-            const mergedTransStatus = {
-              ...(transStatus ?? {}),
-              ...(imageError ? { imageError } : {}),
-            };
-
+          // 如果有额外状态需要保存
+          if (transStatus) {
             await prisma.recipe.update({
               where: { id: recipe.id },
               data: {
-                steps: recipeData.steps as object[],
-                imageShots: recipeData.imageShots as object[],
-                coverImage,
-                transStatus: Object.keys(mergedTransStatus).length > 0 ? mergedTransStatus : undefined,
+                transStatus,
               },
             });
           }
@@ -357,9 +375,6 @@ export async function executeGenerateJob(jobId: string): Promise<JobExecutionRes
           const warnings: string[] = [];
           if (generateWarning) {
             warnings.push(`已保存草稿，但生成校验失败: ${generateWarning}`);
-          }
-          if (imageError) {
-            warnings.push(`图片生成失败: ${imageError}`);
           }
 
           results.push({

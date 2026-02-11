@@ -8,6 +8,7 @@ import {
   MapPin,
   UtensilsCrossed,
   Loader2,
+  Users,
 } from "lucide-react";
 
 interface Location {
@@ -227,12 +228,21 @@ export default function ConfigPage() {
           </h1>
           <p className="text-sage-500">管理地点和菜系配置</p>
         </div>
-        <Link
-          href="/admin/recipes"
-          className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 rounded-lg transition-colors"
-        >
-          返回食谱管理
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/admin/config/team"
+            className="px-4 py-2 bg-sage-600 hover:bg-sage-700 text-white rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Users className="w-4 h-4" />
+            团队成员管理
+          </Link>
+          <Link
+            href="/admin/recipes"
+            className="px-4 py-2 bg-sage-100 hover:bg-sage-200 text-sage-700 rounded-lg transition-colors"
+          >
+            返回食谱管理
+          </Link>
+        </div>
       </div>
 
       {/* 标签页 */}

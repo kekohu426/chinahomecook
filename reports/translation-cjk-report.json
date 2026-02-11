@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-02-07T08:36:29.641Z",
+  "locale": "en",
+  "tables": {
+    "recipeTranslation": {
+      "total": 108,
+      "dirty": 0,
+      "samples": []
+    },
+    "cuisineTranslation": {
+      "total": 11,
+      "dirty": 0,
+      "samples": []
+    },
+    "locationTranslation": {
+      "total": 11,
+      "dirty": 0,
+      "samples": []
+    },
+    "tagTranslation": {
+      "total": 154,
+      "dirty": 0,
+      "samples": []
+    },
+    "collectionTranslation": {
+      "total": 18,
+      "dirty": 0,
+      "samples": []
+    },
+    "homeConfigTranslation": {
+      "total": 0,
+      "dirty": 0,
+      "samples": []
+    },
+    "homeBrowseItemTranslation": {
+      "total": 34,
+      "dirty": 0,
+      "samples": []
+    },
+    "homeThemeCardTranslation": {
+      "total": 4,
+      "dirty": 0,
+      "samples": []
+    },
+    "homeTestimonialTranslation": {
+      "total": 6,
+      "dirty": 0,
+      "samples": []
+    },
+    "aboutSectionTranslation": {
+      "total": 3,
+      "dirty": 0,
+      "samples": []
+    },
+    "blogPostTranslation": {
+      "total": 2,
+      "dirty": 0,
+      "samples": []
+    },
+    "ingredientTranslation": {
+      "total": 0,
+      "dirty": 0,
+      "samples": []
+    }
+  }
+}

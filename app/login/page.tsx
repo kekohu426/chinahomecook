@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DEFAULT_LOCALE, LOCALE_COOKIE_NAME, type Locale } from "@/lib/i18n/config";
@@ -10,9 +10,13 @@ import { localizePath } from "@/lib/i18n/utils";
 export default function LoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [showLogin, setShowLogin] = useState(false);
   const isEn = locale === "en";
+
+  // 获取 callbackUrl，默认根据角色跳转
+  const callbackUrl = searchParams.get("callbackUrl");
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -38,13 +42,16 @@ export default function LoginPage() {
   // If already logged in, redirect
   useEffect(() => {
     if (session?.user) {
-      if (session.user.role === "ADMIN") {
+      // 如果有 callbackUrl，优先跳转到 callbackUrl
+      if (callbackUrl) {
+        router.push(callbackUrl);
+      } else if (session.user.role === "ADMIN") {
         router.push("/admin/recipes");
       } else {
         router.push(localizePath("/", locale));
       }
     }
-  }, [session, router, locale]);
+  }, [session, router, locale, callbackUrl]);
 
   if (status === "loading" && !showLogin) {
     return (
@@ -69,11 +76,11 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-textGray mb-8">
-          {isEn ? "Sign in to access admin" : "登录以访问管理后台"}
+          {isEn ? "Sign in to continue" : "登录以继续"}
         </p>
 
         <button
-          onClick={() => signIn("google", { callbackUrl: "/admin/recipes" })}
+          onClick={() => signIn("google", { callbackUrl: callbackUrl || localizePath("/", locale) })}
           className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 rounded-xl py-3 px-4 font-medium transition-all"
         >
           <GoogleIcon />
@@ -82,8 +89,8 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-textGray/60 mt-6">
           {isEn
-            ? "First-time sign-ins will be granted admin access"
-            : "首次登录的用户将自动成为管理员"}
+            ? "Sign in with your Google account to access your favorites"
+            : "使用 Google 账号登录以访问您的收藏"}
         </p>
 
         <div className="mt-8 pt-6 border-t border-gray-100 text-center">

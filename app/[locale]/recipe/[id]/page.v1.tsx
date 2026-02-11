@@ -22,6 +22,7 @@ import type { Metadata } from "next";
 import { generateAlternates } from "@/lib/seo/alternates";
 import { localizePath } from "@/lib/i18n/utils";
 import { auth } from "@/lib/auth";
+import { t } from "@/lib/i18n/translations";
 
 /**
  * 通过 slug 或 ID 查找食谱
@@ -37,8 +38,6 @@ type RecipeWithTranslations = Awaited<ReturnType<typeof prisma.recipe.findUnique
     story: any;
     ingredients: any;
     steps: any;
-    styleGuide: any;
-    imageShots: any;
   }[];
 };
 
@@ -98,12 +97,14 @@ export async function generateMetadata({
   const idOrSlug = decodeURIComponent(rawId);
   const locales = getContentLocales(locale);
   const isEn = locale === "en";
+  const notFoundTitle = t("recipeDetail.recipeNotFound", locale);
+  const fallbackDescription = t("recipeDetail.teamReviewed", locale);
 
   try {
     const recipe = await findRecipeBySlugOrId(idOrSlug, { locales });
 
     if (!recipe || (recipe.status !== "published" && !previewAllowed)) {
-      return { title: isEn ? "Recipe not found" : "食谱不存在" };
+      return { title: notFoundTitle };
     }
 
     const translation =
@@ -115,7 +116,7 @@ export async function generateMetadata({
     const description =
       summary?.oneLine ||
       summary?.healingTone ||
-      (isEn ? "A trusted recipe reviewed by our team." : "专业审核的可靠食谱。");
+      fallbackDescription;
 
     // 使用 slug 生成规范 URL
     const alternates = generateAlternates(`/recipe/${recipe.slug}`, locale);
@@ -135,7 +136,7 @@ export async function generateMetadata({
     };
   } catch (error) {
     console.error("Failed to generate recipe metadata:", error);
-    return { title: isEn ? "Recipe" : "食谱" };
+    return { title: t("recipe.recipeTitle", locale) };
   }
 }
 
@@ -211,10 +212,6 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     ingredients:
       (translation?.ingredients as any) || (recipeData.ingredients as any),
     steps: (translation?.steps as any) || (recipeData.steps as any),
-    styleGuide:
-      (translation?.styleGuide as any) || (recipeData.styleGuide as any),
-    imageShots:
-      (translation?.imageShots as any) || (recipeData.imageShots as any),
     nutrition: (recipeData.nutrition as any) || undefined,
     faq: (recipeData.faq as any) || undefined,
     tips: (recipeData.tips as any) || undefined,
@@ -225,19 +222,8 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     notes: (recipeData.notes as any) || undefined,
   };
 
-  // 构建步骤图片映射（优先步骤内 imageUrl，其次配图方案）
-  const stepImages = (recipe.imageShots || []).reduce<Record<string, string | undefined>>((acc, shot) => {
-    const url = (shot as any).imageUrl;
-    if (shot.key) {
-      acc[shot.key] = url;
-      const digits = shot.key.replace(/\D/g, "");
-      if (digits) {
-        acc[`step${digits}`] = url;
-        acc[digits] = url;
-      }
-    }
-    return acc;
-  }, {});
+  // 构建步骤图片映射（优先步骤内 imageUrl）
+  const stepImages: Record<string, string | undefined> = {};
   (recipe.steps || []).forEach((step: any) => {
     if (step?.id && step?.imageUrl) {
       stepImages[step.id] = step.imageUrl;
@@ -255,9 +241,15 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
     stepImages["cover"] ||
     stepImages["hero"] ||
     stepImages["final"];
+  const recipesLabel = t("nav.recipes", locale);
+  const relatedRecipesLabel = t("recipe.relatedRecipes", locale);
+  const moreRecipesLabel = t("recipe.moreRecipes", locale).replace(
+    "{name}",
+    cuisineName || recipesLabel
+  );
 
   return (
-    <div className="min-h-screen bg-[#FDF8F3]">
+    <div className="min-h-screen bg-cream">
       <Header />
 
       {/* 面包屑导航 */}
@@ -268,7 +260,7 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
           </LocalizedLink>
           <ChevronRight className="w-4 h-4" />
           <LocalizedLink href="/recipe" className="hover:text-brownWarm transition-colors">
-            {locale === "en" ? "Recipes" : "食谱"}
+            {recipesLabel}
           </LocalizedLink>
           {cuisineName && cuisineHref && (
             <>
@@ -299,15 +291,13 @@ export default async function RecipePage({ params, searchParams }: RecipePagePro
         <section className="max-w-7xl mx-auto px-4 sm:px-8 py-12 border-t border-lightGray">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-serif font-medium text-textDark">
-              {locale === "en" ? "Related Recipes" : "相关食谱推荐"}
+              {relatedRecipesLabel}
             </h2>
             <LocalizedLink
               href={cuisineHref || "/recipe"}
               className="text-brownWarm hover:underline text-sm"
             >
-              {locale === "en"
-                ? `More ${cuisineName || "recipes"} →`
-                : `查看更多 ${cuisineName || "食谱"} →`}
+              {moreRecipesLabel}
             </LocalizedLink>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

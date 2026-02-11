@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import type { Locale } from "@/lib/i18n/config";
 import type { Metadata } from "next";
+import { t } from "@/lib/i18n/translations";
 
 interface SearchPageProps {
   params: Promise<{ locale: Locale }>;
@@ -19,18 +20,13 @@ export async function generateMetadata({
   searchParams,
 }: SearchPageProps): Promise<Metadata> {
   const { locale } = await params;
-  const isEn = locale === "en";
   const { q } = await searchParams;
-  const baseTitle = isEn ? "Search Recipes - Recipe Zen" : "搜索食谱 - Recipe Zen";
+  const baseTitle = t("search.metaTitle", locale);
   return {
     title: q
-      ? isEn
-        ? `Search “${q}” - Recipe Zen`
-        : `搜索“${q}” - Recipe Zen`
+      ? t("search.metaTitleQuery", locale).replace("{query}", q)
       : baseTitle,
-    description: isEn
-      ? "Search recipes, ingredients, and cooking ideas in Recipe Zen."
-      : "在 Recipe Zen 搜索食谱、食材与烹饪灵感。",
+    description: t("search.metaDescription", locale),
   };
 }
 
@@ -46,7 +42,7 @@ async function SearchResults({
       <div className="text-center py-16">
         <ChefHat className="w-16 h-16 mx-auto text-textGray mb-4" />
         <p className="text-textGray">
-          {locale === "en" ? "Type a dish to start searching" : "请输入菜名开始搜索"}
+          {t("search.promptTypeDish", locale)}
         </p>
       </div>
     );
@@ -62,7 +58,7 @@ async function SearchResults({
     );
 
     if (!response.ok) {
-      throw new Error(locale === "en" ? "Search failed" : "搜索失败");
+      throw new Error(t("search.failed", locale));
     }
 
     const result = await response.json();
@@ -82,14 +78,10 @@ async function SearchResults({
               <Sparkles className="w-6 h-6 text-brownWarm flex-shrink-0 mt-1" />
               <div>
                 <h3 className="font-medium text-textDark mb-1">
-                  {locale === "en"
-                    ? "✨ AI generated a new recipe for you"
-                    : "✨ AI为您生成了新菜谱"}
+                  {t("search.aiGeneratedTitle", locale)}
                 </h3>
                 <p className="text-sm text-textGray">
-                  {locale === "en"
-                    ? `We couldn't find "${query}", so we created one for you.`
-                    : `我们没有找到"${query}"的现有菜谱，已使用AI为您生成了专属食谱！`}
+                  {t("search.aiGeneratedDescription", locale).replace("{query}", query)}
                 </p>
               </div>
             </div>
@@ -99,9 +91,7 @@ async function SearchResults({
         {/* 搜索结果统计 */}
         <div className="mb-6">
           <h2 className="text-xl font-medium text-textDark">
-            {locale === "en" ? "Found" : "找到"}{" "}
-            <span className="text-brownWarm">{recipes.length}</span>{" "}
-            {locale === "en" ? "recipes" : "个相关菜谱"}
+            {t("search.foundCount", locale).replace("{count}", recipes.length.toString())}
           </h2>
         </div>
 
@@ -128,10 +118,10 @@ async function SearchResults({
     return (
       <div className="text-center py-16">
         <p className="text-red-500 mb-2">
-          {locale === "en" ? "Search failed" : "搜索出错了"}
+          {t("search.failed", locale)}
         </p>
         <p className="text-sm text-textGray">
-          {locale === "en" ? "Please try again later" : "请稍后重试"}
+          {t("search.failedDescription", locale)}
         </p>
       </div>
     );
@@ -159,10 +149,8 @@ export default async function SearchPage({
           <ChevronRight className="w-4 h-4" />
           <span className="text-textDark">
             {query
-              ? `${locale === "en" ? "Search:" : "搜索:"} ${query}`
-              : locale === "en"
-              ? "Search"
-              : "搜索"}
+              ? t("search.breadcrumbQuery", locale).replace("{query}", query)
+              : t("search.breadcrumb", locale)}
           </span>
         </nav>
       </div>
@@ -182,12 +170,8 @@ export default async function SearchPage({
               <Loader2 className="w-8 h-8 text-textGray animate-spin" />
               <span className="ml-3 text-textGray">
                 {query
-                  ? locale === "en"
-                    ? "Searching..."
-                    : "正在搜索..."
-                  : locale === "en"
-                  ? "Loading..."
-                  : "加载中..."}
+                  ? t("search.searching", locale)
+                  : t("status.loading", locale)}
               </span>
             </div>
           }

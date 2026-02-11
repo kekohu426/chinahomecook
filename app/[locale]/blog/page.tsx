@@ -11,33 +11,90 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageHero } from "@/components/ui/PageHero";
 import { Calendar, Tag, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
-// import { prisma } from "@/lib/db/prisma"; // Unused until BlogPost model is created
+import { prisma } from "@/lib/db/prisma";
 import type { Locale } from "@/lib/i18n/config";
+import { t } from "@/lib/i18n/translations";
+import { ensureEnglish } from "@/lib/i18n/english";
+import { getDateLocale } from "@/lib/i18n/format";
 import { DEFAULT_LOCALE } from "@/lib/i18n/config";
-// import { getContentLocales } from "@/lib/i18n/content"; // Unused until BlogPost model is created
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-interface BlogPost {
+interface BlogPostItem {
   id: string;
   title: string;
   summary: string;
   slug: string;
-  tags: string[];
   coverImage: string | null;
   publishedAt: Date | null;
   authorName: string | null;
 }
 
-// TODO: BlogPost 模型尚未在新 schema 中实现
-// 当博客模型创建后，需要更新此函数
-async function getBlogPosts(_page: number = 1, _tag?: string, _locale: Locale = DEFAULT_LOCALE) {
-  // BlogPost 模型不存在，返回空数据
-  return {
-    posts: [] as BlogPost[],
-    pagination: { page: 1, limit: 12, total: 0, totalPages: 0 },
-  };
+async function getBlogPosts(page: number = 1, _tag?: string, locale: Locale = DEFAULT_LOCALE) {
+  const limit = 12;
+  const skip = (page - 1) * limit;
+
+  try {
+    const [posts, total] = await Promise.all([
+      prisma.blogPost.findMany({
+        where: { status: "published" },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          coverImage: true,
+          publishedAt: true,
+          author: true,
+          translations: {
+            where: { locale },
+            select: {
+              title: true,
+              slug: true,
+              excerpt: true,
+            },
+          },
+        },
+        orderBy: { publishedAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.blogPost.count({ where: { status: "published" } }),
+    ]);
+
+    // 转换为统一格式，优先使用翻译内容
+    const formattedPosts: BlogPostItem[] = posts.map((post) => {
+      const translation = post.translations[0];
+      const rawTitle = translation?.title || post.title;
+      const rawSummary = translation?.excerpt || post.excerpt || "";
+      return {
+        id: post.id,
+        title: locale === "en" ? ensureEnglish(rawTitle, "Untitled Post") : rawTitle,
+        summary: locale === "en" ? ensureEnglish(rawSummary, "") : rawSummary,
+        slug: translation?.slug || post.slug,
+        coverImage: post.coverImage,
+        publishedAt: post.publishedAt,
+        authorName: post.author,
+      };
+    });
+
+    return {
+      posts: formattedPosts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    console.error("Failed to fetch blog posts:", error);
+    return {
+      posts: [] as BlogPostItem[],
+      pagination: { page: 1, limit: 12, total: 0, totalPages: 0 },
+    };
+  }
 }
 
 export async function generateMetadata({
@@ -46,12 +103,9 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const isEn = locale === "en";
   return {
-    title: isEn ? "Food Blog - Recipe Zen" : "美食博客 - Recipe Zen",
-    description: isEn
-      ? "Cooking tips, food culture, and healthy eating ideas to inspire your kitchen."
-      : "分享烹饪技巧、美食文化、健康饮食知识，让你成为厨房达人",
+    title: t("blog.metaTitle", locale),
+    description: t("blog.metaDescription", locale),
   };
 }
 
@@ -63,7 +117,6 @@ export default async function BlogPage({
   searchParams: Promise<{ page?: string; tag?: string }>;
 }) {
   const { locale } = await params;
-  const isEn = locale === "en";
   const search = await searchParams;
   const page = parseInt(search.page || "1");
   const tag = search.tag;
@@ -75,13 +128,11 @@ export default async function BlogPage({
 
       {/* 页面标题区（版本3统一渐变 Hero） */}
       <PageHero
-        title={locale === "en" ? "Food Blog" : "美食博客"}
-        titleEn={locale === "en" ? undefined : "Recipe Zen Blog"}
-        description={locale === "en"
-          ? "Cooking skills · Food culture · Healthy eating"
-          : "烹饪技巧 · 美食文化 · 健康饮食"}
+        title={t("blog.heroTitle", locale)}
+        titleEn={locale === "en" ? undefined : t("blog.heroTitleEn", locale)}
+        description={t("blog.heroSubtitle", locale)}
         icon={BookOpen}
-        breadcrumbs={[{ label: locale === "en" ? "Blog" : "博客" }]}
+        breadcrumbs={[{ label: t("blog.breadcrumb", locale) }]}
         locale={locale}
       />
 
@@ -90,14 +141,14 @@ export default async function BlogPage({
         <div className="max-w-7xl mx-auto px-8 pt-8">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-textGray">
-              {locale === "en" ? "Filter:" : "当前筛选："}
+              {t("blog.filterLabel", locale)}
             </span>
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-brownWarm/10 text-brownWarm rounded-full">
               <Tag className="w-3 h-3" />
               {tag}
             </span>
             <LocalizedLink href="/blog" className="text-textGray hover:text-brownWarm">
-              {locale === "en" ? "Clear" : "清除"}
+              {t("blog.filterClear", locale)}
             </LocalizedLink>
           </div>
         </div>
@@ -111,12 +162,10 @@ export default async function BlogPage({
               <span className="text-4xl">📝</span>
             </div>
             <h2 className="text-xl font-medium text-textDark mb-2">
-              {locale === "en" ? "No posts yet" : "暂无博客文章"}
+              {t("blog.emptyTitle", locale)}
             </h2>
             <p className="text-textGray">
-              {locale === "en"
-                ? "New content is on the way."
-                : "精彩内容即将上线，敬请期待"}
+              {t("blog.emptySubtitle", locale)}
             </p>
           </div>
         ) : (
@@ -147,20 +196,6 @@ export default async function BlogPage({
 
                   {/* 内容 */}
                   <div className="p-6">
-                    {/* 标签 */}
-                    {post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {post.tags.slice(0, 2).map((t) => (
-                          <span
-                            key={t}
-                            className="px-2 py-0.5 bg-brownWarm/10 text-brownWarm text-xs rounded-full"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
                     {/* 标题 */}
                     <h2 className="text-lg font-medium text-textDark group-hover:text-brownWarm transition-colors line-clamp-2 mb-3">
                       {post.title}
@@ -168,7 +203,7 @@ export default async function BlogPage({
 
                     {/* 摘要 */}
                     <p className="text-sm text-textGray line-clamp-3 mb-4">
-                      {post.summary || (isEn ? "Read more..." : "点击查看详情...")}
+                      {post.summary || t("blog.readMore", locale)}
                     </p>
 
                     {/* 底部信息 */}
@@ -178,7 +213,7 @@ export default async function BlogPage({
                         <Calendar className="w-3 h-3" />
                         {post.publishedAt
                           ? new Date(post.publishedAt).toLocaleDateString(
-                              locale === "en" ? "en-US" : "zh-CN"
+                              getDateLocale(locale)
                             )
                           : "-"}
                       </span>
@@ -197,7 +232,7 @@ export default async function BlogPage({
                     className="flex items-center gap-1 px-4 py-2 border border-lightGray rounded-lg hover:bg-lightGray/50 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    {locale === "en" ? "Prev" : "上一页"}
+                    {t("common.previous", locale)}
                   </LocalizedLink>
                 )}
 
@@ -241,7 +276,7 @@ export default async function BlogPage({
                     href={`/blog?page=${page + 1}${tag ? `&tag=${tag}` : ""}`}
                     className="flex items-center gap-1 px-4 py-2 border border-lightGray rounded-lg hover:bg-lightGray/50 transition-colors"
                   >
-                    {locale === "en" ? "Next" : "下一页"}
+                    {t("common.nextPage", locale)}
                     <ChevronRight className="w-4 h-4" />
                   </LocalizedLink>
                 )}
